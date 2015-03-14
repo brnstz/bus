@@ -8,7 +8,7 @@ import (
 	"github.com/golang/protobuf/proto"
 
 	//			"github.com/golang/protobuf/proto"
-	"github.com/brnstz/mta/transit_realtime"
+	"github.com/brnstz/bus/transit_realtime"
 )
 
 var (
@@ -39,8 +39,8 @@ func getOne(id int) (err error) {
 			return
 		}*/
 
-	//b, err := ioutil.ReadFile("ltrain.gtfs")
-	b, err := ioutil.ReadFile("othertrain.gtfs")
+	//b, err := ioutil.ReadFile("testdata/ltrain.gtfs")
+	b, err := ioutil.ReadFile("testdata/othertrain.gtfs")
 	if err != nil {
 		log.Println("can't read body", err)
 		return
