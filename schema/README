@@ -1,0 +1,14 @@
+Source data: 
+
+- List of subway and bus stops with lat/lon:
+    - stops.txt within this file: 
+        - http://web.mta.info/developers/data/nyct/subway/google_transit.zip
+        - http://web.mta.info/developers/data/nyct/bus/google_transit_bronx.zip
+        - http://web.mta.info/developers/data/nyct/bus/google_transit_brooklyn.zip
+        - http://web.mta.info/developers/data/nyct/bus/google_transit_manhattan.zip
+        - http://web.mta.info/developers/data/nyct/bus/google_transit_queens.zip
+        - http://web.mta.info/developers/data/nyct/bus/google_transit_staten_island.zip
+
+Fields we care about:
+    - trips.txt:trip_headsign,direction_id
+    - stop_times.txt:trip_id,arrival_time,
