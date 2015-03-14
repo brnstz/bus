@@ -1,0 +1,186 @@
+{
+    "code": 200,
+    "currentTime": 1425850131627,
+    "data": {
+        "arrivalsAndDepartures": [
+            {
+                "routeId": "MTA NYCT_B43",
+                "routeShortName": "B43",
+                "scheduledArrivalTime": 1425854006000,
+                "scheduledDepartureTime": 1425854006000,
+                "status": "default",
+                "stopId": "MTA_305157",
+                "tripHeadsign": "GREENPOINT BOX ST",
+                "tripId": "MTA NYCT_JG_A5-Sunday-106000_B16_7"
+            },
+            {
+                "routeId": "MTA NYCT_B43",
+                "routeShortName": "B43",
+                "scheduledArrivalTime": 1425855206000,
+                "scheduledDepartureTime": 1425855206000,
+                "status": "default",
+                "stopId": "MTA_305157",
+                "tripHeadsign": "GREENPOINT BOX ST",
+                "tripId": "MTA NYCT_JG_A5-Sunday-108000_B43_122"
+            },
+            {
+                "routeId": "MTA NYCT_B43",
+                "routeShortName": "B43",
+                "scheduledArrivalTime": 1425858146000,
+                "scheduledDepartureTime": 1425858146000,
+                "status": "default",
+                "stopId": "MTA_305157",
+                "tripHeadsign": "GREENPOINT BOX ST",
+                "tripId": "MTA NYCT_JG_A5-Sunday-113000_B16_8"
+            },
+            {
+                "routeId": "MTA NYCT_B43",
+                "routeShortName": "B43",
+                "scheduledArrivalTime": 1425858926000,
+                "scheduledDepartureTime": 1425858926000,
+                "status": "default",
+                "stopId": "MTA_305157",
+                "tripHeadsign": "GREENPOINT BOX ST",
+                "tripId": "MTA NYCT_JG_A5-Sunday-114500_B43_116"
+            },
+            {
+                "routeId": "MTA NYCT_B62",
+                "routeShortName": "B62",
+                "scheduledArrivalTime": 1425860437000,
+                "scheduledDepartureTime": 1425860437000,
+                "status": "default",
+                "stopId": "MTA_305157",
+                "tripHeadsign": "LI CITY QUEENS PLAZA",
+                "tripId": "MTA NYCT_GA_A5-Sunday-117700_B62_822"
+            },
+            {
+                "routeId": "MTA NYCT_B43",
+                "routeShortName": "B43",
+                "scheduledArrivalTime": 1425861086000,
+                "scheduledDepartureTime": 1425861086000,
+                "status": "default",
+                "stopId": "MTA_305157",
+                "tripHeadsign": "GREENPOINT BOX ST",
+                "tripId": "MTA NYCT_JG_A5-Sunday-118000_B43_117"
+            },
+            {
+                "routeId": "MTA NYCT_B62",
+                "routeShortName": "B62",
+                "scheduledArrivalTime": 1425861337000,
+                "scheduledDepartureTime": 1425861337000,
+                "status": "default",
+                "stopId": "MTA_305157",
+                "tripHeadsign": "LI CITY QUEENS PLAZA",
+                "tripId": "MTA NYCT_GA_A5-Sunday-119300_B62_829"
+            }
+        ],
+        "nearbyStops": [
+            {
+                "code": "305171",
+                "direction": "SE",
+                "id": "MTA_305171",
+                "lat": 40.727818,
+                "locationType": 0,
+                "lon": -73.953171,
+                "name": "MANHATTAN AV/CALYER ST",
+                "routes": [
+                    {
+                        "agency": {
+                            "disclaimer": "",
+                            "id": "MTA NYCT",
+                            "lang": "en",
+                            "name": "MTA New York City Transit",
+                            "phone": "718-330-1234",
+                            "privateService": false,
+                            "timezone": "America/New_York",
+                            "url": "http://www.mta.info"
+                        },
+                        "color": "EE352E",
+                        "description": "via Manhattan Av / Graham Av / Tompkins Av",
+                        "id": "MTA NYCT_B43",
+                        "longName": "Greenpoint - Lefferts Gardens",
+                        "shortName": "B43",
+                        "textColor": "FFFFFF",
+                        "type": 3,
+                        "url": "http://web.mta.info/nyct/bus/schedule/bkln/b043cur.pdf"
+                    },
+                    {
+                        "agency": {
+                            "disclaimer": "",
+                            "id": "MTA NYCT",
+                            "lang": "en",
+                            "name": "MTA New York City Transit",
+                            "phone": "718-330-1234",
+                            "privateService": false,
+                            "timezone": "America/New_York",
+                            "url": "http://www.mta.info"
+                        },
+                        "color": "00AEEF",
+                        "description": "via Bklyn Navy Yard / Manhattan Av / Jackson Av",
+                        "id": "MTA NYCT_B62",
+                        "longName": "Downtown Brooklyn - Long Island City",
+                        "shortName": "B62",
+                        "textColor": "FFFFFF",
+                        "type": 3,
+                        "url": "http://web.mta.info/nyct/bus/schedule/bkln/b062cur.pdf"
+                    }
+                ],
+                "wheelchairBoarding": "UNKNOWN"
+            }
+        ],
+        "stop": {
+            "code": "305157",
+            "direction": "NW",
+            "id": "MTA_305157",
+            "lat": 40.728436,
+            "locationType": 0,
+            "lon": -73.953369,
+            "name": "MANHATTAN AV/CALYER ST",
+            "routes": [
+                {
+                    "agency": {
+                        "disclaimer": "",
+                        "id": "MTA NYCT",
+                        "lang": "en",
+                        "name": "MTA New York City Transit",
+                        "phone": "718-330-1234",
+                        "privateService": false,
+                        "timezone": "America/New_York",
+                        "url": "http://www.mta.info"
+                    },
+                    "color": "EE352E",
+                    "description": "via Manhattan Av / Graham Av / Tompkins Av",
+                    "id": "MTA NYCT_B43",
+                    "longName": "Greenpoint - Lefferts Gardens",
+                    "shortName": "B43",
+                    "textColor": "FFFFFF",
+                    "type": 3,
+                    "url": "http://web.mta.info/nyct/bus/schedule/bkln/b043cur.pdf"
+                },
+                {
+                    "agency": {
+                        "disclaimer": "",
+                        "id": "MTA NYCT",
+                        "lang": "en",
+                        "name": "MTA New York City Transit",
+                        "phone": "718-330-1234",
+                        "privateService": false,
+                        "timezone": "America/New_York",
+                        "url": "http://www.mta.info"
+                    },
+                    "color": "00AEEF",
+                    "description": "via Bklyn Navy Yard / Manhattan Av / Jackson Av",
+                    "id": "MTA NYCT_B62",
+                    "longName": "Downtown Brooklyn - Long Island City",
+                    "shortName": "B62",
+                    "textColor": "FFFFFF",
+                    "type": 3,
+                    "url": "http://web.mta.info/nyct/bus/schedule/bkln/b062cur.pdf"
+                }
+            ],
+            "wheelchairBoarding": "UNKNOWN"
+        }
+    },
+    "text": "OK",
+    "version": 1
+}

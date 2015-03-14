@@ -1,0 +1,1738 @@
+{
+    "code": 200,
+    "currentTime": 1425850512969,
+    "data": {
+        "limitExceeded": false,
+        "list": [
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [
+                    "MTA NYCT_89552"
+                ],
+                "tripId": "MTA NYCT_GA_A5-Sunday-102000_B60_712"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_GA_A5-Sunday-102000_B62_825"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_GA_A5-Sunday-100000_Q59_907"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_OH_A5-Sunday-101700_M15_42"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_FB_A5-Sunday-105800_SB44_510"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_CS_A5-Sunday-102100_Q32_9"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [
+                    "MTA NYCT_90709"
+                ],
+                "tripId": "MTA NYCT_GA_A5-Sunday-105000_B60_720"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_GA_A5-Sunday-098200_B62_814"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_GA_A5-Sunday-101200_B62_819"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_GA_A5-Sunday-102500_B60_724"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_CS_A5-Sunday-103100_MISC_744"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_GA_A5-Sunday-100000_B48_510"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_GA_A5-Sunday-106500_Q59_908"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [
+                    "MTA NYCT_89552"
+                ],
+                "tripId": "MTA NYCT_FB_A5-Sunday-094700_B46_146"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_GA_A5-Sunday-105000_B62_828"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_MQ_A5-Sunday-102200_M14AD_50"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTABC_7709946-LGPA5-LG_A5-Sunday-80"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_OH_A5-Sunday-094800_M101_93"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_MQ_A5-Sunday-104200_SBS34_26"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_MQ_A5-Sunday-102500_M42_17"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTABC_7709217-LGPA5-LG_A5-Sunday-80"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_OH_A5-Sunday-101100_M101_107"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTABC_7709258-LGPA5-LG_A5-Sunday-80"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_GA_A5-Sunday-102700_B62_818"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_GA_A5-Sunday-097500_B60_717"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_GA_A5-Sunday-099000_B60_710"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTABC_7709216-LGPA5-LG_A5-Sunday-80"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_MQ_A5-Sunday-104500_M9_118"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTABC_7710273-LGPA5-LG_A5-Sunday-80"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [
+                    "MTA NYCT_89552"
+                ],
+                "tripId": "MTA NYCT_GA_A5-Sunday-105000_B24_106"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_CS_A5-Sunday-101400_MISC_735"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_GA_A5-Sunday-098800_B60_719"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_OF_A5-Sunday-101800_SBS15_49"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTABC_7709947-LGPA5-LG_A5-Sunday-80"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTABC_7710149-LGPA5-LG_A5-Sunday-80"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_GA_A5-Sunday-101200_B24_103"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_GA_A5-Sunday-101200_B24_103"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_MQ_A5-Sunday-105500_SBS34_13"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_GA_A5-Sunday-103500_B62_827"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_OH_A5-Sunday-104400_M101_129"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTABC_7709622-LGPA5-LG_A5-Sunday-80"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTABC_7695519-CPPA5-CP_A5-Sunday-80"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_FP_A5-Sunday-105500_Q54_115"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTABC_7695543-CPPA5-CP_A5-Sunday-80"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [
+                    "MTA NYCT_89552"
+                ],
+                "tripId": "MTA NYCT_GA_A5-Sunday-105000_B47_427"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_GA_A5-Sunday-103800_Q59_909"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_JG_A5-Sunday-100000_B43_120"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [
+                    "MTA NYCT_89552"
+                ],
+                "tripId": "MTA NYCT_FB_A5-Sunday-118300_B41_33"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTABC_7709575-LGPA5-LG_A5-Sunday-80"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [
+                    "MTA NYCT_89552"
+                ],
+                "tripId": "MTA NYCT_FB_A5-Sunday-104100_B46_148"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_GA_A5-Sunday-104000_B57_610"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTABC_7738136-JKPA5-JK_A5-Sunday-80"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_MQ_A5-Sunday-101800_M14AD_54"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_JG_A5-Sunday-098000_B43_118"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_GA_A5-Sunday-105000_B39_302"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_MQ_A5-Sunday-103000_M42_25"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [
+                    "MTA NYCT_90709"
+                ],
+                "tripId": "MTA NYCT_GA_A5-Sunday-102000_B32_154"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_GA_A5-Sunday-099700_B62_813"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTABC_7738193-JKPA5-JK_A5-Sunday-80"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_OH_A5-Sunday-101300_M15_38"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [
+                    "MTA NYCT_89552"
+                ],
+                "tripId": "MTA NYCT_FB_A5-Sunday-098500_B46_142"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_GA_A5-Sunday-100500_B57_606"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_OH_A5-Sunday-099700_M101_52"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_MQ_A5-Sunday-102000_M9_115"
+            },
+            {
+                "frequency": null,
+                "schedule": null,
+                "serviceDate": 1425787200000,
+                "situationIds": [],
+                "tripId": "MTA NYCT_GA_A5-Sunday-102400_B57_605"
+            }
+        ],
+        "outOfRange": false,
+        "references": {
+            "agencies": [
+                {
+                    "disclaimer": "",
+                    "id": "MTA NYCT",
+                    "lang": "en",
+                    "name": "MTA New York City Transit",
+                    "phone": "718-330-1234",
+                    "privateService": false,
+                    "timezone": "America/New_York",
+                    "url": "http://www.mta.info"
+                },
+                {
+                    "disclaimer": "",
+                    "id": "MTABC",
+                    "lang": "EN",
+                    "name": "MTA Bus Company",
+                    "phone": "",
+                    "privateService": false,
+                    "timezone": "America/New_York",
+                    "url": "http://www.mta.info"
+                }
+            ],
+            "routes": [
+                {
+                    "agencyId": "MTA NYCT",
+                    "color": "FAA61A",
+                    "description": "via Greenpoint Av & 48th St / Meeker Av",
+                    "id": "MTA NYCT_B24",
+                    "longName": "Williamsburg - Greenpoint",
+                    "shortName": "B24",
+                    "textColor": "FFFFFF",
+                    "type": 3,
+                    "url": "http://web.mta.info/nyct/bus/schedule/bkln/b024cur.pdf"
+                },
+                {
+                    "agencyId": "MTA NYCT",
+                    "color": "00AEEF",
+                    "description": "via Bklyn Navy Yard / Manhattan Av / Jackson Av",
+                    "id": "MTA NYCT_B62",
+                    "longName": "Downtown Brooklyn - Long Island City",
+                    "shortName": "B62",
+                    "textColor": "FFFFFF",
+                    "type": 3,
+                    "url": "http://web.mta.info/nyct/bus/schedule/bkln/b062cur.pdf"
+                },
+                {
+                    "agencyId": "MTA NYCT",
+                    "color": "FAA61A",
+                    "description": "via Grand St / Grand Av / Queens Blvd",
+                    "id": "MTA NYCT_Q59",
+                    "longName": "Williamsburg - Rego Park",
+                    "shortName": "Q59",
+                    "textColor": "FFFFFF",
+                    "type": 3,
+                    "url": "http://web.mta.info/nyct/bus/schedule/queens/q059cur.pdf"
+                },
+                {
+                    "agencyId": "MTA NYCT",
+                    "color": "006CB7",
+                    "description": "via 1st Av / 2nd Av",
+                    "id": "MTA NYCT_M15",
+                    "longName": "East Harlem - South Ferry",
+                    "shortName": "M15",
+                    "textColor": "FFFFFF",
+                    "type": 3,
+                    "url": "http://web.mta.info/nyct/bus/schedule/manh/m015cur.pdf"
+                },
+                {
+                    "agencyId": "MTA NYCT",
+                    "color": "B933AD",
+                    "description": "Select Bus Service via Nostrand Av",
+                    "id": "MTA NYCT_B44+",
+                    "longName": "Sheepshead Bay - Williamsburg",
+                    "shortName": "B44-SBS",
+                    "textColor": "FFFFFF",
+                    "type": 3,
+                    "url": "http://web.mta.info/nyct/bus/schedule/bkln/b044scur.pdf"
+                },
+                {
+                    "agencyId": "MTA NYCT",
+                    "color": "00AEEF",
+                    "description": "via Roosevelt Av / Fifth Av / Madison Av",
+                    "id": "MTA NYCT_Q32",
+                    "longName": "Jackson Heights - Penn Station",
+                    "shortName": "Q32",
+                    "textColor": "FFFFFF",
+                    "type": 3,
+                    "url": "http://web.mta.info/nyct/bus/schedule/queens/q032cur.pdf"
+                },
+                {
+                    "agencyId": "MTA NYCT",
+                    "color": "006CB7",
+                    "description": "via Kent Av / Wythe Av",
+                    "id": "MTA NYCT_B32",
+                    "longName": "Williamsburg - Long Island City",
+                    "shortName": "B32",
+                    "textColor": "FFFFFF",
+                    "type": 3,
+                    "url": "http://web.mta.info/nyct/bus/schedule/bkln/b032cur.pdf"
+                },
+                {
+                    "agencyId": "MTA NYCT",
+                    "color": "B933AD",
+                    "description": "via Wilson Av / Rockaway Av",
+                    "id": "MTA NYCT_B60",
+                    "longName": "Williamsburg - Canarsie",
+                    "shortName": "B60",
+                    "textColor": "FFFFFF",
+                    "type": 3,
+                    "url": "http://web.mta.info/nyct/bus/schedule/bkln/b060cur.pdf"
+                },
+                {
+                    "agencyId": "MTA NYCT",
+                    "color": "6CBE45",
+                    "description": "via Lorimer St / Franklin & Classon Av",
+                    "id": "MTA NYCT_B48",
+                    "longName": "Lefferts Gardens - Greenpoint",
+                    "shortName": "B48",
+                    "textColor": "FFFFFF",
+                    "type": 3,
+                    "url": "http://web.mta.info/nyct/bus/schedule/bkln/b048cur.pdf"
+                },
+                {
+                    "agencyId": "MTA NYCT",
+                    "color": "6CBE45",
+                    "description": "via Utica Av - Malcolm X Blvd",
+                    "id": "MTA NYCT_B46",
+                    "longName": "Kings Plaza - Williamsburg",
+                    "shortName": "B46",
+                    "textColor": "FFFFFF",
+                    "type": 3,
+                    "url": "http://web.mta.info/nyct/bus/schedule/bkln/b046cur.pdf"
+                },
+                {
+                    "agencyId": "MTA NYCT",
+                    "color": "6CBE45",
+                    "description": "via 14th St Crosstown",
+                    "id": "MTA NYCT_M14D",
+                    "longName": "Lower East Side - Chelsea Piers",
+                    "shortName": "M14D",
+                    "textColor": "FFFFFF",
+                    "type": 3,
+                    "url": "http://web.mta.info/nyct/bus/schedule/manh/m014cur.pdf"
+                },
+                {
+                    "agencyId": "MTABC",
+                    "color": "FAA61A",
+                    "description": "Via 20Th Av / 21St St",
+                    "id": "MTABC_Q100",
+                    "longName": "Rikers Island - Long Island City",
+                    "shortName": "Q100",
+                    "textColor": "FFFFFF",
+                    "type": 3,
+                    "url": "http://www.mta.info/busco/schedules/q100cur.pdf"
+                },
+                {
+                    "agencyId": "MTA NYCT",
+                    "color": "FAA61A",
+                    "description": "via Third Av / Lexington Av / Amsterdam Av",
+                    "id": "MTA NYCT_M101",
+                    "longName": "East Village - Harlem",
+                    "shortName": "M101",
+                    "textColor": "FFFFFF",
+                    "type": 3,
+                    "url": "http://web.mta.info/nyct/bus/schedule/manh/m101cur.pdf"
+                },
+                {
+                    "agencyId": "MTA NYCT",
+                    "color": "006CB7",
+                    "description": "Select Bus Service via 34th St Crosstown",
+                    "id": "MTA NYCT_M34A+",
+                    "longName": "Waterside - Port Authority Terminal",
+                    "shortName": "M34A-SBS",
+                    "textColor": "FFFFFF",
+                    "type": 3,
+                    "url": "http://web.mta.info/nyct/bus/schedule/manh/m034scur.pdf"
+                },
+                {
+                    "agencyId": "MTA NYCT",
+                    "color": "EE352E",
+                    "description": "via 42nd St Crosstown",
+                    "id": "MTA NYCT_M42",
+                    "longName": "United Nations - W 42 St Pier",
+                    "shortName": "M42",
+                    "textColor": "FFFFFF",
+                    "type": 3,
+                    "url": "http://web.mta.info/nyct/bus/schedule/manh/m042cur.pdf"
+                },
+                {
+                    "agencyId": "MTABC",
+                    "color": "B933AD",
+                    "description": "Via Forest Av / 58Th St / 48Th Av",
+                    "id": "MTABC_Q39",
+                    "longName": "48 Ave - 58 St - Forest Ave",
+                    "shortName": "Q39",
+                    "textColor": "FFFFFF",
+                    "type": 3,
+                    "url": "http://www.mta.info/busco/schedules/q039cur.pdf"
+                },
+                {
+                    "agencyId": "MTA NYCT",
+                    "color": "B933AD",
+                    "description": "via 3rd Av / Lexington Av",
+                    "id": "MTA NYCT_M103",
+                    "longName": "East Harlem - City Hall",
+                    "shortName": "M103",
+                    "textColor": "FFFFFF",
+                    "type": 3,
+                    "url": "http://web.mta.info/nyct/bus/schedule/manh/m103cur.pdf"
+                },
+                {
+                    "agencyId": "MTA NYCT",
+                    "color": "B933AD",
+                    "description": "via Avenue C / E Broadway",
+                    "id": "MTA NYCT_M9",
+                    "longName": "Battery Park City - Kips Bay",
+                    "shortName": "M9",
+                    "textColor": "FFFFFF",
+                    "type": 3,
+                    "url": "http://web.mta.info/nyct/bus/schedule/manh/m009cur.pdf"
+                },
+                {
+                    "agencyId": "MTABC",
+                    "color": "006CB7",
+                    "description": "",
+                    "id": "MTABC_Q102",
+                    "longName": "31 St - Roosevelt Island",
+                    "shortName": "Q102",
+                    "textColor": "FFFFFF",
+                    "type": 3,
+                    "url": "http://www.mta.info/busco/schedules/q102cur.pdf"
+                },
+                {
+                    "agencyId": "MTA NYCT",
+                    "color": "006CB7",
+                    "description": "Select Bus Service via 1st Av / 2nd Av",
+                    "id": "MTA NYCT_M15+",
+                    "longName": "East Harlem - South Ferry",
+                    "shortName": "M15-SBS",
+                    "textColor": "FFFFFF",
+                    "type": 3,
+                    "url": "http://web.mta.info/nyct/bus/schedule/manh/m015scur.pdf"
+                },
+                {
+                    "agencyId": "MTABC",
+                    "color": "EE352E",
+                    "description": "Via Vernon Blvd",
+                    "id": "MTABC_Q103",
+                    "longName": "27 Ave - Borden Ave",
+                    "shortName": "Q103",
+                    "textColor": "FFFFFF",
+                    "type": 3,
+                    "url": "http://www.mta.info/busco/schedules/q103cur.pdf"
+                },
+                {
+                    "agencyId": "MTA NYCT",
+                    "color": "006CB7",
+                    "description": "Select Bus Service via 34th St Crosstown",
+                    "id": "MTA NYCT_M34+",
+                    "longName": "East Side - Javits Center",
+                    "shortName": "M34-SBS",
+                    "textColor": "FFFFFF",
+                    "type": 3,
+                    "url": "http://web.mta.info/nyct/bus/schedule/manh/m034scur.pdf"
+                },
+                {
+                    "agencyId": "MTABC",
+                    "color": "00AEEF",
+                    "description": "Via 21St St / Ditmars Blvd",
+                    "id": "MTABC_Q69",
+                    "longName": "21 St - Ditmars Blvd",
+                    "shortName": "Q69",
+                    "textColor": "FFFFFF",
+                    "type": 3,
+                    "url": "http://www.mta.info/busco/schedules/q069cur.pdf"
+                },
+                {
+                    "agencyId": "MTABC",
+                    "color": "EE352E",
+                    "description": "Via Northern Blvd / 21St St / Queens Plz",
+                    "id": "MTABC_Q66",
+                    "longName": "Northern Blvd/Queens Plaza S",
+                    "shortName": "Q66",
+                    "textColor": "FFFFFF",
+                    "type": 3,
+                    "url": "http://www.mta.info/busco/schedules"
+                },
+                {
+                    "agencyId": "MTA NYCT",
+                    "color": "B933AD",
+                    "description": "via Jamaica Av / Metropolitan Av",
+                    "id": "MTA NYCT_Q54",
+                    "longName": "Williamsburg - Jamaica",
+                    "shortName": "Q54",
+                    "textColor": "FFFFFF",
+                    "type": 3,
+                    "url": "http://web.mta.info/nyct/bus/schedule/queens/q054cur.pdf"
+                },
+                {
+                    "agencyId": "MTA NYCT",
+                    "color": "EE352E",
+                    "description": "via Manhattan Av / Graham Av / Tompkins Av",
+                    "id": "MTA NYCT_B43",
+                    "longName": "Greenpoint - Lefferts Gardens",
+                    "shortName": "B43",
+                    "textColor": "FFFFFF",
+                    "type": 3,
+                    "url": "http://web.mta.info/nyct/bus/schedule/bkln/b043cur.pdf"
+                },
+                {
+                    "agencyId": "MTABC",
+                    "color": "FAA61A",
+                    "description": "Via 69Th St / Borden Av",
+                    "id": "MTABC_Q67",
+                    "longName": "Borden Ave - 69 Street",
+                    "shortName": "Q67",
+                    "textColor": "FFFFFF",
+                    "type": 3,
+                    "url": "http://www.mta.info/busco/schedules/q067cur.pdf"
+                },
+                {
+                    "agencyId": "MTABC",
+                    "color": "EE352E",
+                    "description": "Via Sutphin Blvd / Queens Blvd",
+                    "id": "MTABC_Q60",
+                    "longName": "Queens Boulevard",
+                    "shortName": "Q60",
+                    "textColor": "FFFFFF",
+                    "type": 3,
+                    "url": "http://www.mta.info/busco/schedules/q060cur.pdf"
+                },
+                {
+                    "agencyId": "MTA NYCT",
+                    "color": "00AEEF",
+                    "description": "via Williamsburg Bridge / Delancey St",
+                    "id": "MTA NYCT_B39",
+                    "longName": "Williamsburg Bridge Plaza - Lower East Side",
+                    "shortName": "B39",
+                    "textColor": "FFFFFF",
+                    "type": 3,
+                    "url": "http://mta.info/nyct/bus/schedule/bkln/b039cur.pdf"
+                },
+                {
+                    "agencyId": "MTA NYCT",
+                    "color": "FAA61A",
+                    "description": "via 3rd Av / Lexington Av / Lenox Av",
+                    "id": "MTA NYCT_M102",
+                    "longName": "Harlem - East Village",
+                    "shortName": "M102",
+                    "textColor": "FFFFFF",
+                    "type": 3,
+                    "url": "http://web.mta.info/nyct/bus/schedule/manh/m102cur.pdf"
+                }
+            ],
+            "situations": [
+                {
+                    "activeWindows": [],
+                    "allAffects": [
+                        {
+                            "agencyId": "",
+                            "applicationId": "",
+                            "directionId": "0",
+                            "routeId": "MTA NYCT_B24",
+                            "stopId": "",
+                            "tripId": ""
+                        },
+                        {
+                            "agencyId": "",
+                            "applicationId": "",
+                            "directionId": "1",
+                            "routeId": "MTA NYCT_B24",
+                            "stopId": "",
+                            "tripId": ""
+                        },
+                        {
+                            "agencyId": "",
+                            "applicationId": "",
+                            "directionId": "0",
+                            "routeId": "MTA NYCT_B46",
+                            "stopId": "",
+                            "tripId": ""
+                        },
+                        {
+                            "agencyId": "",
+                            "applicationId": "",
+                            "directionId": "0",
+                            "routeId": "MTA NYCT_B46",
+                            "stopId": "",
+                            "tripId": ""
+                        },
+                        {
+                            "agencyId": "",
+                            "applicationId": "",
+                            "directionId": "1",
+                            "routeId": "MTA NYCT_B46",
+                            "stopId": "",
+                            "tripId": ""
+                        },
+                        {
+                            "agencyId": "",
+                            "applicationId": "",
+                            "directionId": "1",
+                            "routeId": "MTA NYCT_B46",
+                            "stopId": "",
+                            "tripId": ""
+                        }
+                    ],
+                    "consequences": [
+                        {
+                            "condition": "detour",
+                            "conditionDetails": null
+                        }
+                    ],
+                    "creationTime": 1421298000000,
+                    "description": {
+                        "lang": "EN",
+                        "value": "B24 and B46/B46 LTD buses detoured from the Entrance on Broadway at Washington Plz Terminal\nUntil further notice\n\nDue to construction, buses operate as follows:\n\nVia Broadway\nRight on Roebling St into Washington Plaza."
+                    },
+                    "id": "MTA NYCT_89552",
+                    "publicationWindows": [
+                        {
+                            "from": 1421298000000,
+                            "to": 1454129940000
+                        }
+                    ],
+                    "reason": "UNKNOWN_CAUSE",
+                    "severity": "unknown",
+                    "summary": {
+                        "lang": "EN",
+                        "value": "B24 and B46/B46"
+                    },
+                    "url": null
+                },
+                {
+                    "activeWindows": [],
+                    "allAffects": [
+                        {
+                            "agencyId": "",
+                            "applicationId": "",
+                            "directionId": "0",
+                            "routeId": "MTA NYCT_B32",
+                            "stopId": "",
+                            "tripId": ""
+                        },
+                        {
+                            "agencyId": "",
+                            "applicationId": "",
+                            "directionId": "1",
+                            "routeId": "MTA NYCT_B32",
+                            "stopId": "",
+                            "tripId": ""
+                        }
+                    ],
+                    "consequences": [
+                        {
+                            "condition": "detour",
+                            "conditionDetails": null
+                        }
+                    ],
+                    "creationTime": 1422853200000,
+                    "description": {
+                        "lang": "EN",
+                        "value": "B32 buses rerouted from Kent Av and Wythe Av between N 14 St and Metropolitan Av \nUntil further notice\n\nDue to ongoing FDNY activity, buses run northbound via Berry St and southbound via Driggs St making corresponding stops.\n\nShow Reroute Details\nNorthbound\nVia Kent Av\nRight on Metropolitan Av\nLeft on Berry St\nLeft on N 14 St\nRight on Franklin St then regular route\n\nSouthbound\nVia Wythe Av\nLeft on N 14 St\nLeft on Nassau Av\nRight on Manhattan Av\nRight on Driggs Av\nRight on Metropolitan Av\nLeft on Wythe Av then regular route"
+                    },
+                    "id": "MTA NYCT_90709",
+                    "publicationWindows": [
+                        {
+                            "from": 1422853200000,
+                            "to": 1454129940000
+                        }
+                    ],
+                    "reason": "UNKNOWN_CAUSE",
+                    "severity": "unknown",
+                    "summary": {
+                        "lang": "EN",
+                        "value": "B32 buses rerouted from Kent Av and Wythe Av between N 14 St and Metropolitan Av"
+                    },
+                    "url": null
+                }
+            ],
+            "stops": [],
+            "trips": [
+                {
+                    "blockId": "MTA NYCT_GA_A5-Sunday_D_GA_56700_B60-712",
+                    "directionId": "1",
+                    "id": "MTA NYCT_GA_A5-Sunday-102000_B60_712",
+                    "routeId": "MTA NYCT_B24",
+                    "routeShortName": "",
+                    "serviceId": "MTA_GA_A5-Sunday",
+                    "shapeId": "MTA_B240085",
+                    "timeZone": "",
+                    "tripHeadsign": "WILLIAMSBURG BRIDGE PLZ",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_GA_A5-Sunday_D_GA_59880_B62-825",
+                    "directionId": "1",
+                    "id": "MTA NYCT_GA_A5-Sunday-102000_B62_825",
+                    "routeId": "MTA NYCT_B62",
+                    "routeShortName": "",
+                    "serviceId": "MTA_GA_A5-Sunday",
+                    "shapeId": "MTA_B620028",
+                    "timeZone": "",
+                    "tripHeadsign": "DOWNTOWN BKLYN FULTON MALL",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_GA_A5-Sunday_D_GA_42480_Q59-907",
+                    "directionId": "1",
+                    "id": "MTA NYCT_GA_A5-Sunday-100000_Q59_907",
+                    "routeId": "MTA NYCT_Q59",
+                    "routeShortName": "",
+                    "serviceId": "MTA_GA_A5-Sunday",
+                    "shapeId": "MTA_Q590166",
+                    "timeZone": "",
+                    "tripHeadsign": "WILLIAMSBURG BRIDGE PLZ via GRAND",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_OH_A5-Sunday_D_OH_42240_M15-32",
+                    "directionId": "0",
+                    "id": "MTA NYCT_OH_A5-Sunday-101700_M15_42",
+                    "routeId": "MTA NYCT_M15",
+                    "routeShortName": "",
+                    "serviceId": "MTA_OH_A5-Sunday",
+                    "shapeId": "MTA_M150350",
+                    "timeZone": "",
+                    "tripHeadsign": "EAST HARLEM 125 ST via 1 AV",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_FB_A5-Sunday_D_FB_49020_SB44-520",
+                    "directionId": "1",
+                    "id": "MTA NYCT_FB_A5-Sunday-105800_SB44_510",
+                    "routeId": "MTA NYCT_B44+",
+                    "routeShortName": "",
+                    "serviceId": "MTA_FB_A5-Sunday",
+                    "shapeId": "MTA_SB440027",
+                    "timeZone": "",
+                    "tripHeadsign": "SBS SHEEPSHEAD BAY KNAPP ST via NOSTRAND",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_CS_A5-Sunday_D_CS_55140_Q32-9",
+                    "directionId": "0",
+                    "id": "MTA NYCT_CS_A5-Sunday-102100_Q32_9",
+                    "routeId": "MTA NYCT_Q32",
+                    "routeShortName": "",
+                    "serviceId": "MTA_CS_A5-Sunday",
+                    "shapeId": "MTA_Q320091",
+                    "timeZone": "",
+                    "tripHeadsign": "JACKSON HTS NORTHERN - 81 via ROOSVLT",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_GA_A5-Sunday_D_GA_53100_B60-720",
+                    "directionId": "1",
+                    "id": "MTA NYCT_GA_A5-Sunday-105000_B60_720",
+                    "routeId": "MTA NYCT_B32",
+                    "routeShortName": "",
+                    "serviceId": "MTA_GA_A5-Sunday",
+                    "shapeId": "MTA_B320024",
+                    "timeZone": "",
+                    "tripHeadsign": "WILLIAMSBURG BRIDGE PLAZA",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_GA_A5-Sunday_D_GA_45480_B62-814",
+                    "directionId": "0",
+                    "id": "MTA NYCT_GA_A5-Sunday-098200_B62_814",
+                    "routeId": "MTA NYCT_B62",
+                    "routeShortName": "",
+                    "serviceId": "MTA_GA_A5-Sunday",
+                    "shapeId": "MTA_B620031",
+                    "timeZone": "",
+                    "tripHeadsign": "LI CITY QUEENS PLAZA",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_GA_A5-Sunday_D_GA_47280_B62-819",
+                    "directionId": "0",
+                    "id": "MTA NYCT_GA_A5-Sunday-101200_B62_819",
+                    "routeId": "MTA NYCT_B62",
+                    "routeShortName": "",
+                    "serviceId": "MTA_GA_A5-Sunday",
+                    "shapeId": "MTA_B620031",
+                    "timeZone": "",
+                    "tripHeadsign": "LI CITY QUEENS PLAZA",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_GA_A5-Sunday_D_GA_60600_B60-724",
+                    "directionId": "1",
+                    "id": "MTA NYCT_GA_A5-Sunday-102500_B60_724",
+                    "routeId": "MTA NYCT_B60",
+                    "routeShortName": "",
+                    "serviceId": "MTA_GA_A5-Sunday",
+                    "shapeId": "MTA_B600127",
+                    "timeZone": "",
+                    "tripHeadsign": "CANARSIE WILLIAMS AV",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_CS_A5-Sunday_D_CS_55740_MISC-744",
+                    "directionId": "0",
+                    "id": "MTA NYCT_CS_A5-Sunday-103100_MISC_744",
+                    "routeId": "MTA NYCT_Q32",
+                    "routeShortName": "",
+                    "serviceId": "MTA_CS_A5-Sunday",
+                    "shapeId": "MTA_Q320091",
+                    "timeZone": "",
+                    "tripHeadsign": "JACKSON HTS NORTHERN - 81 via ROOSVLT",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_GA_A5-Sunday_D_GA_55800_B48-510",
+                    "directionId": "0",
+                    "id": "MTA NYCT_GA_A5-Sunday-100000_B48_510",
+                    "routeId": "MTA NYCT_B48",
+                    "routeShortName": "",
+                    "serviceId": "MTA_GA_A5-Sunday",
+                    "shapeId": "MTA_B480059",
+                    "timeZone": "",
+                    "tripHeadsign": "GREENPOINT MEEKER AV",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_GA_A5-Sunday_D_GA_62580_Q59-908",
+                    "directionId": "1",
+                    "id": "MTA NYCT_GA_A5-Sunday-106500_Q59_908",
+                    "routeId": "MTA NYCT_B62",
+                    "routeShortName": "",
+                    "serviceId": "MTA_GA_A5-Sunday",
+                    "shapeId": "MTA_B620028",
+                    "timeZone": "",
+                    "tripHeadsign": "DOWNTOWN BKLYN FULTON MALL",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_FB_A5-Sunday_D_FB_56520_B46-146",
+                    "directionId": "0",
+                    "id": "MTA NYCT_FB_A5-Sunday-094700_B46_146",
+                    "routeId": "MTA NYCT_B46",
+                    "routeShortName": "",
+                    "serviceId": "MTA_FB_A5-Sunday",
+                    "shapeId": "MTA_B460181",
+                    "timeZone": "",
+                    "tripHeadsign": "LTD WILLIAMSBURG BRIDGE PLZ via UTICA",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_GA_A5-Sunday_D_GA_61680_B62-828",
+                    "directionId": "1",
+                    "id": "MTA NYCT_GA_A5-Sunday-105000_B62_828",
+                    "routeId": "MTA NYCT_B62",
+                    "routeShortName": "",
+                    "serviceId": "MTA_GA_A5-Sunday",
+                    "shapeId": "MTA_B620028",
+                    "timeZone": "",
+                    "tripHeadsign": "DOWNTOWN BKLYN FULTON MALL",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_MQ_A5-Sunday_D_MQ_22560_M14AD-7",
+                    "directionId": "0",
+                    "id": "MTA NYCT_MQ_A5-Sunday-102200_M14AD_50",
+                    "routeId": "MTA NYCT_M14D",
+                    "routeShortName": "",
+                    "serviceId": "MTA_MQ_A5-Sunday",
+                    "shapeId": "MTA_M14D0020",
+                    "timeZone": "",
+                    "tripHeadsign": "LOWER E. SIDE DELANCY-FDR CROSSTOWN",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTABC_LGPA5-LG_A5-Sunday-80_1493599",
+                    "directionId": "1",
+                    "id": "MTABC_7709946-LGPA5-LG_A5-Sunday-80",
+                    "routeId": "MTABC_Q100",
+                    "routeShortName": "",
+                    "serviceId": "MTA_LGPA5-LG_A5-Sunday-80",
+                    "shapeId": "MTA_Q1000079",
+                    "timeZone": "",
+                    "tripHeadsign": "LIMITED LI CITY QUEENS PLZ",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_OH_A5-Sunday_D_OH_1560_M101-4",
+                    "directionId": "1",
+                    "id": "MTA NYCT_OH_A5-Sunday-094800_M101_93",
+                    "routeId": "MTA NYCT_M101",
+                    "routeShortName": "",
+                    "serviceId": "MTA_OH_A5-Sunday",
+                    "shapeId": "MTA_M1010328",
+                    "timeZone": "",
+                    "tripHeadsign": "LTD EAST VILLAGE 6 ST via LEX AV",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_MQ_A5-Sunday_D_MQ_36660_SBS34-13",
+                    "directionId": "1",
+                    "id": "MTA NYCT_MQ_A5-Sunday-104200_SBS34_26",
+                    "routeId": "MTA NYCT_M34A+",
+                    "routeShortName": "",
+                    "serviceId": "MTA_MQ_A5-Sunday",
+                    "shapeId": "MTA_M34A0025",
+                    "timeZone": "",
+                    "tripHeadsign": "PA BUS TERMINAL VIA 34 ST VIA 8 AV",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_MQ_A5-Sunday_D_MQ_32520_M42-2",
+                    "directionId": "0",
+                    "id": "MTA NYCT_MQ_A5-Sunday-102500_M42_17",
+                    "routeId": "MTA NYCT_M42",
+                    "routeShortName": "",
+                    "serviceId": "MTA_MQ_A5-Sunday",
+                    "shapeId": "MTA_M420108",
+                    "timeZone": "",
+                    "tripHeadsign": "UN - 1 AV CROSSTOWN",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTABC_LGPA5-LG_A5-Sunday-80_1493607",
+                    "directionId": "0",
+                    "id": "MTABC_7709217-LGPA5-LG_A5-Sunday-80",
+                    "routeId": "MTABC_Q39",
+                    "routeShortName": "",
+                    "serviceId": "MTA_LGPA5-LG_A5-Sunday-80",
+                    "shapeId": "MTA_Q390075",
+                    "timeZone": "",
+                    "tripHeadsign": "RIDGEWOOD COOPER AV",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_OH_A5-Sunday_D_OH_26820_M101-35",
+                    "directionId": "0",
+                    "id": "MTA NYCT_OH_A5-Sunday-101100_M101_107",
+                    "routeId": "MTA NYCT_M103",
+                    "routeShortName": "",
+                    "serviceId": "MTA_OH_A5-Sunday",
+                    "shapeId": "MTA_M1030166",
+                    "timeZone": "",
+                    "tripHeadsign": "E HARLEM 125 ST via 3 AV",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTABC_LGPA5-LG_A5-Sunday-80_1493566",
+                    "directionId": "1",
+                    "id": "MTABC_7709258-LGPA5-LG_A5-Sunday-80",
+                    "routeId": "MTABC_Q39",
+                    "routeShortName": "",
+                    "serviceId": "MTA_LGPA5-LG_A5-Sunday-80",
+                    "shapeId": "MTA_Q390084",
+                    "timeZone": "",
+                    "tripHeadsign": "LI CITY QUEENS PLZ",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_GA_A5-Sunday_D_GA_56280_B62-818",
+                    "directionId": "0",
+                    "id": "MTA NYCT_GA_A5-Sunday-102700_B62_818",
+                    "routeId": "MTA NYCT_B62",
+                    "routeShortName": "",
+                    "serviceId": "MTA_GA_A5-Sunday",
+                    "shapeId": "MTA_B620031",
+                    "timeZone": "",
+                    "tripHeadsign": "LI CITY QUEENS PLAZA",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_GA_A5-Sunday_D_GA_53220_B60-717",
+                    "directionId": "0",
+                    "id": "MTA NYCT_GA_A5-Sunday-097500_B60_717",
+                    "routeId": "MTA NYCT_B60",
+                    "routeShortName": "",
+                    "serviceId": "MTA_GA_A5-Sunday",
+                    "shapeId": "MTA_B600126",
+                    "timeZone": "",
+                    "tripHeadsign": "WILLIAMSBURG BRIDGE PLAZA",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_GA_A5-Sunday_D_GA_45120_B60-710",
+                    "directionId": "0",
+                    "id": "MTA NYCT_GA_A5-Sunday-099000_B60_710",
+                    "routeId": "MTA NYCT_B60",
+                    "routeShortName": "",
+                    "serviceId": "MTA_GA_A5-Sunday",
+                    "shapeId": "MTA_B600126",
+                    "timeZone": "",
+                    "tripHeadsign": "WILLIAMSBURG BRIDGE PLAZA",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTABC_LGPA5-LG_A5-Sunday-80_1493580",
+                    "directionId": "0",
+                    "id": "MTABC_7709216-LGPA5-LG_A5-Sunday-80",
+                    "routeId": "MTABC_Q39",
+                    "routeShortName": "",
+                    "serviceId": "MTA_LGPA5-LG_A5-Sunday-80",
+                    "shapeId": "MTA_Q390075",
+                    "timeZone": "",
+                    "tripHeadsign": "RIDGEWOOD COOPER AV",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_MQ_A5-Sunday_D_MQ_60900_M9-118",
+                    "directionId": "1",
+                    "id": "MTA NYCT_MQ_A5-Sunday-104500_M9_118",
+                    "routeId": "MTA NYCT_M9",
+                    "routeShortName": "",
+                    "serviceId": "MTA_MQ_A5-Sunday",
+                    "shapeId": "MTA_M090089",
+                    "timeZone": "",
+                    "tripHeadsign": "BATTERY PK CITY via AV C via PARK ROW",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTABC_LGPA5-LG_A5-Sunday-80_1493617",
+                    "directionId": "1",
+                    "id": "MTABC_7710273-LGPA5-LG_A5-Sunday-80",
+                    "routeId": "MTABC_Q102",
+                    "routeShortName": "",
+                    "serviceId": "MTA_LGPA5-LG_A5-Sunday-80",
+                    "shapeId": "MTA_Q1020039",
+                    "timeZone": "",
+                    "tripHeadsign": "ROOSEVELT ISLAND via 31 ST",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_GA_A5-Sunday_D_GA_54900_B24-106",
+                    "directionId": "0",
+                    "id": "MTA NYCT_GA_A5-Sunday-105000_B24_106",
+                    "routeId": "MTA NYCT_B24",
+                    "routeShortName": "",
+                    "serviceId": "MTA_GA_A5-Sunday",
+                    "shapeId": "MTA_B240088",
+                    "timeZone": "",
+                    "tripHeadsign": "GREENPOINT WEST ST",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_CS_A5-Sunday_D_CS_60060_MISC-735",
+                    "directionId": "1",
+                    "id": "MTA NYCT_CS_A5-Sunday-101400_MISC_735",
+                    "routeId": "MTA NYCT_Q32",
+                    "routeShortName": "",
+                    "serviceId": "MTA_CS_A5-Sunday",
+                    "shapeId": "MTA_Q320096",
+                    "timeZone": "",
+                    "tripHeadsign": "MIDTOWN PENN ST",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_GA_A5-Sunday_D_GA_28260_B38-205",
+                    "directionId": "1",
+                    "id": "MTA NYCT_GA_A5-Sunday-098800_B60_719",
+                    "routeId": "MTA NYCT_Q59",
+                    "routeShortName": "",
+                    "serviceId": "MTA_GA_A5-Sunday",
+                    "shapeId": "MTA_Q590166",
+                    "timeZone": "",
+                    "tripHeadsign": "WILLIAMSBURG BRIDGE PLZ via GRAND",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_OF_A5-Sunday_D_OF_25740_SBS15-4",
+                    "directionId": "1",
+                    "id": "MTA NYCT_OF_A5-Sunday-101800_SBS15_49",
+                    "routeId": "MTA NYCT_M15+",
+                    "routeShortName": "",
+                    "serviceId": "MTA_OF_A5-Sunday",
+                    "shapeId": "MTA_SBS150060",
+                    "timeZone": "",
+                    "tripHeadsign": "SELECT BUS SERVICE SOUTH FERRY via 2 AV",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTABC_LGPA5-LG_A5-Sunday-80_1493598",
+                    "directionId": "1",
+                    "id": "MTABC_7709947-LGPA5-LG_A5-Sunday-80",
+                    "routeId": "MTABC_Q100",
+                    "routeShortName": "",
+                    "serviceId": "MTA_LGPA5-LG_A5-Sunday-80",
+                    "shapeId": "MTA_Q1000079",
+                    "timeZone": "",
+                    "tripHeadsign": "LIMITED LI CITY QUEENS PLZ",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTABC_LGPA5-LG_A5-Sunday-80_1493612",
+                    "directionId": "0",
+                    "id": "MTABC_7710149-LGPA5-LG_A5-Sunday-80",
+                    "routeId": "MTABC_Q103",
+                    "routeShortName": "",
+                    "serviceId": "MTA_LGPA5-LG_A5-Sunday-80",
+                    "shapeId": "MTA_Q1030029",
+                    "timeZone": "",
+                    "tripHeadsign": "ASTORIA 27 AV via VERNON BL",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_GA_A5-Sunday_D_GA_22980_Q59-903",
+                    "directionId": "1",
+                    "id": "MTA NYCT_GA_A5-Sunday-101200_B24_103",
+                    "routeId": "MTA NYCT_Q59",
+                    "routeShortName": "",
+                    "serviceId": "MTA_GA_A5-Sunday",
+                    "shapeId": "MTA_Q590166",
+                    "timeZone": "",
+                    "tripHeadsign": "WILLIAMSBURG BRIDGE PLZ via GRAND",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_MQ_A5-Sunday_D_MQ_37560_SBS34-14",
+                    "directionId": "1",
+                    "id": "MTA NYCT_MQ_A5-Sunday-105500_SBS34_13",
+                    "routeId": "MTA NYCT_M34+",
+                    "routeShortName": "",
+                    "serviceId": "MTA_MQ_A5-Sunday",
+                    "shapeId": "MTA_M340056",
+                    "timeZone": "",
+                    "tripHeadsign": "SELECT BUS SERVICE JAVITS CTR - 12 AV",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_GA_A5-Sunday_D_GA_60780_B62-827",
+                    "directionId": "1",
+                    "id": "MTA NYCT_GA_A5-Sunday-103500_B62_827",
+                    "routeId": "MTA NYCT_B62",
+                    "routeShortName": "",
+                    "serviceId": "MTA_GA_A5-Sunday",
+                    "shapeId": "MTA_B620028",
+                    "timeZone": "",
+                    "tripHeadsign": "DOWNTOWN BKLYN FULTON MALL",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_OH_A5-Sunday_D_OH_22800_M101-17",
+                    "directionId": "0",
+                    "id": "MTA NYCT_OH_A5-Sunday-104400_M101_129",
+                    "routeId": "MTA NYCT_M101",
+                    "routeShortName": "",
+                    "serviceId": "MTA_OH_A5-Sunday",
+                    "shapeId": "MTA_M1010316",
+                    "timeZone": "",
+                    "tripHeadsign": "LTD FT GEORGE 193 ST via 3 AV",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTABC_LGPA5-LG_A5-Sunday-80_1493561",
+                    "directionId": "0",
+                    "id": "MTABC_7709622-LGPA5-LG_A5-Sunday-80",
+                    "routeId": "MTABC_Q69",
+                    "routeShortName": "",
+                    "serviceId": "MTA_LGPA5-LG_A5-Sunday-80",
+                    "shapeId": "MTA_Q690066",
+                    "timeZone": "",
+                    "tripHeadsign": "JACKSON HEIGHTS 82 ST via 21 ST via DITMARS BL",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTABC_CPPA5-CP_A5-Sunday-80_1490806",
+                    "directionId": "1",
+                    "id": "MTABC_7695519-CPPA5-CP_A5-Sunday-80",
+                    "routeId": "MTABC_Q66",
+                    "routeShortName": "",
+                    "serviceId": "MTA_CPPA5-CP_A5-Sunday-80",
+                    "shapeId": "MTA_Q660120",
+                    "timeZone": "",
+                    "tripHeadsign": "LI CITY QUEENS PLZ via NORTHERN BL",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_FP_A5-Sunday_D_FP_15480_Q54-103",
+                    "directionId": "0",
+                    "id": "MTA NYCT_FP_A5-Sunday-105500_Q54_115",
+                    "routeId": "MTA NYCT_Q54",
+                    "routeShortName": "",
+                    "serviceId": "MTA_FP_A5-Sunday",
+                    "shapeId": "MTA_Q540114",
+                    "timeZone": "",
+                    "tripHeadsign": "JAMAICA 170 ST",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTABC_CPPA5-CP_A5-Sunday-80_1490825",
+                    "directionId": "0",
+                    "id": "MTABC_7695543-CPPA5-CP_A5-Sunday-80",
+                    "routeId": "MTABC_Q66",
+                    "routeShortName": "",
+                    "serviceId": "MTA_CPPA5-CP_A5-Sunday-80",
+                    "shapeId": "MTA_Q660116",
+                    "timeZone": "",
+                    "tripHeadsign": "FLUSHING MAIN ST STA via NORTHERN BL",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_GA_A5-Sunday_D_GA_58500_B47-427",
+                    "directionId": "1",
+                    "id": "MTA NYCT_GA_A5-Sunday-105000_B47_427",
+                    "routeId": "MTA NYCT_B24",
+                    "routeShortName": "",
+                    "serviceId": "MTA_GA_A5-Sunday",
+                    "shapeId": "MTA_B240085",
+                    "timeZone": "",
+                    "tripHeadsign": "WILLIAMSBURG BRIDGE PLZ",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_GA_A5-Sunday_D_GA_54180_Q59-909",
+                    "directionId": "0",
+                    "id": "MTA NYCT_GA_A5-Sunday-103800_Q59_909",
+                    "routeId": "MTA NYCT_Q59",
+                    "routeShortName": "",
+                    "serviceId": "MTA_GA_A5-Sunday",
+                    "shapeId": "MTA_Q590161",
+                    "timeZone": "",
+                    "tripHeadsign": "REGO PARK 63 DR via GRAND",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_JG_A5-Sunday_D_JG_58920_B43-120",
+                    "directionId": "0",
+                    "id": "MTA NYCT_JG_A5-Sunday-100000_B43_120",
+                    "routeId": "MTA NYCT_B43",
+                    "routeShortName": "",
+                    "serviceId": "MTA_JG_A5-Sunday",
+                    "shapeId": "MTA_B430052",
+                    "timeZone": "",
+                    "tripHeadsign": "GREENPOINT BOX ST",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_FB_A5-Sunday_D_FB_35760_B46-106",
+                    "directionId": "1",
+                    "id": "MTA NYCT_FB_A5-Sunday-118300_B41_33",
+                    "routeId": "MTA NYCT_B46",
+                    "routeShortName": "",
+                    "serviceId": "MTA_FB_A5-Sunday",
+                    "shapeId": "MTA_B460184",
+                    "timeZone": "",
+                    "tripHeadsign": "LTD KINGS PLAZA via UTICA",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTABC_LGPA5-LG_A5-Sunday-80_1493562",
+                    "directionId": "1",
+                    "id": "MTABC_7709575-LGPA5-LG_A5-Sunday-80",
+                    "routeId": "MTABC_Q67",
+                    "routeShortName": "",
+                    "serviceId": "MTA_LGPA5-LG_A5-Sunday-80",
+                    "shapeId": "MTA_Q670041",
+                    "timeZone": "",
+                    "tripHeadsign": "LI CITY QUEENS PLZ",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_FB_A5-Sunday_D_FB_57900_B46-148",
+                    "directionId": "1",
+                    "id": "MTA NYCT_FB_A5-Sunday-104100_B46_148",
+                    "routeId": "MTA NYCT_B46",
+                    "routeShortName": "",
+                    "serviceId": "MTA_FB_A5-Sunday",
+                    "shapeId": "MTA_B460184",
+                    "timeZone": "",
+                    "tripHeadsign": "LTD KINGS PLAZA via UTICA",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_GA_A5-Sunday_D_GA_61800_B57-610",
+                    "directionId": "1",
+                    "id": "MTA NYCT_GA_A5-Sunday-104000_B57_610",
+                    "routeId": "MTA NYCT_B48",
+                    "routeShortName": "",
+                    "serviceId": "MTA_GA_A5-Sunday",
+                    "shapeId": "MTA_B480054",
+                    "timeZone": "",
+                    "tripHeadsign": "LEFFERTS GARDENS PROSPECT PK STA",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTABC_JKPA5-JK_A5-Sunday-80_1498325",
+                    "directionId": "0",
+                    "id": "MTABC_7738136-JKPA5-JK_A5-Sunday-80",
+                    "routeId": "MTABC_Q60",
+                    "routeShortName": "",
+                    "serviceId": "MTA_JKPA5-JK_A5-Sunday-80",
+                    "shapeId": "MTA_Q600182",
+                    "timeZone": "",
+                    "tripHeadsign": "JAMAICA ARCHER AV via QUEENS BL",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_MQ_A5-Sunday_D_MQ_42420_M14AD-48",
+                    "directionId": "0",
+                    "id": "MTA NYCT_MQ_A5-Sunday-101800_M14AD_54",
+                    "routeId": "MTA NYCT_M14D",
+                    "routeShortName": "",
+                    "serviceId": "MTA_MQ_A5-Sunday",
+                    "shapeId": "MTA_M14D0020",
+                    "timeZone": "",
+                    "tripHeadsign": "LOWER E. SIDE DELANCY-FDR CROSSTOWN",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_JG_A5-Sunday_D_JG_57720_B43-118",
+                    "directionId": "0",
+                    "id": "MTA NYCT_JG_A5-Sunday-098000_B43_118",
+                    "routeId": "MTA NYCT_B43",
+                    "routeShortName": "",
+                    "serviceId": "MTA_JG_A5-Sunday",
+                    "shapeId": "MTA_B430052",
+                    "timeZone": "",
+                    "tripHeadsign": "GREENPOINT BOX ST",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_GA_A5-Sunday_D_GA_44100_B39-302",
+                    "directionId": "1",
+                    "id": "MTA NYCT_GA_A5-Sunday-105000_B39_302",
+                    "routeId": "MTA NYCT_B39",
+                    "routeShortName": "",
+                    "serviceId": "MTA_GA_A5-Sunday",
+                    "shapeId": "MTA_B390025",
+                    "timeZone": "",
+                    "tripHeadsign": "ALLEN STREET DELANCY STREET",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_MQ_A5-Sunday_D_MQ_30720_M42-8",
+                    "directionId": "1",
+                    "id": "MTA NYCT_MQ_A5-Sunday-103000_M42_25",
+                    "routeId": "MTA NYCT_M42",
+                    "routeShortName": "",
+                    "serviceId": "MTA_MQ_A5-Sunday",
+                    "shapeId": "MTA_M420109",
+                    "timeZone": "",
+                    "tripHeadsign": "42 ST PIER CROSSTOWN",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_GA_A5-Sunday_D_GA_58500_B32-154",
+                    "directionId": "1",
+                    "id": "MTA NYCT_GA_A5-Sunday-102000_B32_154",
+                    "routeId": "MTA NYCT_B32",
+                    "routeShortName": "",
+                    "serviceId": "MTA_GA_A5-Sunday",
+                    "shapeId": "MTA_B320024",
+                    "timeZone": "",
+                    "tripHeadsign": "WILLIAMSBURG BRIDGE PLAZA",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_GA_A5-Sunday_D_GA_46380_B62-813",
+                    "directionId": "0",
+                    "id": "MTA NYCT_GA_A5-Sunday-099700_B62_813",
+                    "routeId": "MTA NYCT_B62",
+                    "routeShortName": "",
+                    "serviceId": "MTA_GA_A5-Sunday",
+                    "shapeId": "MTA_B620031",
+                    "timeZone": "",
+                    "tripHeadsign": "LI CITY QUEENS PLAZA",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTABC_JKPA5-JK_A5-Sunday-80_1498285",
+                    "directionId": "1",
+                    "id": "MTABC_7738193-JKPA5-JK_A5-Sunday-80",
+                    "routeId": "MTABC_Q60",
+                    "routeShortName": "",
+                    "serviceId": "MTA_JKPA5-JK_A5-Sunday-80",
+                    "shapeId": "MTA_Q600183",
+                    "timeZone": "",
+                    "tripHeadsign": "EAST MIDTOWN 2 AV via QUEENS BL",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_OH_A5-Sunday_D_OH_37440_M15-25",
+                    "directionId": "1",
+                    "id": "MTA NYCT_OH_A5-Sunday-101300_M15_38",
+                    "routeId": "MTA NYCT_M15",
+                    "routeShortName": "",
+                    "serviceId": "MTA_OH_A5-Sunday",
+                    "shapeId": "MTA_M150351",
+                    "timeZone": "",
+                    "tripHeadsign": "SOUTH FERRY via 2 AV",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_FB_A5-Sunday_D_FB_36780_B46-107",
+                    "directionId": "0",
+                    "id": "MTA NYCT_FB_A5-Sunday-098500_B46_142",
+                    "routeId": "MTA NYCT_B46",
+                    "routeShortName": "",
+                    "serviceId": "MTA_FB_A5-Sunday",
+                    "shapeId": "MTA_B460181",
+                    "timeZone": "",
+                    "tripHeadsign": "LTD WILLIAMSBURG BRIDGE PLZ via UTICA",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_GA_A5-Sunday_D_GA_55020_B57-606",
+                    "directionId": "0",
+                    "id": "MTA NYCT_GA_A5-Sunday-100500_B57_606",
+                    "routeId": "MTA NYCT_B60",
+                    "routeShortName": "",
+                    "serviceId": "MTA_GA_A5-Sunday",
+                    "shapeId": "MTA_B600126",
+                    "timeZone": "",
+                    "tripHeadsign": "WILLIAMSBURG BRIDGE PLAZA",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_OH_A5-Sunday_D_OH_26040_M101-31",
+                    "directionId": "1",
+                    "id": "MTA NYCT_OH_A5-Sunday-099700_M101_52",
+                    "routeId": "MTA NYCT_M102",
+                    "routeShortName": "",
+                    "serviceId": "MTA_OH_A5-Sunday",
+                    "shapeId": "MTA_M1020118",
+                    "timeZone": "",
+                    "tripHeadsign": "EAST VIL 6 ST via LEX AV",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_MQ_A5-Sunday_D_MQ_56100_M9-115",
+                    "directionId": "0",
+                    "id": "MTA NYCT_MQ_A5-Sunday-102000_M9_115",
+                    "routeId": "MTA NYCT_M9",
+                    "routeShortName": "",
+                    "serviceId": "MTA_MQ_A5-Sunday",
+                    "shapeId": "MTA_M090093",
+                    "timeZone": "",
+                    "tripHeadsign": "KIPS BAY 1 AV - 26 ST via AV C",
+                    "tripShortName": ""
+                },
+                {
+                    "blockId": "MTA NYCT_GA_A5-Sunday_D_GA_50580_B57-605",
+                    "directionId": "1",
+                    "id": "MTA NYCT_GA_A5-Sunday-102400_B57_605",
+                    "routeId": "MTA NYCT_Q59",
+                    "routeShortName": "",
+                    "serviceId": "MTA_GA_A5-Sunday",
+                    "shapeId": "MTA_Q590166",
+                    "timeZone": "",
+                    "tripHeadsign": "WILLIAMSBURG BRIDGE PLZ via GRAND",
+                    "tripShortName": ""
+                }
+            ]
+        }
+    },
+    "text": "OK",
+    "version": 2
+}
