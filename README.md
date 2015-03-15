@@ -45,7 +45,7 @@ route_id,service_id,trip_id,trip_headsign,direction_id,shape_id
 
 # todo
 
-  * Load stops 
+  * COMPLETE: Load stops 
     * Fields needed:
         * route_id  
         * stop_id
