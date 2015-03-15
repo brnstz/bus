@@ -25,6 +25,31 @@ CREATE TABLE stop (
     UNIQUE(route_id, stop_id)
 );
 
+CREATE TYPE day_type AS ENUM ('monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday');
+
+CREATE TABLE service_route_day (
+    route_id    TEXT NOT NULL,
+    service_id  TEXT NOT NULL,
+    day         DAY_TYPE NOT NULL,
+
+    UNIQUE(route_id, service_id, day)
+);
+
+CREATE TABLE service_route_exception (
+    route_id       TEXT NOT NULL,
+    service_id     TEXT NOT NULL,
+    exception_day  DATE NOT NULL,
+
+    UNIQUE(route_id, service_id, exception_day)
+);
+
+CREATE TABLE scheduled_stop_time (
+    route_id       TEXT NOT NULL,
+    stop_id        TEXT NOT NULL,
+    service_id     TEXT NOT NULL,
+    departure_time TIME NOT NULL
+);
+
 /*
 VALUES('MTA_302255', 'MTA NYCT_B43', ll_to_earth(40.730251, -73.953064), 'bus');
           
