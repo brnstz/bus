@@ -12,7 +12,7 @@ psql -U postgres -h $(boot2docker ip 2> /dev/null)
 
 psql -U postgres -h 192.168.59.103 < models/schema.sql
 
-go run cmds/stopload
+go run cmds/stopload/main.go
 ```
 
 # schema of transit files
