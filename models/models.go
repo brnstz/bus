@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/brnstz/bus/common"
 	"github.com/jmoiron/sqlx"
@@ -92,4 +93,19 @@ func GetStopsByLoc(db sqlx.Ext, lat, lon, meters float64, filter string) ([]*Sto
 	err := sqlx.Select(db, &stops, q, params...)
 
 	return stops, err
+}
+
+type ServiceRouteDay struct {
+	ServiceId string
+	RouteId   string
+	Day       string
+
+	StartDate time.Time
+	EndDate   time.Time
+}
+
+type ServiceRouteException struct {
+	ServiceId     string
+	RouteId       string
+	ExceptionDate time.Time
 }

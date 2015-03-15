@@ -1,3 +1,6 @@
+DROP schema PUBLIC cascade;
+CREATE schema PUBLIC;
+
 CREATE EXTENSION IF NOT EXISTS cube;
 CREATE EXTENSION IF NOT EXISTS earthdistance;
 
@@ -35,17 +38,18 @@ CREATE TABLE service_route_day (
     route_id    TEXT NOT NULL,
     service_id  TEXT NOT NULL,
     day         DAY_TYPE NOT NULL,
-    start_day   DATE NOT NULL,
+    start_date  DATE NOT NULL,
+    end_date    DATE NOT NULL,
 
-    UNIQUE(route_id, service_id, day, start_day)
+    UNIQUE(route_id, service_id, day, start_date, end_date)
 );
 
 CREATE TABLE service_route_exception (
-    route_id       TEXT NOT NULL,
-    service_id     TEXT NOT NULL,
-    exception_day  DATE NOT NULL,
+    route_id        TEXT NOT NULL,
+    service_id      TEXT NOT NULL,
+    exception_date  DATE NOT NULL,
 
-    UNIQUE(route_id, service_id, exception_day)
+    UNIQUE(route_id, service_id, exception_date)
 );
 
 CREATE TABLE scheduled_stop_time (

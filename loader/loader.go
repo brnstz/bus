@@ -8,9 +8,14 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/brnstz/bus/models"
 )
+
+var days = []string{"monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"}
+
+var datefmt = "20060102"
 
 type Loader struct {
 	// the dir from which we load google transit files
@@ -32,19 +37,26 @@ type Loader struct {
 	// mapping of trip_id to service object
 	tripService map[string]*models.Service
 
+	// mapping of service_id to map of unique route_id
+	serviceRoute map[string]map[string]bool
+
 	Stops []*models.Stop
 
 	ScheduledStopTimes []*models.ScheduledStopTime
+
+	ServiceRouteDays       []*models.ServiceRouteDay
+	ServiceRouteExceptions []*models.ServiceRouteException
 }
 
 func NewLoader(dir string) *Loader {
 	l := Loader{
-		dir:         dir,
-		trips:       map[string]*models.Trip{},
-		stopTrips:   map[string][]string{},
-		tripRoute:   map[string]string{},
-		uniqueStop:  map[string]*models.Stop{},
-		tripService: map[string]*models.Service{},
+		dir:          dir,
+		trips:        map[string]*models.Trip{},
+		stopTrips:    map[string][]string{},
+		tripRoute:    map[string]string{},
+		uniqueStop:   map[string]*models.Stop{},
+		tripService:  map[string]*models.Service{},
+		serviceRoute: map[string]map[string]bool{},
 	}
 
 	l.init()
@@ -57,6 +69,7 @@ func (l *Loader) init() {
 	l.loadStopTrips()
 	l.loadTripRoute()
 	l.loadUniqueStop()
+	l.loadCalendars()
 
 	l.Stops = make([]*models.Stop, len(l.uniqueStop))
 
@@ -126,14 +139,22 @@ func (l *Loader) loadTrips() {
 			Headsign:    rec[headIdx],
 		}
 
+		service := rec[serviceIdx]
+		route := rec[routeIdx]
+
 		l.trips[trip.Id] = trip
 
-		service := &models.Service{
-			Id:      rec[serviceIdx],
-			RouteId: rec[routeIdx],
+		serviceObj := &models.Service{
+			Id:      service,
+			RouteId: route,
 		}
 
-		l.tripService[trip.Id] = service
+		l.tripService[trip.Id] = serviceObj
+
+		if l.serviceRoute[service] == nil {
+			l.serviceRoute[service] = map[string]bool{}
+		}
+		l.serviceRoute[service][route] = true
 	}
 
 }
@@ -258,6 +279,64 @@ func (l *Loader) loadUniqueStop() {
 					Headsign:    l.trips[trip].Headsign,
 				}
 				l.uniqueStop[obj.Key()] = &obj
+			}
+		}
+	}
+}
+
+func (l *Loader) loadCalendars() {
+	stops := getcsv(l.dir, "calendar.txt")
+
+	header, err := stops.Read()
+	if err != nil {
+		log.Fatalf("unable to read header: %v", err)
+	}
+
+	idxs := map[string]int{}
+	for _, day := range days {
+		idxs[day] = find(header, day)
+	}
+	serviceIdx := find(header, "service_id")
+	startDateIdx := find(header, "start_date")
+	endDateIdx := find(header, "end_date")
+
+	for i := 0; ; i++ {
+		rec, err := stops.Read()
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			log.Fatalf("%v on line %v of calendar.txt", err, i)
+		}
+
+		serviceId := rec[serviceIdx]
+
+		startDate, err := time.Parse(datefmt, rec[startDateIdx])
+		if err != nil {
+			log.Fatalf("can't parse start date %v %v", err, rec[startDateIdx])
+		}
+
+		endDate, err := time.Parse(datefmt, rec[endDateIdx])
+		if err != nil {
+			log.Fatalf("can't parse end date %v %v", err, rec[endDateIdx])
+		}
+
+		for day, dayIdx := range idxs {
+			dayVal := rec[dayIdx]
+			if dayVal != "1" {
+				continue
+			}
+			for route, _ := range l.serviceRoute[serviceId] {
+				srd := models.ServiceRouteDay{
+					ServiceId: serviceId,
+					RouteId:   route,
+					Day:       day,
+					StartDate: startDate,
+					EndDate:   endDate,
+				}
+
+				l.ServiceRouteDays = append(l.ServiceRouteDays, &srd)
 			}
 		}
 	}

@@ -11,12 +11,16 @@ func TestLoader(t *testing.T) {
 	l := loader.NewLoader("../schema/brooklyn/")
 
 	/*
-		for i, v := range l.Stops {
+			for i, v := range l.Stops {
+				fmt.Println(i, v)
+			}
+
+		for i, v := range l.ScheduledStopTimes {
 			fmt.Println(i, v)
 		}
 	*/
 
-	for i, v := range l.ScheduledStopTimes {
+	for i, v := range l.ServiceRouteDays {
 		fmt.Println(i, v)
 	}
 }
