@@ -2,6 +2,8 @@ package main
 
 import (
 	"log"
+	"os"
+	"os/signal"
 	"strings"
 
 	"github.com/brnstz/bus/common"
@@ -31,7 +33,7 @@ func doOne(dir string, db *sqlx.DB) {
 			`, s.RouteId, s.ServiceId, s.Day, s.StartDate, s.EndDate,
 		)
 		if err != nil {
-			log.Fatal(err)
+			log.Println("ERROR SERVICE ROUTE DAYS: ", err, s)
 		}
 	}
 
@@ -48,7 +50,7 @@ func doOne(dir string, db *sqlx.DB) {
 		)
 
 		if err != nil {
-			log.Fatal(err)
+			log.Println("ERROR STOPS: ", err, s)
 		}
 	}
 
@@ -61,13 +63,23 @@ func doOne(dir string, db *sqlx.DB) {
 			`, s.RouteId, s.StopId, s.ServiceId, s.DepartureSec,
 		)
 		if err != nil {
-			log.Fatal(err)
+			log.Println("ERROR SCHEDULED STOP TIMES: ", err, s)
 		}
 	}
 }
 
 func main() {
 	db := common.DB
+
+	// Dump stack trace on kill
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		for sig := range c {
+			log.Println("got signal", sig)
+			panic("stack trace here")
+		}
+	}()
 
 	for _, dir := range []string{
 		"/Users/bseitz/go/src/github.com/brnstz/bus/schema/subway/",
