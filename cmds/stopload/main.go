@@ -1,20 +1,16 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 	"strings"
 
+	"github.com/brnstz/bus/common"
 	"github.com/brnstz/bus/loader"
 	_ "github.com/lib/pq"
 )
 
 func main() {
-	db, err := sql.Open("postgres", "user=postgres host=192.168.59.103 sslmode=disable")
-	if err != nil {
-		panic(err)
-	}
-	log.Println(db)
+	db := common.DB
 
 	for _, dir := range []string{
 		"/Users/bseitz/go/src/github.com/brnstz/bus/schema/subway/",
