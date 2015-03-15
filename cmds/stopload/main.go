@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"strings"
-	"sync"
 
 	"github.com/brnstz/bus/common"
 	"github.com/brnstz/bus/loader"
@@ -11,7 +10,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func doOne(dir string, db *sqlx.DB, wg *sync.WaitGroup) {
+func doOne(dir string, db *sqlx.DB) {
 
 	stype := ""
 	if strings.HasSuffix(dir, "subway/") {
@@ -65,14 +64,10 @@ func doOne(dir string, db *sqlx.DB, wg *sync.WaitGroup) {
 			log.Fatal(err)
 		}
 	}
-
-	wg.Done()
 }
 
 func main() {
 	db := common.DB
-
-	wg := &sync.WaitGroup{}
 
 	for _, dir := range []string{
 		"/Users/bseitz/go/src/github.com/brnstz/bus/schema/subway/",
@@ -83,11 +78,8 @@ func main() {
 		"/Users/bseitz/go/src/github.com/brnstz/bus/schema/bronx/",
 	} {
 
-		wg.Add(1)
-		go doOne(dir, db, wg)
+		doOne(dir, db)
 	}
 
-	log.Println("waiting to finish all boroughs")
-	wg.Wait()
 	log.Println("finished all boroughs")
 }
