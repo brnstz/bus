@@ -15,8 +15,14 @@ type Stop struct {
 	Lon float64
 }
 
+type Trip struct {
+	Id          string
+	Headsign    string
+	DirectionId int
+}
+
 func (s Stop) String() string {
-	return fmt.Sprintf("{%v %v %v @ (%v,%v)}", s.Id, s.Name, s.RouteId, s.Lat, s.Lon)
+	return fmt.Sprintf("{%v %v %v %v @ (%v,%v)}", s.Id, s.Name, s.RouteId, s.Headsign, s.Lat, s.Lon)
 }
 
 func (s Stop) Key() string {

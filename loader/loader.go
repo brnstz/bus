@@ -16,7 +16,10 @@ type Loader struct {
 	// the dir from which we load google transit files
 	dir string
 
-	// mapping from stop_id to a slice of trips
+	// mapping from trip id to a trip object
+	trips map[string]*models.Trip
+
+	// mapping from stop_id to a slice of trip_ids
 	stopTrips map[string][]string
 
 	// mapping trip_id to route_id
@@ -32,6 +35,7 @@ type Loader struct {
 func NewLoader(dir string) *Loader {
 	l := Loader{
 		dir:        dir,
+		trips:      map[string]*models.Trip{},
 		stopTrips:  map[string][]string{},
 		tripRoute:  map[string]string{},
 		uniqueStop: map[string]*models.Stop{},
@@ -43,6 +47,7 @@ func NewLoader(dir string) *Loader {
 }
 
 func (l *Loader) init() {
+	l.loadTrips()
 	l.loadStopTrips()
 	l.loadTripRoute()
 	l.loadUniqueStop()
@@ -79,27 +84,65 @@ func find(header []string, col string) int {
 	return -1
 }
 
-func (l *Loader) loadStopTrips() {
-	stop_times := getcsv(l.dir, "stop_times.txt")
+func (l *Loader) loadTrips() {
+	f := getcsv(l.dir, "trips.txt")
 
-	header, err := stop_times.Read()
+	header, err := f.Read()
 	if err != nil {
 		log.Fatalf("unable to read header: %v", err)
 	}
 
-	stop_index := find(header, "stop_id")
-	trip_index := find(header, "trip_id")
+	tripIdx := find(header, "trip_id")
+	dirIdx := find(header, "direction_id")
+	headIdx := find(header, "trip_headsign")
+
 	for i := 0; ; i++ {
-		rec, err := stop_times.Read()
+		rec, err := f.Read()
 		if err == io.EOF {
 			break
 		}
 
 		if err != nil {
+			log.Fatalf("%v on line %v of trips.txt", err, i)
+		}
+		direction, err := strconv.Atoi(rec[dirIdx])
+		if err != nil {
+			log.Fatalf("%v on line %v of trips.txt", err, i)
 		}
 
-		stop := rec[stop_index]
-		trip := rec[trip_index]
+		trip := &models.Trip{
+			Id:          rec[tripIdx],
+			DirectionId: direction,
+			Headsign:    rec[headIdx],
+		}
+
+		l.trips[trip.Id] = trip
+	}
+
+}
+
+func (l *Loader) loadStopTrips() {
+	stopTimes := getcsv(l.dir, "stop_times.txt")
+
+	header, err := stopTimes.Read()
+	if err != nil {
+		log.Fatalf("unable to read header: %v", err)
+	}
+
+	stopIdx := find(header, "stop_id")
+	tripIdx := find(header, "trip_id")
+	for i := 0; ; i++ {
+		rec, err := stopTimes.Read()
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			log.Fatalf("%v on line %v of stop_times.txt", err, i)
+		}
+
+		stop := rec[stopIdx]
+		trip := rec[tripIdx]
 
 		l.stopTrips[stop] = append(l.stopTrips[stop], trip)
 	}
@@ -114,8 +157,8 @@ func (l *Loader) loadTripRoute() {
 		log.Fatalf("unable to read header: %v", err)
 	}
 
-	trip_index := find(header, "trip_id")
-	route_index := find(header, "route_id")
+	tripIdx := find(header, "trip_id")
+	routeIdx := find(header, "route_id")
 
 	trips.Read()
 	for i := 0; ; i++ {
@@ -128,8 +171,8 @@ func (l *Loader) loadTripRoute() {
 			log.Fatalf("%v on line %v of trips.txt", err, i)
 		}
 
-		trip := rec[trip_index]
-		route := rec[route_index]
+		trip := rec[tripIdx]
+		route := rec[routeIdx]
 
 		l.tripRoute[trip] = route
 	}
@@ -143,10 +186,10 @@ func (l *Loader) loadUniqueStop() {
 		log.Fatalf("unable to read header: %v", err)
 	}
 
-	stop_index := find(header, "stop_id")
-	stop_name_index := find(header, "stop_name")
-	stop_lat_index := find(header, "stop_lat")
-	stop_lon_index := find(header, "stop_lon")
+	stopIdx := find(header, "stop_id")
+	stopNameIdx := find(header, "stop_name")
+	stopLatIdx := find(header, "stop_lat")
+	stopLonIdx := find(header, "stop_lon")
 
 	for i := 0; ; i++ {
 		rec, err := stops.Read()
@@ -158,28 +201,32 @@ func (l *Loader) loadUniqueStop() {
 			log.Fatalf("%v on line %v of stops.txt", err, i)
 		}
 
-		stop := rec[stop_index]
-		stopName := rec[stop_name_index]
-
-		stopLat, err := strconv.ParseFloat(strings.TrimSpace(rec[stop_lat_index]), 64)
+		stopLat, err := strconv.ParseFloat(
+			strings.TrimSpace(rec[stopLatIdx]), 64,
+		)
 		if err != nil {
 			log.Fatalf("%v on line %v of stops.txt", err, i)
 		}
 
-		stopLon, err := strconv.ParseFloat(strings.TrimSpace(rec[stop_lon_index]), 64)
+		stopLon, err := strconv.ParseFloat(
+			strings.TrimSpace(rec[stopLonIdx]), 64,
+		)
 		if err != nil {
 			log.Fatalf("%v on line %v of stops.txt", err, i)
 		}
 
-		trips, exists := l.stopTrips[stop]
+		trips, exists := l.stopTrips[rec[stopIdx]]
 		if exists {
 			for _, trip := range trips {
 				obj := models.Stop{
-					Id:      stop,
-					Name:    stopName,
+					Id:      rec[stopIdx],
+					Name:    rec[stopNameIdx],
 					Lat:     stopLat,
 					Lon:     stopLon,
 					RouteId: l.tripRoute[trip],
+
+					DirectionId: l.trips[trip].DirectionId,
+					Headsign:    l.trips[trip].Headsign,
 				}
 				l.uniqueStop[obj.Key()] = &obj
 			}
