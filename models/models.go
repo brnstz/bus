@@ -26,6 +26,10 @@ type ScheduledStopTime struct {
 	DepartureSec int    `db:"departure_sec"`
 }
 
+func df(t time.Time) string {
+	return t.Format("2006-01-02")
+}
+
 func NewScheduledStopTime(routeId, stopId, serviceId, timeStr string) (sst ScheduledStopTime, err error) {
 	dsec := common.TimeStrToSecs(timeStr)
 
@@ -102,6 +106,12 @@ type ServiceRouteDay struct {
 
 	StartDate time.Time
 	EndDate   time.Time
+}
+
+func (s ServiceRouteDay) String() string {
+	return fmt.Sprintf("{%v %v %v %v %v}",
+		s.ServiceId, s.RouteId, s.Day, df(s.StartDate), df(s.EndDate),
+	)
 }
 
 type ServiceRouteException struct {
