@@ -24,6 +24,7 @@ CREATE TABLE stop (
 
     UNIQUE(route_id, stop_id)
 );
+CREATE INDEX idx_location_stop ON stop USING gist(location);
 
 CREATE TYPE day_type AS ENUM ('monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday');
 
@@ -31,6 +32,7 @@ CREATE TABLE service_route_day (
     route_id    TEXT NOT NULL,
     service_id  TEXT NOT NULL,
     day         DAY_TYPE NOT NULL,
+    start_day   DATE NOT NULL,
 
     UNIQUE(route_id, service_id, day)
 );

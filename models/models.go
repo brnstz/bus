@@ -51,7 +51,7 @@ func GetStopsByLoc(db sqlx.Ext, lat, lon, meters float64, filter string) ([]*Sto
 			longitude(location) AS lon,
 			earth_distance(location, ll_to_earth($1, $2)) AS dist 
 		FROM stop 
-		WHERE earth_distance(location, ll_to_earth($3, $4)) < $5
+		WHERE earth_box(ll_to_earth($3, $4), $5) @> location
 	`
 	if len(filter) > 0 {
 		q = q + ` AND stype = $6 `
