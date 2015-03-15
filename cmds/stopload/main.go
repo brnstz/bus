@@ -1,0 +1,55 @@
+package main
+
+import (
+	"database/sql"
+	"log"
+	"strings"
+
+	"github.com/brnstz/bus/loader"
+	_ "github.com/lib/pq"
+)
+
+func main() {
+	db, err := sql.Open("postgres", "user=postgres host=192.168.59.103 sslmode=disable")
+	if err != nil {
+		panic(err)
+	}
+	log.Println(db)
+
+	for _, dir := range []string{
+		"/Users/bseitz/go/src/github.com/brnstz/bus/schema/subway/",
+		"/Users/bseitz/go/src/github.com/brnstz/bus/schema/brooklyn/",
+		"/Users/bseitz/go/src/github.com/brnstz/bus/schema/manhattan/",
+		"/Users/bseitz/go/src/github.com/brnstz/bus/schema/queens/",
+		"/Users/bseitz/go/src/github.com/brnstz/bus/schema/staten_island/",
+		"/Users/bseitz/go/src/github.com/brnstz/bus/schema/bronx/",
+	} {
+
+		stype := ""
+		if strings.HasSuffix(dir, "subway/") {
+			stype = "subway"
+		} else {
+			stype = "bus"
+		}
+
+		log.Println(dir)
+		l := loader.NewLoader(dir)
+
+		for _, s := range l.Stops {
+			_, err := db.Exec(`
+				INSERT INTO stop
+				(stop_id, stop_name, direction_id, headsign, route_id,
+				 location, stype)
+				VALUES($1, $2, $3, $4, $5, ll_to_earth($6, $7), $8)
+			`,
+				s.Id, s.Name, s.DirectionId, s.Headsign, s.RouteId,
+				s.Lat, s.Lon, stype,
+			)
+
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+	}
+
+}
