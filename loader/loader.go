@@ -68,7 +68,9 @@ func getcsv(dir, name string) *csv.Reader {
 		panic(err)
 	}
 
-	return csv.NewReader(f)
+	r := csv.NewReader(f)
+	r.LazyQuotes = true
+	return r
 }
 
 // find index of col in header

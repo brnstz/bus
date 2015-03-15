@@ -9,6 +9,10 @@ VBoxManage controlvm boot2docker-vm natpf1 "postgres-hello,tcp,127.0.0.1,5432,,5
 
 docker run -d -p 5432:5432 postgres
 psql -U postgres -h $(boot2docker ip 2> /dev/null)
+
+psql -U postgres -h 192.168.59.103 < models/schema.sql
+
+go run cmds/stopload
 ```
 
 # schema of transit files
