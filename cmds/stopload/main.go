@@ -32,6 +32,7 @@ func main() {
 		l := loader.NewLoader(dir)
 
 		for _, s := range l.Stops {
+			log.Println("Inserting stop: ", s)
 			_, err := db.Exec(`
 				INSERT INTO stop
 				(stop_id, stop_name, direction_id, headsign, route_id,
@@ -42,6 +43,19 @@ func main() {
 				s.Lat, s.Lon, stype,
 			)
 
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+
+		for _, s := range l.ScheduledStopTimes {
+			log.Println("Inserting scheduled stop time: ", s)
+			_, err := db.Exec(`
+				INSERT INTO scheduled_stop_time
+				(route_id, stop_id, service_id, departure_sec)
+				VALUES($1, $2, $3, $4)
+			`, s.RouteId, s.StopId, s.ServiceId, s.DepartureSec,
+			)
 			if err != nil {
 				log.Fatal(err)
 			}

@@ -38,7 +38,7 @@ func NewScheduledStopTime(routeId, stopId, serviceId, timeStr string) (sst Sched
 	return
 }
 func (s ScheduledStopTime) String() string {
-	return fmt.Sprintf("{%v %v %v @ %v}", s.RouteId, s.ServiceId, s.StopId, s.DepartureSec)
+	return fmt.Sprintf("{%v %v %v @ %v (%v)}", s.RouteId, s.ServiceId, s.StopId, common.SecsToTimeStr(s.DepartureSec), s.DepartureSec)
 }
 
 type Stop struct {
