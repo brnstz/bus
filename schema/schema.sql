@@ -26,49 +26,29 @@ CREATE TABLE stop (
 );
 CREATE INDEX idx_location_stop ON stop USING gist(location);
 
-CREATE TYPE day_type AS ENUM ('monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday');
+CREATE TYPE day_type AS ENUM (
+    'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 
+    'saturday', 'sunday'
+);
 
 CREATE TABLE service_route_day (
     route_id    TEXT NOT NULL,
     service_id  TEXT NOT NULL,
     day         DAY_TYPE NOT NULL,
-    start_day   DATE NOT NULL,
-
-    UNIQUE(route_id, service_id, day)
+    start_day   DATE NOT NULL
 );
+
+-- select route_id, service_id, max(start_day) from service_route_day where route_id = 'G' and day = 'monday' group by route_id, service_id;
 
 CREATE TABLE service_route_exception (
     route_id       TEXT NOT NULL,
     service_id     TEXT NOT NULL,
-    exception_day  DATE NOT NULL,
-
-    UNIQUE(route_id, service_id, exception_day)
+    exception_day  DATE NOT NULL
 );
 
 CREATE TABLE scheduled_stop_time (
     route_id       TEXT NOT NULL,
     stop_id        TEXT NOT NULL,
     service_id     TEXT NOT NULL,
-    departure_time TIME NOT NULL
+    departure_sec  INT  NOT NULL
 );
-
-/*
-VALUES('MTA_302255', 'MTA NYCT_B43', ll_to_earth(40.730251, -73.953064), 'bus');
-          
-select earth_distance(location, ll_to_earth(40.7, -73.95)) * 0.000621371192 from stop;
-
-CREATE TYPE day_type AS ENUM ('monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday');
-
-CREATE TABLE service_days ( 
-    service_id TEXT NOT NULL,
-    route_id   TEXT NOT NULL,
-    day        DAY_TYPE NOT NULL
-);
-
-CREATE TABLE scheduled_stop_times (
-    service_id    TEXT NOT NULL,
-    route_id      TEXT NOT NULL,
-    trip_headsign TEXT NOT NULL,
-    direction_id  INT  NOT NULL
-);
-*/

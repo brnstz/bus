@@ -29,16 +29,22 @@ type Loader struct {
 	// list of unique stops by route.
 	uniqueStop map[string]*models.Stop
 
+	// mapping of trip_id to service object
+	tripService map[string]*models.Service
+
 	Stops []*models.Stop
+
+	ScheduledStopTimes []*models.ScheduledStopTime
 }
 
 func NewLoader(dir string) *Loader {
 	l := Loader{
-		dir:        dir,
-		trips:      map[string]*models.Trip{},
-		stopTrips:  map[string][]string{},
-		tripRoute:  map[string]string{},
-		uniqueStop: map[string]*models.Stop{},
+		dir:         dir,
+		trips:       map[string]*models.Trip{},
+		stopTrips:   map[string][]string{},
+		tripRoute:   map[string]string{},
+		uniqueStop:  map[string]*models.Stop{},
+		tripService: map[string]*models.Service{},
 	}
 
 	l.init()
@@ -97,6 +103,8 @@ func (l *Loader) loadTrips() {
 	tripIdx := find(header, "trip_id")
 	dirIdx := find(header, "direction_id")
 	headIdx := find(header, "trip_headsign")
+	serviceIdx := find(header, "service_id")
+	routeIdx := find(header, "route_id")
 
 	for i := 0; ; i++ {
 		rec, err := f.Read()
@@ -119,6 +127,13 @@ func (l *Loader) loadTrips() {
 		}
 
 		l.trips[trip.Id] = trip
+
+		service := &models.Service{
+			Id:      rec[serviceIdx],
+			RouteId: rec[routeIdx],
+		}
+
+		l.tripService[trip.Id] = service
 	}
 
 }
@@ -133,6 +148,7 @@ func (l *Loader) loadStopTrips() {
 
 	stopIdx := find(header, "stop_id")
 	tripIdx := find(header, "trip_id")
+	timeIdx := find(header, "departure_time")
 	for i := 0; ; i++ {
 		rec, err := stopTimes.Read()
 		if err == io.EOF {
@@ -145,8 +161,19 @@ func (l *Loader) loadStopTrips() {
 
 		stop := rec[stopIdx]
 		trip := rec[tripIdx]
+		timeStr := rec[timeIdx]
 
 		l.stopTrips[stop] = append(l.stopTrips[stop], trip)
+
+		service := l.tripService[trip]
+
+		sst, err := models.NewScheduledStopTime(service.RouteId, stop, service.Id, timeStr)
+		if err != nil {
+			log.Fatal("can't create sst", rec, err)
+		}
+
+		l.ScheduledStopTimes = append(l.ScheduledStopTimes, &sst)
+
 	}
 }
 

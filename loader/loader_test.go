@@ -8,9 +8,15 @@ import (
 )
 
 func TestLoader(t *testing.T) {
-	l := loader.NewLoader("../schema/subway/")
+	l := loader.NewLoader("../schema/brooklyn/")
 
-	for i, v := range l.Stops {
+	/*
+		for i, v := range l.Stops {
+			fmt.Println(i, v)
+		}
+	*/
+
+	for i, v := range l.ScheduledStopTimes {
 		fmt.Println(i, v)
 	}
 }

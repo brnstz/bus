@@ -3,8 +3,43 @@ package models
 import (
 	"fmt"
 
+	"github.com/brnstz/bus/common"
 	"github.com/jmoiron/sqlx"
 )
+
+type Trip struct {
+	Id          string
+	Headsign    string
+	DirectionId int
+}
+
+type Service struct {
+	Id      string
+	RouteId string
+}
+
+type ScheduledStopTime struct {
+	RouteId      string `db:"route_id"`
+	StopId       string `db:"stop_id"`
+	ServiceId    string `db:"service_id"`
+	DepartureSec int    `db:"departure_sec"`
+}
+
+func NewScheduledStopTime(routeId, stopId, serviceId, timeStr string) (sst ScheduledStopTime, err error) {
+	dsec := common.TimeStrToSecs(timeStr)
+
+	sst = ScheduledStopTime{
+		RouteId:      routeId,
+		StopId:       stopId,
+		ServiceId:    serviceId,
+		DepartureSec: dsec,
+	}
+
+	return
+}
+func (s ScheduledStopTime) String() string {
+	return fmt.Sprintf("{%v %v %v @ %v}", s.RouteId, s.ServiceId, s.StopId, s.DepartureSec)
+}
 
 type Stop struct {
 	Id          string `json:"stop_id" db:"stop_id"`
@@ -19,12 +54,6 @@ type Stop struct {
 	Lon float64 `json:"lon" db:"lon"`
 
 	Dist float64 `json:"dist" db:"dist"`
-}
-
-type Trip struct {
-	Id          string
-	Headsign    string
-	DirectionId int
 }
 
 func (s Stop) String() string {
