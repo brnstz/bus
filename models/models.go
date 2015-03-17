@@ -4,12 +4,15 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 	"time"
 
 	"github.com/brnstz/bus/common"
 	"github.com/jmoiron/sqlx"
 )
+
+const maxStops = 3
 
 type Trip struct {
 	Id          string
@@ -33,6 +36,20 @@ func df(t time.Time) string {
 	return t.Format("2006-01-02")
 }
 
+type timeSlice []time.Time
+
+func (p timeSlice) Len() int {
+	return len(p)
+}
+
+func (p timeSlice) Less(i, j int) bool {
+	return p[i].Before(p[j])
+}
+
+func (p timeSlice) Swap(i, j int) {
+	p[i], p[j] = p[j], p[i]
+}
+
 func NewScheduledStopTime(routeId, stopId, serviceId, timeStr string) (sst ScheduledStopTime, err error) {
 	dsec := common.TimeStrToSecs(timeStr)
 
@@ -46,7 +63,10 @@ func NewScheduledStopTime(routeId, stopId, serviceId, timeStr string) (sst Sched
 	return
 }
 func (s ScheduledStopTime) String() string {
-	return fmt.Sprintf("{%v %v %v @ %v (%v)}", s.RouteId, s.ServiceId, s.StopId, common.SecsToTimeStr(s.DepartureSec), s.DepartureSec)
+	return fmt.Sprintf("{%v %v %v @ %v (%v)}",
+		s.RouteId, s.ServiceId, s.StopId,
+		common.SecsToTimeStr(s.DepartureSec), s.DepartureSec,
+	)
 }
 
 type Stop struct {
@@ -68,7 +88,9 @@ type Stop struct {
 }
 
 func (s Stop) String() string {
-	return fmt.Sprintf("{%v %v %v %v @ (%v,%v)}", s.Id, s.Name, s.RouteId, s.Headsign, s.Lat, s.Lon)
+	return fmt.Sprintf("{%v %v %v %v @ (%v,%v)}",
+		s.Id, s.Name, s.RouteId, s.Headsign, s.Lat, s.Lon,
+	)
 }
 
 func (s Stop) Key() string {
@@ -137,7 +159,7 @@ func GetStopsByLoc(db sqlx.Ext, lat, lon, meters float64, filter string) (stops 
 		ydaysecs := []int64{}
 		todaysecs := []int64{}
 
-		allTimes := []*time.Time{}
+		allTimes := timeSlice{}
 
 		yesterday := now.Add(-time.Hour * 12)
 		yesterdayName := strings.ToLower(yesterday.Format("Monday"))
@@ -147,7 +169,10 @@ func GetStopsByLoc(db sqlx.Ext, lat, lon, meters float64, filter string) (stops 
 			var yesterdayId string
 			// Looks for trips starting yesterday that arrive here
 			// after midnight
-			yesterdayId, err = getServiceIdByDay(db, stop.RouteId, yesterdayName, &now)
+			yesterdayId, err = getServiceIdByDay(
+				db, stop.RouteId, yesterdayName, &now,
+			)
+
 			if err == sql.ErrNoRows {
 				err = nil
 				log.Println("no rows, ok, moving on")
@@ -166,12 +191,14 @@ func GetStopsByLoc(db sqlx.Ext, lat, lon, meters float64, filter string) (stops 
 				   service_id = $3 AND
 				   departure_sec >= 86400 AND
 				   departure_sec > $4
-			ORDER BY departure_sec LIMIT 3
+			ORDER BY departure_sec LIMIT $5
 		`
-			nowSecs := now.Hour()*3600 + now.Minute()*60 + now.Second() + 86400
+			nowSecs :=
+				now.Hour()*3600 + now.Minute()*60 + now.Second() + 86400
 
-			err = sqlx.Select(db, &ydaysecs, qYesterday, stop.RouteId, stop.Id,
-				yesterdayId, nowSecs)
+			err = sqlx.Select(db, &ydaysecs,
+				qYesterday, stop.RouteId, stop.Id,
+				yesterdayId, nowSecs, maxStops)
 
 			if err != nil {
 				log.Println("can't scan yesterday values", err)
@@ -189,7 +216,7 @@ func GetStopsByLoc(db sqlx.Ext, lat, lon, meters float64, filter string) (stops 
 
 			for _, ydaysec := range ydaysecs {
 				thisTime := yesterday.Add(time.Second * time.Duration(ydaysec))
-				allTimes = append(allTimes, &thisTime)
+				allTimes = append(allTimes, thisTime)
 			}
 		}
 
@@ -213,12 +240,12 @@ func GetStopsByLoc(db sqlx.Ext, lat, lon, meters float64, filter string) (stops 
 			       stop_id    = $2 AND
 				   service_id = $3 AND
 				   departure_sec > $4
-			ORDER BY departure_sec LIMIT 3
+			ORDER BY departure_sec LIMIT $5
 		`
 
 			nowSecs := now.Hour()*3600 + now.Minute()*60 + now.Second()
 			err = sqlx.Select(db, &todaysecs, qToday, stop.RouteId, stop.Id,
-				todayId, nowSecs)
+				todayId, nowSecs, maxStops)
 
 			today := now
 			today = today.Add(
@@ -232,7 +259,7 @@ func GetStopsByLoc(db sqlx.Ext, lat, lon, meters float64, filter string) (stops 
 
 			for _, todaysec := range todaysecs {
 				thisTime := today.Add(time.Second * time.Duration(todaysec))
-				allTimes = append(allTimes, &thisTime)
+				allTimes = append(allTimes, thisTime)
 			}
 
 			if err != nil {
@@ -241,8 +268,15 @@ func GetStopsByLoc(db sqlx.Ext, lat, lon, meters float64, filter string) (stops 
 			}
 		}
 
-		for _, thisTime := range allTimes {
-			stop.Scheduled = append(stop.Scheduled, &Departure{Time: *thisTime})
+		sort.Sort(allTimes)
+
+		for i, thisTime := range allTimes {
+			if i > maxStops {
+				break
+			}
+			stop.Scheduled = append(
+				stop.Scheduled, &Departure{Time: thisTime},
+			)
 		}
 
 	}
