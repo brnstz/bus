@@ -127,18 +127,20 @@ func GetStopsByLoc(db sqlx.Ext, lat, lon, meters float64, filter string) (stops 
 	params := []interface{}{lat, lon, lat, lon, meters}
 
 	q := `
-		SELECT
-			stop_id,
-			stop_name,
-			direction_id,
-			headsign,
-			route_id,
-			stype,
-			latitude(location) AS lat,
-			longitude(location) AS lon,
-			earth_distance(location, ll_to_earth($1, $2)) AS dist
-		FROM stop
-		WHERE earth_box(ll_to_earth($3, $4), $5) @> location
+		SELECT * FROM (
+			SELECT
+				DISTINCT ON (route_id, direction_id)
+				stop_id,
+				stop_name,
+				direction_id,
+				headsign,
+				route_id,
+				stype,
+				latitude(location) AS lat,
+				longitude(location) AS lon,
+				earth_distance(location, ll_to_earth($1, $2)) AS dist
+			FROM stop
+			WHERE earth_box(ll_to_earth($3, $4), $5) @> location
 	`
 
 	if len(filter) > 0 {
@@ -146,7 +148,12 @@ func GetStopsByLoc(db sqlx.Ext, lat, lon, meters float64, filter string) (stops 
 		params = append(params, filter)
 	}
 
-	q = q + ` ORDER BY dist ASC `
+	q = q + ` 
+			ORDER BY route_id, direction_id 
+		) unique_routes
+
+		ORDER BY dist ASC
+	`
 
 	err = sqlx.Select(db, &stops, q, params...)
 	if err != nil {
