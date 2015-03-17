@@ -45,16 +45,11 @@ route_id,service_id,trip_id,trip_headsign,direction_id,shape_id
 
 # todo
 
-  * COMPLETE: Load stops 
-    * Fields needed:
-        * route_id  
-        * stop_id
-        * stop_name
-        * location (lat/lon)
-        * station_type (bus or subway, implied from file)
-  * Load scheduled times / services
+  * ~~Load stops~~
+  * ~~Load scheduled times / services~~
+  * Load service exception days
   * Build APIs:
-    * Given a lat/long, find a list of stops
+    * ~~Given a lat/long, find a list of stops~~
     * Given a stop, find:
-        * A list of scheduled stop times (via database)
+        * ~~A list of scheduled stop times (via database)~~
         * A list of live stop times (via bus time / subway time API)
