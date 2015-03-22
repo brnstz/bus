@@ -12,6 +12,8 @@ username: brnstz@gmail.com
 password: Your password
 MTA API KEY: FIXME
 
+http://datamine.mta.info/list-of-feeds
+
 After logging in, you can access our real-time data feed from
 http://datamine.mta.info/mta_esi.php?key=FIXME
 
@@ -23,4 +25,8 @@ http://bustime.mta.info/api/where/stops-for-location.json?lat=40.729183&lon=-73.
 
  curl "http://bustime.mta.info/api/where/trips-for-location.json?key=$MTA_BUS_TIME_API_KEY&lat=40.729183&lon=-73.95154&latSpan=0.05&lonSpan=0.05" | python -m json.tool > trips-for-location.json
 
-curl "http://bustime.mta.info/api/siri/vehicle-monitoring.json?key=$MTA_BUS_TIME_API_KEY"
+curl "http://bustime.mta.info/api/siri/vehicle-monitoring.json?key=$MTA_BUS_TIME_API_KEY&LineRef=MTA_B62"
+
+curl "http://bustime.mta.info/api/siri/vehicle-monitoring.json?key=$MTA_BUS_TIME_API_KEY&LineRef=MTA+NYCT_B62&DirectionRef=0"
+
+curl "http://bustime.mta.info/api/siri/vehicle-monitoring.json?key=$MTA_BUS_TIME_API_KEY&LineRef=MTA+NYCT_B62&DirectionRef=0&VehicleMonitoringDetailLevel=calls" | python -m json.tool > b62-vehicle-monitoring-with-calls.json
