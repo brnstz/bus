@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -85,6 +86,24 @@ type Stop struct {
 
 	Scheduled []*Departure `json:"scheduled"`
 	Live      []*Departure `json:"live"`
+}
+
+func (s *Stop) AppendLive() {
+	calls, err := GetCallsByRouteStop(
+		s.RouteId, strconv.Itoa(s.DirectionId),
+		s.Id,
+	)
+	if err != nil {
+		log.Println("can't append live schedules")
+		return
+	}
+
+	sort.Sort(calls)
+	for i := 0; i < len(calls) && i < maxStops; i++ {
+		s.Live = append(s.Live, &Departure{
+			Desc: calls[i].Extensions.Distances.PresentableDistance,
+		})
+	}
 }
 
 func (s Stop) String() string {
@@ -285,7 +304,7 @@ func GetStopsByLoc(db sqlx.Ext, lat, lon, meters float64, filter string) (stops 
 				stop.Scheduled, &Departure{Time: thisTime},
 			)
 		}
-
+		stop.AppendLive()
 	}
 
 	return stops, err
@@ -314,6 +333,7 @@ type ServiceRouteException struct {
 
 type Departure struct {
 	Time time.Time `json:"time" db:"time"`
+	Desc string    `json:"desc"`
 
 	// FIXME: stops away? miles away?
 }
