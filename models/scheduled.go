@@ -88,7 +88,8 @@ type Stop struct {
 	Live      []*Departure `json:"live"`
 }
 
-func (s *Stop) AppendLive() {
+func (s *Stop) AppendLive(now time.Time) {
+	log.Println("AppendLive(): ", s)
 	if s.StationType == "bus" {
 		calls, err := GetCallsByRouteStop(
 			s.RouteId, strconv.Itoa(s.DirectionId),
@@ -127,8 +128,8 @@ func (s *Stop) AppendLive() {
 }
 
 func (s Stop) String() string {
-	return fmt.Sprintf("{%v %v %v %v @ (%v,%v)}",
-		s.Id, s.Name, s.RouteId, s.Headsign, s.Lat, s.Lon,
+	return fmt.Sprintf("{%v %v %v %v %v @ (%v,%v)}",
+		s.Id, s.Name, s.RouteId, s.Headsign, s.DirectionId, s.Lat, s.Lon,
 	)
 }
 
@@ -156,6 +157,136 @@ func getServiceIdByDay(db sqlx.Ext, routeId, day string, now *time.Time) (servic
 		log.Println("can't scan service id", err, day, now, routeId)
 		return
 	}
+
+	return
+}
+
+func oneStop(stop *Stop, now time.Time, db sqlx.Ext) (err error) {
+
+	ydaysecs := []int64{}
+	todaysecs := []int64{}
+
+	allTimes := timeSlice{}
+
+	yesterday := now.Add(-time.Hour * 12)
+	yesterdayName := strings.ToLower(yesterday.Format("Monday"))
+	todayName := strings.ToLower(now.Format("Monday"))
+
+	func() {
+		if yesterdayName != todayName {
+			var yesterdayId string
+			// Looks for trips starting yesterday that arrive here
+			// after midnight
+			yesterdayId, err = getServiceIdByDay(
+				db, stop.RouteId, yesterdayName, &now,
+			)
+			if err == sql.ErrNoRows {
+				err = nil
+				log.Println("no rows, ok, moving on")
+				return
+			}
+			if err != nil {
+				log.Println("can't get yesterday id", err)
+				return
+			}
+
+			qYesterday := `
+			SELECT scheduled_stop_time.departure_sec
+			FROM   scheduled_stop_time
+			WHERE  route_id   = $1 AND
+			       stop_id    = $2 AND
+				   service_id = $3 AND
+				   departure_sec >= 86400 AND
+				   departure_sec > $4
+			ORDER BY departure_sec LIMIT $5
+		`
+			nowSecs :=
+				now.Hour()*3600 + now.Minute()*60 + now.Second() + 86400
+
+			err = sqlx.Select(db, &ydaysecs,
+				qYesterday, stop.RouteId, stop.Id,
+				yesterdayId, nowSecs, maxStops)
+
+			if err != nil {
+				log.Println("can't scan yesterday values", err)
+				return
+			}
+
+			yesterday = yesterday.Add(
+				-time.Hour * time.Duration(yesterday.Hour()))
+			yesterday = yesterday.Add(
+				-time.Minute * time.Duration(yesterday.Minute()))
+			yesterday = yesterday.Add(
+				-time.Second * time.Duration(yesterday.Second()))
+			yesterday = yesterday.Add(
+				-time.Nanosecond * time.Duration(yesterday.Nanosecond()))
+
+			for _, ydaysec := range ydaysecs {
+				thisTime := yesterday.Add(time.Second * time.Duration(ydaysec))
+				allTimes = append(allTimes, thisTime)
+			}
+		}
+	}()
+
+	func() {
+		var todayId string
+		todayId, err = getServiceIdByDay(db, stop.RouteId, todayName, &now)
+		if err == sql.ErrNoRows {
+			err = nil
+			log.Println("no rows there", err)
+			return
+		}
+		if err != nil {
+			log.Println("can't get today id", err)
+			return
+		}
+
+		qToday := `
+		SELECT scheduled_stop_time.departure_sec
+		FROM   scheduled_stop_time
+		WHERE  route_id   = $1 AND
+			   stop_id    = $2 AND
+			   service_id = $3 AND
+			   departure_sec > $4
+		ORDER BY departure_sec LIMIT $5
+	`
+
+		nowSecs := now.Hour()*3600 + now.Minute()*60 + now.Second()
+		err = sqlx.Select(db, &todaysecs, qToday, stop.RouteId, stop.Id,
+			todayId, nowSecs, maxStops)
+
+		today := now
+		today = today.Add(
+			-time.Hour * time.Duration(today.Hour()))
+		today = today.Add(
+			-time.Minute * time.Duration(today.Minute()))
+		today = today.Add(
+			-time.Second * time.Duration(today.Second()))
+		today = today.Add(
+			-time.Nanosecond * time.Duration(today.Nanosecond()))
+
+		for _, todaysec := range todaysecs {
+			thisTime := today.Add(time.Second * time.Duration(todaysec))
+			allTimes = append(allTimes, thisTime)
+		}
+
+		if err != nil {
+			log.Println("can't scan today values", err)
+			return
+		}
+	}()
+
+	sort.Sort(allTimes)
+
+	for i, thisTime := range allTimes {
+		if i > maxStops {
+			break
+		}
+		stop.Scheduled = append(
+			stop.Scheduled, &Departure{Time: thisTime},
+		)
+	}
+	stop.AppendLive(now)
 
 	return
 }
@@ -203,129 +334,7 @@ func GetStopsByLoc(db sqlx.Ext, lat, lon, meters float64, filter string) (stops 
 
 	now := time.Now()
 	for _, stop := range stops {
-		ydaysecs := []int64{}
-		todaysecs := []int64{}
-
-		allTimes := timeSlice{}
-
-		yesterday := now.Add(-time.Hour * 12)
-		yesterdayName := strings.ToLower(yesterday.Format("Monday"))
-		todayName := strings.ToLower(now.Format("Monday"))
-
-		if yesterdayName != todayName {
-			var yesterdayId string
-			// Looks for trips starting yesterday that arrive here
-			// after midnight
-			yesterdayId, err = getServiceIdByDay(
-				db, stop.RouteId, yesterdayName, &now,
-			)
-
-			if err == sql.ErrNoRows {
-				err = nil
-				log.Println("no rows, ok, moving on")
-				break
-			}
-			if err != nil {
-				log.Println("can't get yesterday id", err)
-				return
-			}
-
-			qYesterday := `
-			SELECT scheduled_stop_time.departure_sec
-			FROM   scheduled_stop_time
-			WHERE  route_id   = $1 AND
-			       stop_id    = $2 AND
-				   service_id = $3 AND
-				   departure_sec >= 86400 AND
-				   departure_sec > $4
-			ORDER BY departure_sec LIMIT $5
-		`
-			nowSecs :=
-				now.Hour()*3600 + now.Minute()*60 + now.Second() + 86400
-
-			err = sqlx.Select(db, &ydaysecs,
-				qYesterday, stop.RouteId, stop.Id,
-				yesterdayId, nowSecs, maxStops)
-
-			if err != nil {
-				log.Println("can't scan yesterday values", err)
-				return
-			}
-
-			yesterday = yesterday.Add(
-				-time.Hour * time.Duration(yesterday.Hour()))
-			yesterday = yesterday.Add(
-				-time.Minute * time.Duration(yesterday.Minute()))
-			yesterday = yesterday.Add(
-				-time.Second * time.Duration(yesterday.Second()))
-			yesterday = yesterday.Add(
-				-time.Nanosecond * time.Duration(yesterday.Nanosecond()))
-
-			for _, ydaysec := range ydaysecs {
-				thisTime := yesterday.Add(time.Second * time.Duration(ydaysec))
-				allTimes = append(allTimes, thisTime)
-			}
-		}
-
-		if true {
-			var todayId string
-			todayId, err = getServiceIdByDay(db, stop.RouteId, todayName, &now)
-			if err == sql.ErrNoRows {
-				err = nil
-				log.Println("no rows there", err)
-				break
-			}
-			if err != nil {
-				log.Println("can't get today id", err)
-				return
-			}
-
-			qToday := `
-			SELECT scheduled_stop_time.departure_sec
-			FROM   scheduled_stop_time
-			WHERE  route_id   = $1 AND
-			       stop_id    = $2 AND
-				   service_id = $3 AND
-				   departure_sec > $4
-			ORDER BY departure_sec LIMIT $5
-		`
-
-			nowSecs := now.Hour()*3600 + now.Minute()*60 + now.Second()
-			err = sqlx.Select(db, &todaysecs, qToday, stop.RouteId, stop.Id,
-				todayId, nowSecs, maxStops)
-
-			today := now
-			today = today.Add(
-				-time.Hour * time.Duration(today.Hour()))
-			today = today.Add(
-				-time.Minute * time.Duration(today.Minute()))
-			today = today.Add(
-				-time.Second * time.Duration(today.Second()))
-			today = today.Add(
-				-time.Nanosecond * time.Duration(today.Nanosecond()))
-
-			for _, todaysec := range todaysecs {
-				thisTime := today.Add(time.Second * time.Duration(todaysec))
-				allTimes = append(allTimes, thisTime)
-			}
-
-			if err != nil {
-				log.Println("can't scan today values", err)
-				return
-			}
-		}
-
-		sort.Sort(allTimes)
-
-		for i, thisTime := range allTimes {
-			if i > maxStops {
-				break
-			}
-			stop.Scheduled = append(
-				stop.Scheduled, &Departure{Time: thisTime},
-			)
-		}
-		stop.AppendLive()
+		oneStop(stop, now, db)
 	}
 
 	return stops, err

@@ -57,6 +57,7 @@ route_id,service_id,trip_id,trip_headsign,direction_id,shape_id
         * ~~A list of live stop times for bus~~
         * A list of live stop times for subway
   * BUGS:
-     * API returns only routes within the specified distance, but it chooses
-       a random stop.
+     * API returns routes within the specified distance, but it chooses a
+       random stop.
+     * Duplicate results from bus API (onward call vs. cur call?)
 

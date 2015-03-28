@@ -68,7 +68,7 @@ func GetLiveSubways(route, dir, stop string) (ts timeSlice, err error) {
 		updates := e.GetTripUpdate().GetStopTimeUpdate()
 		for _, u := range updates {
 			if u.GetStopId() == stop {
-				ts = append(ts, time.Unix(u.GetArrival().GetTime(), 0))
+				ts = append(ts, time.Unix(u.GetDeparture().GetTime(), 0))
 			}
 		}
 	}
