@@ -54,4 +54,9 @@ route_id,service_id,trip_id,trip_headsign,direction_id,shape_id
     * ~~Given a lat/long, find a list of stops~~
     * Given a stop, find:
         * ~~A list of scheduled stop times (via database)~~
-        * A list of live stop times (via bus time / subway time API)
+        * ~~A list of live stop times for bus~~
+        * A list of live stop times for subway
+  * BUGS:
+     * API returns only routes within the specified distance, but it chooses
+       a random stop.
+

@@ -89,20 +89,40 @@ type Stop struct {
 }
 
 func (s *Stop) AppendLive() {
-	calls, err := GetCallsByRouteStop(
-		s.RouteId, strconv.Itoa(s.DirectionId),
-		s.Id,
-	)
-	if err != nil {
-		log.Println("can't append live schedules")
-		return
-	}
+	if s.StationType == "bus" {
+		calls, err := GetCallsByRouteStop(
+			s.RouteId, strconv.Itoa(s.DirectionId),
+			s.Id,
+		)
+		if err != nil {
+			log.Println("can't append live schedules")
+			return
+		}
 
-	sort.Sort(calls)
-	for i := 0; i < len(calls) && i < maxStops; i++ {
-		s.Live = append(s.Live, &Departure{
-			Desc: calls[i].Extensions.Distances.PresentableDistance,
-		})
+		sort.Sort(calls)
+		for i := 0; i < len(calls) && i < maxStops; i++ {
+			s.Live = append(s.Live, &Departure{
+				Desc: calls[i].Extensions.Distances.PresentableDistance,
+			})
+		}
+	} else if s.StationType == "subway" {
+
+		times, err := GetLiveSubways(
+			s.RouteId, strconv.Itoa(s.DirectionId),
+			s.Id,
+		)
+		if err != nil {
+			log.Println("can't append live subway sched", err)
+			return
+		}
+
+		sort.Sort(times)
+		for i := 0; i < len(times) && i < maxStops; i++ {
+			s.Live = append(s.Live, &Departure{
+				Time: times[i],
+			})
+		}
+
 	}
 }
 

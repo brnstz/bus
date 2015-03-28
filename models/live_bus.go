@@ -77,7 +77,6 @@ func GetCallsByRouteStop(route, dir, stop string) (calls CallSlice, err error) {
 	q.Set("VehicleMonitoringDetailLevel", "calls")
 	q.Set("LineRef", lineRef)
 	u := fmt.Sprint(vmURL, "?", q.Encode())
-	log.Println(u)
 
 	resp, err := http.Get(u)
 	if err != nil {
@@ -101,21 +100,15 @@ func GetCallsByRouteStop(route, dir, stop string) (calls CallSlice, err error) {
 
 	vmd := sr.Siri.ServiceDelivery.VehicleMonitoringDelivery
 
-	log.Println("hello 1")
 	if len(vmd) > 0 {
-		log.Println("hello 2")
-		log.Printf("%+v", vmd)
 		for _, act := range vmd[0].VehicleActivity {
 
-			log.Println("hello 3")
 			curCall := act.MonitoredVehicleJourney.MonitoredCall
-			log.Println("current", curCall.StopPointRef, stopPointRef)
 			if curCall.StopPointRef == stopPointRef {
 				calls = append(calls, curCall)
 			}
 
 			for _, oc := range act.MonitoredVehicleJourney.OnwardCalls.OnwardCall {
-				log.Println("onward", oc.StopPointRef, stopPointRef)
 				if oc.StopPointRef == stopPointRef {
 					calls = append(calls, oc)
 				}
