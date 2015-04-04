@@ -52,6 +52,7 @@ route_id,service_id,trip_id,trip_headsign,direction_id,shape_id
   * ~~Load stops~~
   * ~~Load scheduled times / services~~
   * Load service exception days
+  * ensure query for getServiceIdByDay is correct
   * Build APIs:
     * ~~Given a lat/long, find a list of stops~~
     * Given a stop, find:
@@ -61,6 +62,6 @@ route_id,service_id,trip_id,trip_headsign,direction_id,shape_id
   * BUGS:
      * ~~API returns routes within the specified distance, but it chooses a
        random stop.~~
-     * Duplicate results from bus API (onward call vs. cur call?)
-     * Needs caching
+     * ~~Duplicate results from bus API (onward call vs. cur call? yes!)~~
+     * ~~Needs caching~~
 

@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"time"
 
 	"github.com/brnstz/bus/common"
 	"github.com/brnstz/bus/loader"
@@ -82,7 +83,7 @@ func main() {
 	}()
 
 	for _, dir := range []string{
-		"/Users/bseitz/go/src/github.com/brnstz/bus/schema/subway/",
+		//"/Users/bseitz/go/src/github.com/brnstz/bus/schema/subway/",
 		"/Users/bseitz/go/src/github.com/brnstz/bus/schema/brooklyn/",
 		"/Users/bseitz/go/src/github.com/brnstz/bus/schema/manhattan/",
 		"/Users/bseitz/go/src/github.com/brnstz/bus/schema/queens/",
@@ -90,7 +91,10 @@ func main() {
 		"/Users/bseitz/go/src/github.com/brnstz/bus/schema/bronx/",
 	} {
 
+		t1 := time.Now()
 		doOne(dir, db)
+		t2 := time.Now()
+		log.Printf("took %v for %v\n", t2.Sub(t1), dir)
 	}
 
 	log.Println("finished all boroughs")

@@ -137,6 +137,7 @@ func (s Stop) Key() string {
 	return fmt.Sprintf("%v%v", s.Id, s.RouteId)
 }
 
+// FIXME: is this correct?
 func getServiceIdByDay(db sqlx.Ext, routeId, day string, now *time.Time) (serviceId string, err error) {
 	row := db.QueryRowx(`
 		SELECT service_id, route_id, max(start_date)
