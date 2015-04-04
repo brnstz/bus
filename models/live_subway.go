@@ -2,13 +2,12 @@ package models
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
-	"net/http"
 	"net/url"
 	"os"
 	"time"
 
+	"github.com/brnstz/bus/common"
 	"github.com/brnstz/bus/transit_realtime"
 	"github.com/golang/protobuf/proto"
 )
@@ -43,18 +42,9 @@ func GetLiveSubways(route, dir, stop string) (ts timeSlice, err error) {
 	q.Set("feed_id", feed)
 	u := fmt.Sprint(esiURL, "?", q.Encode())
 
-	log.Println(u)
-
-	resp, err := http.Get(u)
+	b, err := common.RedisCache(u)
 	if err != nil {
-		log.Println("can't get live feed", err)
-		return
-	}
-	defer resp.Body.Close()
-
-	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Println("can't read body", err)
+		log.Println("can't get live subways", err)
 		return
 	}
 
