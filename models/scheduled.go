@@ -320,7 +320,7 @@ func GetStopsByLoc(db sqlx.Ext, lat, lon, meters float64, filter string) (stops 
 	}
 
 	q = q + ` 
-			ORDER BY route_id, direction_id 
+			ORDER BY route_id, direction_id, dist
 		) unique_routes
 
 		ORDER BY dist ASC
