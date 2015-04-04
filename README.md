@@ -8,8 +8,10 @@ MTA bus and train times
 ```
 boot2docker up 
 VBoxManage controlvm boot2docker-vm natpf1 "postgres-hello,tcp,127.0.0.1,5432,,5432"
+VBoxManage controlvm boot2docker-vm natpf1 "redis-hello,tcp,127.0.0.1,6379,,6379"
 
 docker run -d -p 5432:5432 postgres
+docker run -d -p 6379:6379 redis
 psql -U postgres -h $(boot2docker ip 2> /dev/null)
 
 psql -U postgres -h 192.168.59.103 < models/schema.sql
@@ -57,8 +59,8 @@ route_id,service_id,trip_id,trip_headsign,direction_id,shape_id
         * ~~A list of live stop times for bus~~
         * ~~A list of live stop times for subway~~
   * BUGS:
-     * API returns routes within the specified distance, but it chooses a
-       random stop.
+     * ~~API returns routes within the specified distance, but it chooses a
+       random stop.~~
      * Duplicate results from bus API (onward call vs. cur call?)
      * Needs caching
 

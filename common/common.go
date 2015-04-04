@@ -1,11 +1,15 @@
 package common
 
 import (
+	"io/ioutil"
 	"log"
+	"net/http"
 	"runtime"
 	"strconv"
 	"strings"
+	"time"
 
+	"github.com/fzzy/radix/redis"
 	"github.com/jmoiron/sqlx"
 
 	"fmt"
@@ -18,6 +22,8 @@ var (
 	DB = mustDB()
 
 	metersInMile = 1609.344
+
+	redisTTL = 30
 
 	SecsAfterMidnight = 60 * 60 * 24
 
@@ -88,5 +94,46 @@ func SecsToTimeStr(secs int) string {
 	secs = secs % 60
 
 	return fmt.Sprintf("%02d:%02d:%02d", hr, min, secs)
+}
 
+// Check in redis cache for URL, otherwise get and set it
+func RedisCache(u string) (b []byte, err error) {
+	c, err := redis.DialTimeout(
+		"tcp", fmt.Sprintf("%v:6379",
+			os.Getenv("BUS_REDIS_HOST")), time.Second*1,
+	)
+	if err != nil {
+		log.Println("can't connect to redis", err)
+		return
+	}
+
+	b, err = c.Cmd("get", u).Bytes()
+	if err == nil {
+		log.Printf("found %v in redis cache\n", u)
+		return
+	}
+
+	log.Println("didn't find value in redis, going to get: ", u)
+
+	resp, err := http.Get(u)
+	if err != nil {
+		log.Println("can't get URL", err, u)
+		return
+	}
+	defer resp.Body.Close()
+
+	b, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Println("can't read body", err, u)
+		return
+	}
+
+	err = c.Cmd("set", u, b, "ex", strconv.Itoa(redisTTL)).Err
+
+	if err != nil {
+		log.Println("can't set value in redis")
+		return
+	}
+
+	return
 }

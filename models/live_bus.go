@@ -3,12 +3,12 @@ package models
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
-	"net/http"
 	"net/url"
 	"os"
 	"time"
+
+	"github.com/brnstz/bus/common"
 )
 
 var (
@@ -78,16 +78,9 @@ func GetCallsByRouteStop(route, dir, stop string) (calls CallSlice, err error) {
 	q.Set("LineRef", lineRef)
 	u := fmt.Sprint(vmURL, "?", q.Encode())
 
-	resp, err := http.Get(u)
+	b, err := common.RedisCache(u)
 	if err != nil {
-		log.Println("can't get vehicles for route", err, u)
-		return
-	}
-	defer resp.Body.Close()
-
-	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Println("can't read body", err)
+		log.Println("can't get live buses", err)
 		return
 	}
 
