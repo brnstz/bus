@@ -44,12 +44,16 @@ func (c CallSlice) Swap(i, j int) {
 }
 
 type journey struct {
-	DirectionRef  string
-	LineRef       string
-	MonitoredCall Call
-	OnwardCalls   struct {
+	DirectionRef string
+	LineRef      string
+
+	OnwardCalls struct {
 		OnwardCall []Call
 	}
+
+	// MonitoredCall is the current stop of the bus, but this
+	// info appears to be duped in OnwardCall.
+	// MonitoredCall Call
 }
 
 type siriResp struct {
@@ -96,13 +100,9 @@ func GetCallsByRouteStop(route, dir, stop string) (calls CallSlice, err error) {
 	if len(vmd) > 0 {
 		for _, act := range vmd[0].VehicleActivity {
 
-			curCall := act.MonitoredVehicleJourney.MonitoredCall
-			if curCall.StopPointRef == stopPointRef {
-				calls = append(calls, curCall)
-			}
-
 			for _, oc := range act.MonitoredVehicleJourney.OnwardCalls.OnwardCall {
 				if oc.StopPointRef == stopPointRef {
+					log.Println("onward call: ", route, dir, stop, oc.Extensions.Distances.PresentableDistance)
 					calls = append(calls, oc)
 				}
 			}

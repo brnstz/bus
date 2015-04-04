@@ -28,6 +28,11 @@ var (
 	SecsAfterMidnight = 60 * 60 * 24
 
 	cpu = mustCPU()
+
+	_ = func() bool {
+		log.SetFlags(log.Lshortfile)
+		return true
+	}()
 )
 
 func mustCPU() bool {
