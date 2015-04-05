@@ -17,6 +17,14 @@ psql -U postgres -h $(boot2docker ip 2> /dev/null)
 psql -U postgres -h 192.168.59.103 < models/schema.sql
 
 go run cmds/stopload/main.go
+
+# import / export
+docker commit a22dee794ec8 bus-postgres:latest
+docker save bus-postgres:latest > bus-postgres.tar
+
+docker load < bus-redis.tar
+docker run -d -p 5432:5432 bus-postgres
+etc...
 ```
 
 # schema of transit files
@@ -53,6 +61,7 @@ route_id,service_id,trip_id,trip_headsign,direction_id,shape_id
   * ~~Load scheduled times / services~~
   * Load service exception days
   * ensure query for getServiceIdByDay is correct
+  * Fix IP tables
   * Build APIs:
     * ~~Given a lat/long, find a list of stops~~
     * Given a stop, find:
