@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>428AFEC3-0FD7-49B5-8CAC-B5078D15ECC4</string>
+	<key>IDESourceControlProjectName</key>
+	<string>Time to Go</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>62B88DA0FCD17BF104360B72A91C9791B82E7904</key>
+		<string>github.com:brnstz/bus.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>ui/Time to Go/Time to Go.xcodeproj</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>62B88DA0FCD17BF104360B72A91C9791B82E7904</key>
+		<string>../../../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>github.com:brnstz/bus.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>111</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>62B88DA0FCD17BF104360B72A91C9791B82E7904</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>62B88DA0FCD17BF104360B72A91C9791B82E7904</string>
+			<key>IDESourceControlWCCName</key>
+			<string>bus</string>
+		</dict>
+	</array>
+</dict>
+</plist>
