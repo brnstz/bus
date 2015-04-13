@@ -8,6 +8,30 @@
 
 import UIKit
 
+
+func loadit() -> [Dictionary<String, NSObject>] {
+    return parseJSON(getJSON("http://ttg.brnstz.com:8000/api/v1/stops?lat=40.729183&lon=-73.95154&&miles=1.0&filter=subway"))
+}
+
+
+func getJSON(urlToRequest: String) -> NSData{
+    var url = NSURL(string: urlToRequest)
+    
+    return NSData(contentsOfURL: url!)!
+}
+
+func parseJSON(inputData: NSData) -> [Dictionary<String, NSObject>] {
+    var error: NSError?
+    var d = NSJSONSerialization.JSONObjectWithData(inputData, options: NSJSONReadingOptions.MutableContainers, error: &error) as [Dictionary<String, NSObject>]
+    
+    if error != nil {
+        
+    }
+    
+    return d
+}
+
+
 class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
 
     override func viewDidLoad() {
@@ -32,7 +56,11 @@ curl 'http://ttg.brnstz.com:8000/api/v1/stops?lat=40.729183&lon=-73.95154&&miles
         ["5", "approaching"],
     ]
 */
+  
+    private var loaded = false
     
+    private var results: [Dictionary<String, NSObject>] = []
+    /*
     private var results = [
         [
             "route_id": "1",
@@ -80,27 +108,28 @@ curl 'http://ttg.brnstz.com:8000/api/v1/stops?lat=40.729183&lon=-73.95154&&miles
             ]
         ]
     ]
+    */
     
     // stolen from: http://stackoverflow.com/a/24094777
-    /*
-    func getJSON(urlToRequest: String) -> NSData{
-        var url = NSURL(string: urlToRequest)
-        
-        return NSData(contentsOfURL: url!)!
     
-    func parseJSON(inputData: NSData) -> NSDictionary{
-        var error: NSError?
-        var d: NSDictionary = NSJSONSerialization.JSONObjectWithData(inputData, options: NSJSONReadingOptions.MutableContainers, error: &error) as NSDictionary
-        
-        return d
-    }
-    */
+
+
 
     func tableView(tableView: UITableView, numberOfRowsInSection: Int) -> Int {
-       return results.count
+        if !loaded {
+            results = loadit()
+            loaded = true
+        }
+    
+        return results.count
     }
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+        if !loaded {
+            results = loadit()
+            loaded = true
+        }
+        
         var cell = tableView.dequeueReusableCellWithIdentifier("x") as? UITableViewCell
         
         if (cell == nil) {
@@ -112,7 +141,7 @@ curl 'http://ttg.brnstz.com:8000/api/v1/stops?lat=40.729183&lon=-73.95154&&miles
         
         if let liveResults = result["live"] as? NSArray {
             if let firstResult = liveResults[0] as? NSDictionary {
-                if let desc = firstResult["desc"] as? String {
+                if let desc = firstResult["time"] as? String {
                     cell!.textLabel?.text = desc
                     if let route = result["route_id"] as? String {
                         cell!.imageView?.image = UIImage(named: route)
@@ -126,6 +155,6 @@ curl 'http://ttg.brnstz.com:8000/api/v1/stops?lat=40.729183&lon=-73.95154&&miles
     }
 
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        
+        // FIXME: this should show map
     }
 }
