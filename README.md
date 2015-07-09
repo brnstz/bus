@@ -62,6 +62,9 @@ route_id,service_id,trip_id,trip_headsign,direction_id,shape_id
   * Load service exception days
   * ensure query for getServiceIdByDay is correct
   * Fix IP tables
+  * Document environment variables
+  * Automatically load new files from MTA
+  * Build sample UI via web (get current location)
   * Build APIs:
     * ~~Given a lat/long, find a list of stops~~
     * Given a stop, find:
