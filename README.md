@@ -6,25 +6,26 @@ MTA bus and train times
 # init
 
 ```
-boot2docker up 
-VBoxManage controlvm boot2docker-vm natpf1 "postgres-hello,tcp,127.0.0.1,5432,,5432"
-VBoxManage controlvm boot2docker-vm natpf1 "redis-hello,tcp,127.0.0.1,6379,,6379"
+# install postgres
+# install postgres earthdistance and cube extensions
+# install redis
+# set local trust in /etc/postgresql/9.3/main/pg_hba.conf
+# host    all             all             127.0.0.1/32            trust
 
-docker run -d -p 5432:5432 postgres
-docker run -d -p 6379:6379 redis
-psql -U postgres -h $(boot2docker ip 2> /dev/null)
+# set env vars
+export BUS_DB_HOST=127.0.0.1
+export BUS_REDIS_HOST=127.0.0.1
+export MTA_BUS_TIME_API_KEY=<your bus time key>
+export MTA_SUBWAY_TIME_API_KEY=<your subway time key>
 
-psql -U postgres -h 192.168.59.103 < models/schema.sql
+# load initial schema
+psql -U postgres -h $BUS_DB_HOST < schema/schema.sql
+
+# build binaries
+go install github.com/brnstz/bus/cmds/stopload
+go install github.com/brnstz/bus/cmds/busapi
 
 go run cmds/stopload/main.go
-
-# import / export
-docker commit a22dee794ec8 bus-postgres:latest
-docker save bus-postgres:latest > bus-postgres.tar
-
-docker load < bus-redis.tar
-docker run -d -p 5432:5432 bus-postgres
-etc...
 ```
 
 # schema of transit files
