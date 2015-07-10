@@ -298,6 +298,7 @@ func GetStopsByLoc(db sqlx.Ext, lat, lon, meters float64, filter string) (stops 
 	params := []interface{}{lat, lon, lat, lon, meters}
 
 	// FIXME: this is not returning the closet stop
+	// DONTFIXME: I think the above is already fixed
 	q := `
 		SELECT * FROM (
 			SELECT
