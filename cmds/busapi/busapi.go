@@ -9,7 +9,6 @@ import (
 	"strconv"
 
 	"github.com/brnstz/bus/common"
-	"github.com/brnstz/bus/loader"
 	"github.com/brnstz/bus/models"
 )
 
@@ -63,12 +62,70 @@ func getStops(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
+func getUI(w http.ResponseWriter, r *http.Request) {
+	ui := []byte(`
+		<!DOCTYPE html>
+		<html>
+		<body>
+
+		<button onclick="getLocation()">Detect location</button>
+
+		<script>
+			var x = document.getElementById("demo");
+
+			function getLocation() {
+				if (navigator.geolocation) {
+					navigator.geolocation.getCurrentPosition(showPosition);
+				}
+			}
+
+			function showPosition(position) {
+				document.getElementById("lat").setAttribute("value", position.coords.latitude);
+				document.getElementById("lon").setAttribute("value", position.coords.longitude);
+			}
+
+			function getTrips() {
+				var xhr = new XMLHttpRequest();
+				var url = '/api/v1/stops?lat=' + document.getElementById("lat").value +
+						  '&lon='			   + document.getElementById("lon").value +
+						  '&filter='	       + document.getElementById("filter").value +
+						  '&miles='	           + document.getElementById("miles").value;
+
+				xhr.open('GET', url);
+				xhr.onload = function(e) {
+					  var data = JSON.parse(this.response);
+					  console.log(data);
+				}
+				xhr.send();
+			}
+
+		</script>
+
+		Latitude: <input type="text" id="lat" name="lat"><br>
+		Longitude: <input type="text" id="lon" name="lon"><br>
+		Filter:
+			<select id="filter">
+				<option value="">Subway and bus</option>
+				<option value="subway">Subway only</option>
+				<option value="bus">Bus only</option>
+			</select><br>
+		Radius: <input type="text" id="miles" value="0.5"> miles<br>
+
+		<button onclick="getTrips()">Get upcoming trips</button>
+
+		</body>
+		</html>
+	`)
+	w.Write(ui)
+}
+
 func main() {
 	log.SetFlags(log.Lshortfile | log.Ldate | log.Ltime)
 
-	go loader.LoadForever()
+	//go loader.LoadForever()
 
 	http.HandleFunc("/api/v1/stops", getStops)
+	http.HandleFunc("/", getUI)
 
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", os.Getenv("BUS_API_PORT")), nil))
 

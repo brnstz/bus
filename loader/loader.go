@@ -409,7 +409,7 @@ func LoadForever() {
 		for _, url := range []string{
 			//"http://web.mta.info/developers/data/nyct/subway/google_transit.zip",
 			//"http://web.mta.info/developers/data/nyct/bus/google_transit_bronx.zip",
-			"http://web.mta.info/developers/data/nyct/bus/google_transit_brooklyn.zip",
+			//"http://web.mta.info/developers/data/nyct/bus/google_transit_brooklyn.zip",
 			"http://web.mta.info/developers/data/nyct/bus/google_transit_manhattan.zip",
 			"http://web.mta.info/developers/data/nyct/bus/google_transit_queens.zip",
 			"http://web.mta.info/developers/data/nyct/bus/google_transit_staten_island.zip",

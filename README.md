@@ -31,7 +31,7 @@ $GOPATH/bin/busapi
 
 # Hit it
 # filter is optional, can be "subway" or "bus"
-curl 'http://ttg.brnstz.com:8000/api/v1/stops?lat=40.729183&lon=-73.95154&&miles=0.5&filter=subway' 
+curl 'http://localhost:8000/api/v1/stops?lat=40.729183&lon=-73.95154&&miles=0.5&filter=subway' 
 [
     {
         "direction_id": 0,
