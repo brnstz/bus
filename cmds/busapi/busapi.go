@@ -68,7 +68,6 @@ func getUI(w http.ResponseWriter, r *http.Request) {
 		<html>
 		<body>
 
-		<button onclick="getLocation()">Detect location</button>
 
 		<script>
 			var x = document.getElementById("demo");
@@ -82,6 +81,12 @@ func getUI(w http.ResponseWriter, r *http.Request) {
 			function showPosition(position) {
 				document.getElementById("lat").setAttribute("value", position.coords.latitude);
 				document.getElementById("lon").setAttribute("value", position.coords.longitude);
+			}
+
+			function setLocation(lat, lon, miles) {
+				document.getElementById("lat").setAttribute("value", lat);
+				document.getElementById("lon").setAttribute("value", lon);
+				document.getElementById("miles").setAttribute("value", miles);
 			}
 
 			function getTrips() {
@@ -109,9 +114,19 @@ func getUI(w http.ResponseWriter, r *http.Request) {
 				<option value="subway">Subway only</option>
 				<option value="bus">Bus only</option>
 			</select><br>
-		Radius: <input type="text" id="miles" value="0.5"> miles<br>
+		Radius: <input type="text" id="miles" value="0.2"> miles<br>
 
-		<button onclick="getTrips()">Get upcoming trips</button>
+		<button onclick="getLocation()">Detect location</button><br>
+		<button onclick="setLocation(40.758895,-73.985131, 0.2)">Times Square</button><br>
+		<button onclick="setLocation(40.7236448,-74.0006793, 0.2)">SoHo</button><br>
+		<button onclick="setLocation(40.7293373,-73.9458161, 0.2)">Greenpoint</button><br>
+		<button onclick="setLocation(40.6825236,-73.9750134, 0.2)">Barclays Center</button><br>
+		<button onclick="setLocation(40.84932,-73.877154,15, 0.2)">Bronx Zoo</button><br>
+		<button onclick="setLocation(40.7501217,-73.8463344, 0.3)">US Open</button><br>
+		<button onclick="setLocation(40.5031274,-74.253251, 0.3)">Conference House Park</button><br><br>
+
+
+		<button onclick="getTrips()">Get upcoming trips</button><br>
 
 		</body>
 		</html>
