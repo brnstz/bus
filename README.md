@@ -15,6 +15,7 @@ MTA bus and train times
 # set env vars
 export BUS_DB_HOST=127.0.0.1
 export BUS_REDIS_HOST=127.0.0.1
+export BUS_TMP_DIR=/mnt/data/tmp
 export MTA_BUS_TIME_API_KEY=<your bus time key>
 export MTA_SUBWAY_TIME_API_KEY=<your subway time key>
 
