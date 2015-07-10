@@ -2,8 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/brnstz/bus/common"
@@ -64,6 +66,6 @@ func main() {
 
 	http.HandleFunc("/api/v1/stops", getStops)
 
-	log.Fatal(http.ListenAndServe(":8000", nil))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", os.Getenv("BUS_API_PORT")), nil))
 
 }
