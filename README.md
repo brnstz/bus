@@ -24,10 +24,68 @@ export MTA_SUBWAY_TIME_API_KEY=<your subway time key>
 psql -U postgres -h $BUS_DB_HOST < schema/schema.sql
 
 # build binaries
-go install github.com/brnstz/bus/cmds/stopload
 go install github.com/brnstz/bus/cmds/busapi
 
-go run cmds/stopload/main.go
+# Run it
+$GOPATH/bin/busapi
+
+# Hit it
+# filter is optional, can be "subway" or "bus"
+curl 'http://ttg.brnstz.com:8000/api/v1/stops?lat=40.729183&lon=-73.95154&&miles=0.5&filter=subway' 
+[
+    {
+        "direction_id": 0,
+        "dist": 344.2649351427617,
+        "headsign": "COURT SQ",
+        "lat": 40.731352,
+        "live": null,
+        "lon": -73.954449,
+        "route_id": "G",
+        "scheduled": [
+            {
+                "desc": "",
+                "time": "2015-07-10T17:43:30-04:00"
+            },
+            {
+                "desc": "",
+                "time": "2015-07-10T17:52:30-04:00"
+            },
+            {
+                "desc": "",
+                "time": "2015-07-10T17:59:30-04:00"
+            }
+        ],
+        "station_type": "subway",
+        "stop_id": "G26N",
+        "stop_name": "Greenpoint Av"
+    },
+    {
+        "direction_id": 1,
+        "dist": 344.2649351427617,
+        "headsign": "CHURCH AV",
+        "lat": 40.731352,
+        "live": null,
+        "lon": -73.954449,
+        "route_id": "G",
+        "scheduled": [
+            {
+                "desc": "",
+                "time": "2015-07-10T17:47:30-04:00"
+            },
+            {
+                "desc": "",
+                "time": "2015-07-10T17:55:30-04:00"
+            },
+            {
+                "desc": "",
+                "time": "2015-07-10T18:03:30-04:00"
+            }
+        ],
+        "station_type": "subway",
+        "stop_id": "G26S",
+        "stop_name": "Greenpoint Av"
+    }
+]
 ```
 
 # schema of transit files
@@ -65,8 +123,8 @@ route_id,service_id,trip_id,trip_headsign,direction_id,shape_id
   * Load service exception days
   * ensure query for getServiceIdByDay is correct
   * Fix IP tables
-  * Document environment variables
-  * Automatically load new files from MTA
+  * ~~Document environment variables~~
+  * ~~Automatically load new files from MTA~~
   * Build sample UI via web (get current location)
   * Build APIs:
     * ~~Given a lat/long, find a list of stops~~
