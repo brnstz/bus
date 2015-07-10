@@ -1,9 +1,11 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"os"
 	"os/signal"
+	"path"
 	"strings"
 	"time"
 
@@ -71,6 +73,10 @@ func doOne(dir string, db *sqlx.DB) {
 
 func main() {
 	db := common.DB
+	root := flag.String("dir", "", "directory with extracted mta data files")
+	if root == nil {
+		panic("must provide -dir")
+	}
 
 	// Dump stack trace on kill
 	c := make(chan os.Signal, 1)
@@ -82,14 +88,15 @@ func main() {
 		}
 	}()
 
-	for _, dir := range []string{
-		//"/Users/bseitz/go/src/github.com/brnstz/bus/schema/subway/",
-		"/Users/bseitz/go/src/github.com/brnstz/bus/schema/brooklyn/",
-		"/Users/bseitz/go/src/github.com/brnstz/bus/schema/manhattan/",
-		"/Users/bseitz/go/src/github.com/brnstz/bus/schema/queens/",
-		"/Users/bseitz/go/src/github.com/brnstz/bus/schema/staten_island/",
-		"/Users/bseitz/go/src/github.com/brnstz/bus/schema/bronx/",
+	for _, subdir := range []string{
+		"subway/",
+		"brooklyn/",
+		"manhattan/",
+		"queens/",
+		"staten_island/",
+		"bronx/",
 	} {
+		dir := path.Join(root, subdir)
 
 		t1 := time.Now()
 		doOne(dir, db)
