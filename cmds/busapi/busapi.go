@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/brnstz/bus/common"
+	"github.com/brnstz/bus/loader"
 	"github.com/brnstz/bus/models"
 )
 
@@ -188,7 +189,7 @@ func getUI(w http.ResponseWriter, r *http.Request) {
 func main() {
 	log.SetFlags(log.Lshortfile | log.Ldate | log.Ltime)
 
-	//go loader.LoadForever()
+	go loader.LoadForever()
 
 	http.HandleFunc("/api/v1/stops", getStops)
 	http.HandleFunc("/", getUI)
