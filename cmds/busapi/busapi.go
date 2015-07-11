@@ -89,6 +89,31 @@ func getUI(w http.ResponseWriter, r *http.Request) {
 				document.getElementById("miles").setAttribute("value", miles);
 			}
 
+			function appendCell(row, value) {
+ 				var cell = document.createElement("td");    
+                var cellText = document.createTextNode(value);
+
+                cell.appendChild(cellText);
+                row.appendChild(cell);	
+			}
+
+			function appendTime(row, res, type) {
+				if (res[type] && res[type].length > 0) {
+						var mytext = "Next " + type + ": " + res[type][0]["desc"];
+						var mytime = new Date(res[type][0]["time"]);
+
+						if (mytime.getFullYear() > 0) {
+							var diff = Math.abs(new Date() - mytime);
+							console.log(diff);
+							mytext = mytext + " " + mytime.toTimeString();
+						}
+
+						appendCell(row, mytext);
+					} else {
+						appendCell(row, "")
+					}
+			}
+
 			function getTrips() {
 				var xhr = new XMLHttpRequest();
 				var url = '/api/v1/stops?lat=' + document.getElementById("lat").value +
@@ -98,8 +123,32 @@ func getUI(w http.ResponseWriter, r *http.Request) {
 
 				xhr.open('GET', url);
 				xhr.onload = function(e) {
-					  var data = JSON.parse(this.response);
-					  console.log(data);
+                    var data = JSON.parse(this.response);
+     				var tbl     = document.createElement("table");
+        			var tblBody = document.createElement("tbody");
+					var results = document.getElementById("results");
+
+					if (results.childNodes.length > 0) {
+						results.removeChild(results.childNodes[0]);
+					}
+
+					for (var i = 0; i < data.length; i++) {
+						var res = data[i];
+						var row = document.createElement("tr");	
+
+						appendCell(row, res["route_id"]);
+						appendCell(row, res["stop_name"]);
+						appendCell(row, res["headsign"]);
+					    appendTime(row, res, "live");
+					    appendTime(row, res, "scheduled");
+
+						appendCell(row, Math.round(res["dist"]) + " meters");
+
+            			tblBody.appendChild(row);
+					}		
+
+        			tbl.appendChild(tblBody);
+        			results.appendChild(tbl);
 				}
 				xhr.send();
 			}
@@ -119,14 +168,16 @@ func getUI(w http.ResponseWriter, r *http.Request) {
 		<button onclick="getLocation()">Detect location</button><br>
 		<button onclick="setLocation(40.758895,-73.985131, 0.2)">Times Square</button><br>
 		<button onclick="setLocation(40.7236448,-74.0006793, 0.2)">SoHo</button><br>
-		<button onclick="setLocation(40.7293373,-73.9458161, 0.2)">Greenpoint</button><br>
+		<button onclick="setLocation(40.730198,-73.9542742, 0.2)">Greenpoint</button><br>
 		<button onclick="setLocation(40.6825236,-73.9750134, 0.2)">Barclays Center</button><br>
 		<button onclick="setLocation(40.84932,-73.877154, 0.2)">Bronx Zoo</button><br>
 		<button onclick="setLocation(40.7501217,-73.8463344, 0.3)">US Open</button><br>
 		<button onclick="setLocation(40.5031274,-74.253251, 0.3)">Conference House Park</button><br><br>
 
 
-		<button onclick="getTrips()">Get upcoming trips</button><br>
+		<button onclick="getTrips()">Get upcoming trips</button><br><br>
+	
+		<div id="results"/>
 
 		</body>
 		</html>
