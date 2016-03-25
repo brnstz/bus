@@ -1,6 +1,6 @@
 #!/bin/bash
 
-psql -U bseitz -h $BUS_DB_HOST < schema/schema.sql
+psql < schema/schema.sql
 go install github.com/brnstz/bus/cmds/busapi
 $GOPATH/bin/busapi &
 sleep 2
