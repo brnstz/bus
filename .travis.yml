@@ -6,14 +6,4 @@ services:
     - postgresql
     - redis-server
 
-env: 
-    - BUS_DB_ADDR="localhost:5432"
-    - BUS_DB_USER="postgres"
-    - BUS_REDIS_ADDR="localhost:6379"
-    - BUS_TMP_DIR=/tmp
-    - BUS_API_ADDR=":8000"
-#    - MTA_BUS_TIME_API_KEY=secret
-#    - MTA_SUBWAY_TIME_API_KEY=secret
-    
-
-script: ci.sh
+script: ./ci.sh
