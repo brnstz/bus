@@ -4,7 +4,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -27,22 +26,11 @@ var (
 
 	SecsAfterMidnight = 60 * 60 * 24
 
-	cpu = mustCPU()
-
 	_ = func() bool {
 		log.SetFlags(log.Lshortfile)
 		return true
 	}()
 )
-
-func mustCPU() bool {
-	nc := runtime.NumCPU()
-	log.Println("setting go procs to cpu count: ", nc)
-
-	runtime.GOMAXPROCS(nc)
-
-	return true
-}
 
 func mustDB() *sqlx.DB {
 	ip := os.Getenv("BUS_DB_HOST")
