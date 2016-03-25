@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/url"
-	"os"
 	"time"
 
 	"github.com/brnstz/bus/common"
@@ -13,8 +12,7 @@ import (
 )
 
 var (
-	subwayKey = os.Getenv("MTA_SUBWAY_TIME_API_KEY")
-	esiURL    = "http://datamine.mta.info/mta_esi.php"
+	esiURL = "http://datamine.mta.info/mta_esi.php"
 
 	routeToFeed = map[string]string{
 		"1":  "1",
@@ -38,7 +36,7 @@ func GetLiveSubways(route, dir, stop string) (ts timeSlice, err error) {
 	}
 
 	q := url.Values{}
-	q.Set("key", subwayKey)
+	q.Set("key", common.SubwayAPIKey)
 	q.Set("feed_id", feed)
 	u := fmt.Sprint(esiURL, "?", q.Encode())
 

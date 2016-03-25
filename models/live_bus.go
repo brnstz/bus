@@ -5,15 +5,13 @@ import (
 	"fmt"
 	"log"
 	"net/url"
-	"os"
 	"time"
 
 	"github.com/brnstz/bus/common"
 )
 
 var (
-	busKey = os.Getenv("MTA_BUS_TIME_API_KEY")
-	vmURL  = "http://bustime.mta.info/api/siri/vehicle-monitoring.json"
+	vmURL = "http://bustime.mta.info/api/siri/vehicle-monitoring.json"
 )
 
 type Call struct {
@@ -76,7 +74,7 @@ func GetCallsByRouteStop(route, dir, stop string) (calls CallSlice, err error) {
 	stopPointRef := fmt.Sprint("MTA_", stop)
 
 	q := url.Values{}
-	q.Set("key", busKey)
+	q.Set("key", common.BusAPIKey)
 	q.Set("DirectionRef", dir)
 	q.Set("VehicleMonitoringDetailLevel", "calls")
 	q.Set("LineRef", lineRef)

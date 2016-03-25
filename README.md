@@ -13,10 +13,11 @@ MTA bus and train times
 # host    all             all             127.0.0.1/32            trust
 
 # set env vars
-export BUS_DB_HOST=127.0.0.1
-export BUS_REDIS_HOST=127.0.0.1
+export BUS_DB_ADDR=localhost:5432
+export BUS_DB_USER=postgres
+export BUS_REDIS_ADDR=localhost:6379
 export BUS_TMP_DIR=/mnt/data/tmp
-export BUS_API_PORT=8000
+export BUS_API_ADDR=:8000
 export MTA_BUS_TIME_API_KEY=<your bus time key>
 export MTA_SUBWAY_TIME_API_KEY=<your subway time key>
 

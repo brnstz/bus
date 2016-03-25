@@ -422,7 +422,7 @@ func LoadForever() {
 			}
 
 			// FIXME: do this in Go, need to make it integrated with loader
-			dir, err := ioutil.TempDir(os.Getenv("BUS_TMP_DIR"), "")
+			dir, err := ioutil.TempDir(common.TmpDir, "")
 			if err != nil {
 				panic(err)
 			}
