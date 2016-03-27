@@ -1,5 +1,7 @@
 - hosts: api
   sudo: yes
+  vars:
+    busapi_bin_path: "/usr/local/bin/busapi"
 
   tasks:
     - name: Install needed packages
@@ -8,4 +10,10 @@
         - monit
 
     - name: Install busapi binary
-      copy: src=bin/busapi dest=/usr/local/bin/busapi mode=755
+      copy: src=bin/busapi dest="{{ busapi_bin_path }}" mode=755
+
+    - name: Install busapi monit config
+      template: src=templates/busapi_monit.conf.j2 dest=/etc/monit/conf.d/busapi_monit.conf owner=root group=root mode=644
+
+    - name: Reload monit config
+      service: name=monit state=reloaded

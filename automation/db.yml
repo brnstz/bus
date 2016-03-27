@@ -1,0 +1,30 @@
+- hosts: db
+  sudo: yes
+  vars:
+    - postgresql_version: 9.4
+
+  tasks:
+    - name: Add PostgreSQL key to apt
+      apt_key: url='https://www.postgresql.org/media/keys/ACCC4CF8.asc'
+
+    - name: Add PostgreSQL repo to apt
+      apt_repository: repo='deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main' state=present
+
+    - name: Install needed packages
+      apt: update_cache=yes pkg="{{ item }}" state=installed
+      with_items:
+        - "postgresql-{{ postgresql_version }}"
+        - "postgresql-contrib-{{ postgresql_version }}"
+        - monit
+
+    - name: Install pg_hba.conf
+      template: src=templates/pg_hba.conf.j2 dest="/etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf" owner=postgres group=postgres mode=640
+
+    - name: Reload PostgreSQL config
+      service: name=postgresql state=reloaded
+
+    - name: Install postgres monit config
+      template: src=templates/postgresql_monit.conf.j2 dest=/etc/monit/conf.d/postgresql_monit.conf owner=root group=root mode=644
+
+    - name: Reload monit config
+      service: name=monit state=reloaded

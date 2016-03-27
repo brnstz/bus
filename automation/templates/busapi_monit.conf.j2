@@ -1,0 +1,4 @@
+check process busapi 
+    matching "{{ busapi_bin_path }}"
+    start program = "{{ busapi_bin_path }}"
+    stop program = "killall busapi"
