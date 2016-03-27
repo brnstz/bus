@@ -2,7 +2,7 @@
 
 cd `dirname $0` || error
 
-psql < ../schema/schema.sql
+psql -U $BUS_DB_USER < ../schema/schema.sql
 go install github.com/brnstz/bus/cmds/busapi
 $GOPATH/bin/busapi &
 sleep 2
