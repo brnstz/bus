@@ -1,6 +1,8 @@
 #!/bin/bash
 
-psql < schema/schema.sql
+cd `dirname $0` || error
+
+psql < ../schema/schema.sql
 go install github.com/brnstz/bus/cmds/busapi
 $GOPATH/bin/busapi &
 sleep 2

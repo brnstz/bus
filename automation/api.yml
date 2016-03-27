@@ -1,0 +1,11 @@
+- hosts: api
+  sudo: yes
+
+  tasks:
+    - name: Install needed packages
+      apt: update_cache=yes pkg="{{ item }}" state=installed
+      with_items:
+        - monit
+
+    - name: Install busapi binary
+      copy: src=bin/busapi dest=/usr/local/bin/busapi mode=755
