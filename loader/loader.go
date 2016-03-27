@@ -426,13 +426,13 @@ func LoadForever() {
 			if err != nil {
 				panic(err)
 			}
-			cmd := exec.Command("/usr/bin/wget", url, "-O", path.Join(dir, "file.zip"))
+			cmd := exec.Command("wget", url, "-O", path.Join(dir, "file.zip"))
 			err = cmd.Run()
 			if err != nil {
 				panic(err)
 			}
 
-			cmd = exec.Command("/usr/bin/unzip", path.Join(dir, "file.zip"), "-d", dir)
+			cmd = exec.Command("unzip", path.Join(dir, "file.zip"), "-d", dir)
 			err = cmd.Run()
 			if err != nil {
 				panic(err)
