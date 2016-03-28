@@ -23,6 +23,12 @@
     - name: Reload PostgreSQL config
       service: name=postgresql state=reloaded
 
+    - name: Copy schema file
+      copy: src=../schema/schema.sql dest=/tmp/schema.sql
+
+    - name: Load schema
+      shell: psql -U postgres < /tmp/schema.sql
+
     - name: Install postgres monit config
       template: src=templates/postgresql_monit.conf.j2 dest=/etc/monit/conf.d/postgresql_monit.conf owner=root group=root mode=644
 

@@ -1,16 +1,32 @@
 - hosts: api
   sudo: yes
+  vars_files:
+    - "group_vars/{{ inventory }}.yml"
   vars:
     busapi_bin_path: "/usr/local/bin/busapi"
+    busapi_user: "bus"
 
   tasks:
     - name: Install needed packages
       apt: update_cache=yes pkg="{{ item }}" state=installed
       with_items:
         - monit
+        - unzip
+
+    - name: Create bus user
+      user: name="{{ busapi_user }}"
 
     - name: Install busapi binary
       copy: src=bin/busapi dest="{{ busapi_bin_path }}" mode=755
+
+    - name: setcap to bind lower ports as non-root
+      command: setcap cap_net_bind_service=+ep "{{ busapi_bin_path }}"
+
+    - name: Install busapi upstart config
+      template: src=templates/busapi_upstart.conf.j2 dest=/etc/init/busapi.conf owner=root group=root mode=644
+
+    - name: Reload upstart config
+      command: initctl reload-configuration
 
     - name: Install busapi monit config
       template: src=templates/busapi_monit.conf.j2 dest=/etc/monit/conf.d/busapi_monit.conf owner=root group=root mode=644
