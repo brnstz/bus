@@ -29,8 +29,8 @@
     - name: Reload upstart config
       command: initctl reload-configuration
 
-    - name: Install busapi monit config
-      template: src=templates/busapi_monit.conf.j2 dest=/etc/monit/conf.d/busapi_monit.conf owner=root group=root mode=644
+    - name: Install api monit config
+      template: src=templates/api_monit.conf.j2 dest=/etc/monit/conf.d/api_monit.conf owner=root group=root mode=644
 
     - name: Reload monit config
       service: name=monit state=reloaded
