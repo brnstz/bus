@@ -12,6 +12,7 @@
       with_items:
         - monit
         - unzip
+        - redis-server
 
     - name: Create bus user
       user: name="{{ busapi_user }}"
