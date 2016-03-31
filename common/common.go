@@ -61,6 +61,12 @@ var (
 	// Environment variable: $BUS_TMP_DIR
 	TmpDir string
 
+	// RouteFilter is a pipe-delimited list of route_ids we want
+	// to specifically extract from the transit files
+	// Default: None (no filter)
+	// Environment variable: $BUS_ROUTE_FILTER
+	RouteFilter string
+
 	// BusAPIKey is your API key for accessing http://bustime.mta.info/
 	// Default: None
 	// Environment variable: $MTA_BUS_TIME_API_KEY
@@ -83,6 +89,18 @@ type configVar struct {
 
 	// env is the environment variable name to use
 	env string
+
+	// required indicates whether we should panic if no value is provided
+	required bool
+}
+
+func newCV(value *string, def, env string, required bool) configVar {
+	return configVar{
+		value:    value,
+		def:      def,
+		env:      env,
+		required: required,
+	}
 }
 
 // initialize sets the value pointed to by cv.value.  If there is a value in
@@ -95,7 +113,7 @@ func (cv *configVar) initialize() {
 		*cv.value = envValue
 	} else if len(cv.def) > 0 {
 		*cv.value = cv.def
-	} else {
+	} else if cv.required {
 		log.Panicf("no value for %v", cv.env)
 	}
 }
@@ -104,13 +122,14 @@ func init() {
 	log.SetFlags(log.Lshortfile)
 
 	vars := []configVar{
-		{&APIAddr, ":8000", "BUS_API_ADDR"},
-		{&DBAddr, "localhost:5432", "BUS_DB_ADDR"},
-		{&DBUser, "postgres", "BUS_DB_USER"},
-		{&RedisAddr, "localhost:6379", "BUS_REDIS_ADDR"},
-		{&TmpDir, os.TempDir(), "BUS_TMP_DIR"},
-		{&BusAPIKey, "", "MTA_BUS_TIME_API_KEY"},
-		{&SubwayAPIKey, "", "MTA_SUBWAY_TIME_API_KEY"},
+		newCV(&APIAddr, ":8000", "BUS_API_ADDR", true),
+		newCV(&DBAddr, "localhost:5432", "BUS_DB_ADDR", true),
+		newCV(&DBUser, "postgres", "BUS_DB_USER", true),
+		newCV(&RedisAddr, "localhost:6379", "BUS_REDIS_ADDR", true),
+		newCV(&RouteFilter, "", "BUS_ROUTE_FILTER", false),
+		newCV(&TmpDir, os.TempDir(), "BUS_TMP_DIR", true),
+		newCV(&BusAPIKey, "", "MTA_BUS_TIME_API_KEY", true),
+		newCV(&SubwayAPIKey, "", "MTA_SUBWAY_TIME_API_KEY", true),
 	}
 
 	for _, v := range vars {
