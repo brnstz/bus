@@ -56,6 +56,12 @@ var (
 	// Environment variable: $BUS_ROUTE_FILTER
 	RouteFilter string
 
+	// GTFSURLs is a pipe-delimited list of URLs that have zipped GTFS
+	// feeds. https://developers.google.com/transit/gtfs/
+	// Default: None
+	// Environment variable: $BUS_GTFS_URLS
+	GTFSURLs string
+
 	// BusAPIKey is your API key for accessing http://bustime.mta.info/
 	// Default: None
 	// Environment variable: $MTA_BUS_TIME_API_KEY

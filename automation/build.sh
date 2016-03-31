@@ -38,7 +38,8 @@ cp -R ../ $GOPATH_TEMP/src/$CODE_ROOT || error
 # Get dependencies 
 go get $CODE_ROOT/... || error
 
-# Install the binary
+# Install our binaries
 go build -o $BIN_DIR/busapi $CODE_ROOT/cmds/busapi || error
+go build -o $BIN_DIR/busloader $CODE_ROOT/cmds/busloader || error
 
 cleanup

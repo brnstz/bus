@@ -5,7 +5,7 @@ export VAULT_PASSWORD_FILE="~/.pwd"
 
 if [ $# -lt 2 ]; then
     echo "Usage: $0 inventory playbook-1.yml [playbook-2.yml ... ]"
-    echo "Example: $0 inventory_vagrant db.yml api.yml"
+    echo "Example: $0 inventory_vagrant db.yml loader.yml api.yml"
     exit 1
 fi
 

@@ -1,6 +1,14 @@
 check process busapi with pidfile /var/run/busapi.pid
     start program = "/usr/sbin/service busapi start"
     stop program = "/usr/sbin/service busapi stop"
+    depends on busapi_conf
+    depends on busapi_bin
+
+check file busapi_conf with path {{ busapi_conf_path }}
+    if changed timestamp then restart
+
+check file busapi_bin with path {{ busapi_bin_path }}
+    if changed timestamp then restart
 
 check process redis-server with pidfile /var/run/redis/redis-server.pid
     start program = "/usr/sbin/service redis-server start"

@@ -44,6 +44,8 @@ type Loader struct {
 	// mapping of service_id to map of unique route_id
 	serviceRoute map[string]map[string]bool
 
+	routes map[string]bool
+
 	Stops []*models.Stop
 
 	ScheduledStopTimes []*models.ScheduledStopTime
@@ -52,7 +54,7 @@ type Loader struct {
 	ServiceRouteExceptions []*models.ServiceRouteException
 }
 
-func NewLoader(dir string) *Loader {
+func NewLoader(dir string, routeFilter string) *Loader {
 	l := Loader{
 		dir:          dir,
 		trips:        map[string]*models.Trip{},
@@ -61,6 +63,14 @@ func NewLoader(dir string) *Loader {
 		uniqueStop:   map[string]*models.Stop{},
 		tripService:  map[string]*models.Service{},
 		serviceRoute: map[string]map[string]bool{},
+	}
+
+	if len(routeFilter) > 0 {
+		l.routes = map[string]bool{}
+		allRoutes := strings.Split(routeFilter, "|")
+		for _, v := range allRoutes {
+			l.routes[v] = true
+		}
 	}
 
 	l.init()
@@ -109,6 +119,16 @@ func find(header []string, col string) int {
 	return -1
 }
 
+// skipRoute returns true if we should skip this route given our routeFilter
+// config
+func (l *Loader) skipRoute(routeID string) bool {
+	if l.routes != nil && l.routes[routeID] == false {
+		return true
+	} else {
+		return false
+	}
+}
+
 func (l *Loader) loadTrips() {
 	f := getcsv(l.dir, "trips.txt")
 
@@ -145,6 +165,10 @@ func (l *Loader) loadTrips() {
 
 		service := rec[serviceIdx]
 		route := rec[routeIdx]
+
+		if l.skipRoute(route) {
+			continue
+		}
 
 		l.trips[trip.Id] = trip
 
@@ -190,7 +214,10 @@ func (l *Loader) loadStopTrips() {
 
 		l.stopTrips[stop] = append(l.stopTrips[stop], trip)
 
-		service := l.tripService[trip]
+		service, exists := l.tripService[trip]
+		if !exists {
+			continue
+		}
 
 		sst, err := models.NewScheduledStopTime(service.RouteId, stop, service.Id, timeStr)
 		if err != nil {
@@ -227,6 +254,10 @@ func (l *Loader) loadTripRoute() {
 
 		trip := rec[tripIdx]
 		route := rec[routeIdx]
+
+		if l.skipRoute(route) {
+			continue
+		}
 
 		l.tripRoute[trip] = route
 	}
@@ -272,6 +303,9 @@ func (l *Loader) loadUniqueStop() {
 		trips, exists := l.stopTrips[rec[stopIdx]]
 		if exists {
 			for _, trip := range trips {
+				if l.skipRoute(l.tripRoute[trip]) {
+					continue
+				}
 				obj := models.Stop{
 					Id:      rec[stopIdx],
 					Name:    rec[stopNameIdx],
@@ -346,9 +380,9 @@ func (l *Loader) loadCalendars() {
 	}
 }
 
-func doOne(dir string, stype string, db *sqlx.DB) {
+func doOne(dir string, stype string, routeFilter string, db *sqlx.DB) {
 
-	l := NewLoader(dir)
+	l := NewLoader(dir, routeFilter)
 
 	for i, s := range l.ServiceRouteDays {
 		_, err := db.Exec(`
@@ -404,52 +438,49 @@ func doOne(dir string, stype string, db *sqlx.DB) {
 	}
 }
 
-func LoadForever() {
-	for {
-		for _, url := range []string{
-			"http://web.mta.info/developers/data/nyct/subway/google_transit.zip",
-			"http://web.mta.info/developers/data/nyct/bus/google_transit_bronx.zip",
-			"http://web.mta.info/developers/data/nyct/bus/google_transit_brooklyn.zip",
-			"http://web.mta.info/developers/data/nyct/bus/google_transit_manhattan.zip",
-			"http://web.mta.info/developers/data/nyct/bus/google_transit_queens.zip",
-			"http://web.mta.info/developers/data/nyct/bus/google_transit_staten_island.zip",
-		} {
-			var stype string
-			if strings.Contains(url, "subway") {
-				stype = "subway"
-			} else {
-				stype = "bus"
-			}
+func LoadOnce(routeFilter string, urls ...string) {
+	for _, url := range urls {
 
-			// FIXME: do this in Go, need to make it integrated with loader
-			dir, err := ioutil.TempDir(conf.TmpDir, "")
-			if err != nil {
-				panic(err)
-			}
-			cmd := exec.Command("wget", url, "-O", path.Join(dir, "file.zip"))
-			err = cmd.Run()
-			if err != nil {
-				panic(err)
-			}
-
-			cmd = exec.Command("unzip", path.Join(dir, "file.zip"), "-d", dir)
-			err = cmd.Run()
-			if err != nil {
-				panic(err)
-			}
-
-			func() {
-				log.Println(url, dir, stype)
-				defer os.RemoveAll(dir)
-				t1 := time.Now()
-				doOne(dir, stype, conf.DB)
-				t2 := time.Now()
-				log.Printf("took %v for %v\n", t2.Sub(t1), dir)
-			}()
+		var stype string
+		if strings.Contains(url, "subway") {
+			stype = "subway"
+		} else {
+			stype = "bus"
 		}
 
+		// FIXME: do this in Go, need to make it integrated with loader
+		dir, err := ioutil.TempDir(conf.TmpDir, "")
+		if err != nil {
+			panic(err)
+		}
+		cmd := exec.Command("wget", url, "-O", path.Join(dir, "file.zip"))
+		err = cmd.Run()
+		if err != nil {
+			panic(err)
+		}
+
+		cmd = exec.Command("unzip", path.Join(dir, "file.zip"), "-d", dir)
+		err = cmd.Run()
+		if err != nil {
+			panic(err)
+		}
+
+		func() {
+			log.Println(url, dir, stype)
+			defer os.RemoveAll(dir)
+			t1 := time.Now()
+			doOne(dir, stype, routeFilter, conf.DB)
+			t2 := time.Now()
+			log.Printf("took %v for %v\n", t2.Sub(t1), dir)
+		}()
+
+	}
+}
+
+func LoadForever(routeFilter string, urls ...string) {
+	for {
+		LoadOnce(routeFilter, urls...)
 		log.Println("finished loading, sleeping for 24 hours")
 		time.Sleep(time.Hour * 24)
 	}
-
 }

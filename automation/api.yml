@@ -4,6 +4,7 @@
     - "group_vars/{{ inventory }}.yml"
   vars:
     busapi_bin_path: "/usr/local/bin/busapi"
+    busapi_conf_path: "/etc/init/busapi.conf"
     busapi_user: "bus"
 
   tasks:
@@ -11,7 +12,6 @@
       apt: update_cache=yes pkg="{{ item }}" state=installed
       with_items:
         - monit
-        - unzip
         - redis-server
 
     - name: Create bus user
@@ -24,7 +24,7 @@
       command: setcap cap_net_bind_service=+ep "{{ busapi_bin_path }}"
 
     - name: Install busapi upstart config
-      template: src=templates/busapi_upstart.conf.j2 dest=/etc/init/busapi.conf owner=root group=root mode=644
+      template: src=templates/busapi_upstart.conf.j2 dest="{{ busapi_conf_path }}" owner=root group=root mode=644
 
     - name: Reload upstart config
       command: initctl reload-configuration

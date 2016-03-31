@@ -1,0 +1,37 @@
+- hosts: loader
+  sudo: yes
+  vars_files:
+    - "group_vars/defaults.yml"
+    - "group_vars/{{ inventory }}.yml"
+  vars:
+    busloader_bin_path: "/usr/local/bin/busloader"
+    busloader_conf_path: "/etc/init/busloader.conf"
+    busloader_user: "bus"
+
+  tasks:
+    - name: Install needed packages
+      apt: update_cache=yes pkg="{{ item }}" state=installed
+      with_items:
+        - monit
+        - unzip
+
+    - name: Create bus user
+      user: name="{{ busloader_user }}"
+
+    - name: Install busapi binary
+      copy: src=bin/busloader dest="{{ busloader_bin_path }}" mode=755
+
+    - name: setcap to bind lower ports as non-root
+      command: setcap cap_net_bind_service=+ep "{{ busloader_bin_path }}"
+
+    - name: Install busloader upstart config
+      template: src=templates/busloader_upstart.conf.j2 dest="{{ busloader_conf_path }}" owner=root group=root mode=644
+
+    - name: Reload upstart config
+      command: initctl reload-configuration
+
+    - name: Install loader monit config
+      template: src=templates/loader_monit.conf.j2 dest=/etc/monit/conf.d/loader_monit.conf owner=root group=root mode=644
+
+    - name: Reload monit config
+      service: name=monit state=reloaded

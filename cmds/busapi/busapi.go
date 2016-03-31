@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 
 	"github.com/brnstz/bus/internal/conf"
@@ -192,7 +191,6 @@ func main() {
 	conf.ConfigVar(&conf.DBAddr, "localhost:5432", "BUS_DB_ADDR", true)
 	conf.ConfigVar(&conf.DBUser, "postgres", "BUS_DB_USER", true)
 	conf.ConfigVar(&conf.RedisAddr, "localhost:6379", "BUS_REDIS_ADDR", true)
-	conf.ConfigVar(&conf.TmpDir, os.TempDir(), "BUS_TMP_DIR", true)
 	conf.ConfigVar(&conf.BusAPIKey, "", "MTA_BUS_TIME_API_KEY", true)
 	conf.ConfigVar(&conf.SubwayAPIKey, "", "MTA_SUBWAY_TIME_API_KEY", true)
 
