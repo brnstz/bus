@@ -7,7 +7,8 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/brnstz/bus/common"
+	"github.com/brnstz/bus/internal/conf"
+	"github.com/brnstz/bus/internal/etc"
 )
 
 var (
@@ -74,13 +75,13 @@ func GetCallsByRouteStop(route, dir, stop string) (calls CallSlice, err error) {
 	stopPointRef := fmt.Sprint("MTA_", stop)
 
 	q := url.Values{}
-	q.Set("key", common.BusAPIKey)
+	q.Set("key", conf.BusAPIKey)
 	q.Set("DirectionRef", dir)
 	q.Set("VehicleMonitoringDetailLevel", "calls")
 	q.Set("LineRef", lineRef)
 	u := fmt.Sprint(vmURL, "?", q.Encode())
 
-	b, err := common.RedisCache(u)
+	b, err := etc.RedisCache(u)
 	if err != nil {
 		log.Println("can't get live buses", err)
 		return

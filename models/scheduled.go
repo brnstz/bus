@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/brnstz/bus/common"
+	"github.com/brnstz/bus/internal/etc"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -52,7 +52,7 @@ func (p timeSlice) Swap(i, j int) {
 }
 
 func NewScheduledStopTime(routeId, stopId, serviceId, timeStr string) (sst ScheduledStopTime, err error) {
-	dsec := common.TimeStrToSecs(timeStr)
+	dsec := etc.TimeStrToSecs(timeStr)
 
 	sst = ScheduledStopTime{
 		RouteId:      routeId,
@@ -66,7 +66,7 @@ func NewScheduledStopTime(routeId, stopId, serviceId, timeStr string) (sst Sched
 func (s ScheduledStopTime) String() string {
 	return fmt.Sprintf("{%v %v %v @ %v (%v)}",
 		s.RouteId, s.ServiceId, s.StopId,
-		common.SecsToTimeStr(s.DepartureSec), s.DepartureSec,
+		etc.SecsToTimeStr(s.DepartureSec), s.DepartureSec,
 	)
 }
 

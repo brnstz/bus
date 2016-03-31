@@ -6,7 +6,8 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/brnstz/bus/common"
+	"github.com/brnstz/bus/internal/conf"
+	"github.com/brnstz/bus/internal/etc"
 	"github.com/brnstz/bus/transit_realtime"
 	"github.com/golang/protobuf/proto"
 )
@@ -36,11 +37,11 @@ func GetLiveSubways(route, dir, stop string) (ts timeSlice, err error) {
 	}
 
 	q := url.Values{}
-	q.Set("key", common.SubwayAPIKey)
+	q.Set("key", conf.SubwayAPIKey)
 	q.Set("feed_id", feed)
 	u := fmt.Sprint(esiURL, "?", q.Encode())
 
-	b, err := common.RedisCache(u)
+	b, err := etc.RedisCache(u)
 	if err != nil {
 		log.Println("can't get live subways", err)
 		return
