@@ -12,21 +12,6 @@ import (
 	"github.com/brnstz/bus/models"
 )
 
-func init() {
-	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
-
-	conf.ConfigVar(&conf.APIAddr, ":8000", "BUS_API_ADDR", true)
-	conf.ConfigVar(&conf.DBAddr, "localhost:5432", "BUS_DB_ADDR", true)
-	conf.ConfigVar(&conf.DBUser, "postgres", "BUS_DB_USER", true)
-	conf.ConfigVar(&conf.RedisAddr, "localhost:6379", "BUS_REDIS_ADDR", true)
-	conf.ConfigVar(&conf.TmpDir, os.TempDir(), "BUS_TMP_DIR", true)
-	conf.ConfigVar(&conf.BusAPIKey, "", "MTA_BUS_TIME_API_KEY", true)
-	conf.ConfigVar(&conf.SubwayAPIKey, "", "MTA_SUBWAY_TIME_API_KEY", true)
-
-	conf.DB = conf.MustDB()
-
-}
-
 func floatOrDie(w http.ResponseWriter, r *http.Request, name string) (f float64, err error) {
 
 	val := r.FormValue(name)
@@ -201,7 +186,17 @@ func getUI(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	log.SetFlags(log.Lshortfile | log.Ldate | log.Ltime)
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+
+	conf.ConfigVar(&conf.APIAddr, ":8000", "BUS_API_ADDR", true)
+	conf.ConfigVar(&conf.DBAddr, "localhost:5432", "BUS_DB_ADDR", true)
+	conf.ConfigVar(&conf.DBUser, "postgres", "BUS_DB_USER", true)
+	conf.ConfigVar(&conf.RedisAddr, "localhost:6379", "BUS_REDIS_ADDR", true)
+	conf.ConfigVar(&conf.TmpDir, os.TempDir(), "BUS_TMP_DIR", true)
+	conf.ConfigVar(&conf.BusAPIKey, "", "MTA_BUS_TIME_API_KEY", true)
+	conf.ConfigVar(&conf.SubwayAPIKey, "", "MTA_SUBWAY_TIME_API_KEY", true)
+
+	conf.DB = conf.MustDB()
 
 	http.HandleFunc("/api/v1/stops", getStops)
 	http.HandleFunc("/", getUI)
