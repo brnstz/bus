@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/brnstz/bus/common"
+	"github.com/brnstz/bus/internal/conf"
 	"github.com/brnstz/bus/models"
 	"github.com/jmoiron/sqlx"
 )
@@ -422,7 +422,7 @@ func LoadForever() {
 			}
 
 			// FIXME: do this in Go, need to make it integrated with loader
-			dir, err := ioutil.TempDir(common.TmpDir, "")
+			dir, err := ioutil.TempDir(conf.TmpDir, "")
 			if err != nil {
 				panic(err)
 			}
@@ -442,7 +442,7 @@ func LoadForever() {
 				log.Println(url, dir, stype)
 				defer os.RemoveAll(dir)
 				t1 := time.Now()
-				doOne(dir, stype, common.DB)
+				doOne(dir, stype, conf.DB)
 				t2 := time.Now()
 				log.Printf("took %v for %v\n", t2.Sub(t1), dir)
 			}()
