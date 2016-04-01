@@ -395,7 +395,7 @@ func doOne(dir string, stype string, routeFilter string, db *sqlx.DB) {
 			log.Println("ERROR SERVICE ROUTE DAYS: ", err, s)
 		}
 
-		if i%100 == 0 {
+		if i%100 == 0 && i > 0 {
 			log.Printf("loaded %v service route days", i)
 		}
 
@@ -416,7 +416,7 @@ func doOne(dir string, stype string, routeFilter string, db *sqlx.DB) {
 			log.Println("ERROR STOPS: ", err, s)
 		}
 
-		if i%100 == 0 {
+		if i%100 == 0 && i > 0 {
 			log.Printf("loaded %v stops", i)
 		}
 	}
@@ -432,7 +432,7 @@ func doOne(dir string, stype string, routeFilter string, db *sqlx.DB) {
 			log.Println("ERROR SCHEDULED STOP TIMES: ", err, s)
 		}
 
-		if i%100000 == 0 {
+		if i%100000 == 0 && i > 0 {
 			log.Printf("loaded %v stop times", i)
 		}
 	}
