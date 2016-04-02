@@ -2,36 +2,34 @@ package main
 
 import (
 	"log"
-	"os"
-	"strings"
 
 	"github.com/brnstz/bus/internal/conf"
+	"github.com/brnstz/bus/internal/etc"
 	"github.com/brnstz/bus/loader"
+	"github.com/kelseyhightower/envconfig"
 )
 
 func main() {
+	var err error
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
-	conf.ConfigVar(&conf.DBAddr, "localhost:5432", "BUS_DB_ADDR", true)
-	conf.ConfigVar(&conf.DBUser, "postgres", "BUS_DB_USER", true)
-	conf.ConfigVar(&conf.DBName, "postgres", "BUS_DB_Name", true)
-	conf.ConfigVar(&conf.TmpDir, os.TempDir(), "BUS_TMP_DIR", true)
-	conf.ConfigVar(&conf.GTFSURLs, "", "BUS_GTFS_URLS", true)
-	conf.ConfigVar(&conf.LoadForever, "true", "BUS_LOAD_FOREVER", true)
-	conf.ConfigVar(&conf.RouteFilter, "", "BUS_ROUTE_FILTER", false)
+	err = envconfig.Process("bus", &conf.DB)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	conf.DB = conf.MustDB()
+	err = envconfig.Process("bus", &conf.Loader)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	urls := strings.Split(conf.GTFSURLs, "|")
+	log.Println(conf.Loader)
 
-	switch conf.LoadForever {
-	case "true":
-		loader.LoadForever(conf.RouteFilter, urls...)
-	case "false":
-		log.Println(conf.RouteFilter, urls)
-		loader.LoadOnce(conf.RouteFilter, urls...)
+	etc.DBConn = etc.MustDB()
 
-	default:
-		log.Fatalf("invalid value for $BUS_LOAD_FOREVER: %v", conf.LoadForever)
+	if conf.Loader.LoadForever {
+		loader.LoadForever(conf.Loader.RouteFilter, conf.Loader.GTFSURLs...)
+	} else {
+		loader.LoadOnce(conf.Loader.RouteFilter, conf.Loader.GTFSURLs...)
 	}
 }

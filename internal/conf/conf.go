@@ -19,17 +19,17 @@ type DBSpec struct {
 	// DBAddr is the "host:port" we use for connecting to postgres
 	// Default: "localhost:5432"
 	// Environment variable: $BUS_DB_ADDR
-	DBAddr string `envconfig:"db_addr" default:"localhost:5432"`
+	Addr string `envconfig:"db_addr" default:"localhost:5432"`
 
 	// DBUser is the username we use for connecting to postgres
 	// Default: postgres
 	// Environment variable: $BUS_DB_USER
-	DBUser string `envconfig:"db_user" default:"postgres"`
+	User string `envconfig:"db_user" default:"postgres"`
 
 	// DBName is the database name we use in postgres
 	// Default: postgres
 	// Environment variable: $BUS_DB_NAME
-	DBName string `envconfig:"db_name" default:"postgres"`
+	Name string `envconfig:"db_name" default:"postgres"`
 }
 
 // APISpec is our config spec used by busapi
@@ -38,12 +38,12 @@ type APISpec struct {
 	// APIAddr is the "host:port" we listen to for incoming HTTP connections
 	// Default: "0:8000"
 	// Environment variable: $BUS_API_ADDR
-	APIAddr string `envconfig:"api_addr" default:"0:8000"`
+	Addr string `envconfig:"api_addr" default:"0:8000"`
 
 	// RedisAddr is the "host:port" we use for connecting to redis
 	// Default: "localhost:6379"
 	// Environment variable: $BUS_REDIS_ADDR
-	RedisAddr string `envconfig:"api_addr" default:"localhost:6379"`
+	RedisAddr string `envconfig:"redis_addr" default:"localhost:6379"`
 
 	// BusAPIKey is the API key for accessing http://bustime.mta.info/
 	// Default: None
@@ -68,7 +68,7 @@ type LoaderSpec struct {
 	// specifically extract from the transit files
 	// Default: None (no filter)
 	// Environment variable: $BUS_ROUTE_FILTER (comma-delimited list)
-	RouteFilter []string `envconfig:route_filter"`
+	RouteFilter []string `envconfig:"route_filter"`
 
 	// GTFSURLs is a comma-delimited list of URLs that have zipped GTFS
 	// feeds, see: https://developers.google.com/transit/gtfs/

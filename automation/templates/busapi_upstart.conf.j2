@@ -4,7 +4,7 @@ description "Bus API Server"
 
 console log
 
-env MTA_BUS_TIME_API_KEY="{{ mta_bus_time_api_key }}"
-env MTA_SUBWAY_TIME_API_KEY="{{ mta_subway_time_api_key }}"
+env BUS_MTA_BUSTIME_API_KEY="{{ mta_bustime_api_key }}"
+env BUS_MTA_DATAMINE_API_KEY="{{ mta_datamine_api_key }}"
 
 exec start-stop-daemon --start --make-pidfile --pidfile /var/run/busapi.pid --exec {{ busapi_bin_path }} --user {{ busapi_user }}

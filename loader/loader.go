@@ -13,8 +13,8 @@ import (
 	"time"
 
 	"github.com/brnstz/bus/internal/conf"
+	"github.com/brnstz/bus/internal/etc"
 	"github.com/brnstz/bus/models"
-	"github.com/jmoiron/sqlx"
 )
 
 var days = []string{"monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"}
@@ -54,7 +54,7 @@ type Loader struct {
 	ServiceRouteExceptions []*models.ServiceRouteException
 }
 
-func NewLoader(dir string, routeFilter string) *Loader {
+func NewLoader(dir string, routeFilters []string) *Loader {
 	l := Loader{
 		dir:          dir,
 		trips:        map[string]*models.Trip{},
@@ -65,10 +65,9 @@ func NewLoader(dir string, routeFilter string) *Loader {
 		serviceRoute: map[string]map[string]bool{},
 	}
 
-	if len(routeFilter) > 0 {
+	if len(routeFilters) > 0 {
 		l.routes = map[string]bool{}
-		allRoutes := strings.Split(routeFilter, "|")
-		for _, v := range allRoutes {
+		for _, v := range routeFilters {
 			l.routes[v] = true
 		}
 	}
@@ -380,9 +379,10 @@ func (l *Loader) loadCalendars() {
 	}
 }
 
-func doOne(dir string, stype string, routeFilter string, db *sqlx.DB) {
+func doOne(dir string, stype string, routeFilters []string) {
+	db := etc.DBConn
 
-	l := NewLoader(dir, routeFilter)
+	l := NewLoader(dir, routeFilters)
 
 	for i, s := range l.ServiceRouteDays {
 		_, err := db.Exec(`
@@ -438,7 +438,7 @@ func doOne(dir string, stype string, routeFilter string, db *sqlx.DB) {
 	}
 }
 
-func LoadOnce(routeFilter string, urls ...string) {
+func LoadOnce(routeFilters []string, urls ...string) {
 	for _, url := range urls {
 
 		var stype string
@@ -449,7 +449,7 @@ func LoadOnce(routeFilter string, urls ...string) {
 		}
 
 		// FIXME: do this in Go, need to make it integrated with loader
-		dir, err := ioutil.TempDir(conf.TmpDir, "")
+		dir, err := ioutil.TempDir(conf.Loader.TmpDir, "")
 		if err != nil {
 			panic(err)
 		}
@@ -469,7 +469,7 @@ func LoadOnce(routeFilter string, urls ...string) {
 			log.Println(url, dir, stype)
 			defer os.RemoveAll(dir)
 			t1 := time.Now()
-			doOne(dir, stype, routeFilter, conf.DB)
+			doOne(dir, stype, routeFilters)
 			t2 := time.Now()
 			log.Printf("took %v for %v\n", t2.Sub(t1), dir)
 		}()
@@ -477,9 +477,9 @@ func LoadOnce(routeFilter string, urls ...string) {
 	}
 }
 
-func LoadForever(routeFilter string, urls ...string) {
+func LoadForever(routeFilters []string, urls ...string) {
 	for {
-		LoadOnce(routeFilter, urls...)
+		LoadOnce(routeFilters, urls...)
 		log.Println("finished loading, sleeping for 24 hours")
 		time.Sleep(time.Hour * 24)
 	}

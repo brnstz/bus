@@ -29,8 +29,8 @@ const (
 )
 
 var (
-	// DB is our shared connection to postgres
-	DB *sqlx.DB
+	// DBConn is our shared connection to postgres
+	DBConn *sqlx.DB
 )
 
 // MileToMeter converts miles to meters
@@ -83,7 +83,7 @@ func SecsToTimeStr(secs int) string {
 // RedisCache takes a URL and returns the bytes of the response from running a
 // GET on that URL. Responses are cached for redisTTL seconds.
 func RedisCache(u string) (b []byte, err error) {
-	c, err := redis.DialTimeout("tcp", conf.RedisAddr, redisConnectTimeout)
+	c, err := redis.DialTimeout("tcp", conf.API.RedisAddr, redisConnectTimeout)
 	if err != nil {
 		log.Println("can't connect to redis", err)
 		return
@@ -122,7 +122,7 @@ func RedisCache(u string) (b []byte, err error) {
 
 // MustDB returns an *sqlx.DB or panics
 func MustDB() *sqlx.DB {
-	host, port, err := net.SplitHostPort(DBAddr)
+	host, port, err := net.SplitHostPort(conf.DB.Addr)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -130,7 +130,7 @@ func MustDB() *sqlx.DB {
 	db, err := sqlx.Connect("postgres",
 		fmt.Sprintf(
 			"user=%s host=%s port=%s dbname=%s sslmode=disable",
-			DBUser, host, port, DBName,
+			conf.DB.User, host, port, conf.DB.Name,
 		),
 	)
 	if err != nil {

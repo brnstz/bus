@@ -9,6 +9,7 @@ import (
 	"github.com/brnstz/bus/internal/conf"
 	"github.com/brnstz/bus/internal/etc"
 	"github.com/brnstz/bus/models"
+	"github.com/kelseyhightower/envconfig"
 )
 
 func floatOrDie(w http.ResponseWriter, r *http.Request, name string) (f float64, err error) {
@@ -44,7 +45,7 @@ func getStops(w http.ResponseWriter, r *http.Request) {
 
 	meters := etc.MileToMeter(miles)
 
-	stops, err := models.GetStopsByLoc(conf.DB, lat, lon, meters, filter)
+	stops, err := models.GetStopsByLoc(etc.DBConn, lat, lon, meters, filter)
 	if err != nil {
 		log.Println("can't get stops", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -185,20 +186,23 @@ func getUI(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	var err error
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
-	conf.ConfigVar(&conf.APIAddr, ":8000", "BUS_API_ADDR", true)
-	conf.ConfigVar(&conf.DBAddr, "localhost:5432", "BUS_DB_ADDR", true)
-	conf.ConfigVar(&conf.DBUser, "postgres", "BUS_DB_USER", true)
-	conf.ConfigVar(&conf.DBName, "postgres", "BUS_DB_NAME", true)
-	conf.ConfigVar(&conf.RedisAddr, "localhost:6379", "BUS_REDIS_ADDR", true)
-	conf.ConfigVar(&conf.BusAPIKey, "", "MTA_BUS_TIME_API_KEY", true)
-	conf.ConfigVar(&conf.SubwayAPIKey, "", "MTA_SUBWAY_TIME_API_KEY", true)
+	err = envconfig.Process("bus", &conf.DB)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	conf.DB = conf.MustDB()
+	err = envconfig.Process("bus", &conf.API)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	etc.DBConn = etc.MustDB()
 
 	http.HandleFunc("/api/v1/stops", getStops)
 	http.HandleFunc("/", getUI)
 
-	log.Fatal(http.ListenAndServe(conf.APIAddr, nil))
+	log.Fatal(http.ListenAndServe(conf.API.Addr, nil))
 }

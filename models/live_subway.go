@@ -37,7 +37,7 @@ func GetLiveSubways(route, dir, stop string) (ts timeSlice, err error) {
 	}
 
 	q := url.Values{}
-	q.Set("key", conf.SubwayAPIKey)
+	q.Set("key", conf.API.DatamineAPIKey)
 	q.Set("feed_id", feed)
 	u := fmt.Sprint(esiURL, "?", q.Encode())
 

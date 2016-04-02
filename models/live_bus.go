@@ -75,7 +75,7 @@ func GetCallsByRouteStop(route, dir, stop string) (calls CallSlice, err error) {
 	stopPointRef := fmt.Sprint("MTA_", stop)
 
 	q := url.Values{}
-	q.Set("key", conf.BusAPIKey)
+	q.Set("key", conf.API.BustimeAPIKey)
 	q.Set("DirectionRef", dir)
 	q.Set("VehicleMonitoringDetailLevel", "calls")
 	q.Set("LineRef", lineRef)
