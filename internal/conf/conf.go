@@ -39,6 +39,11 @@ var (
 	// Environment variable: $BUS_DB_USER
 	DBUser string
 
+	// DBName is the database name we use in postgres.
+	// Default: postgres
+	// Environment variable: $BUS_DB_NAME
+	DBName string
+
 	// RedisAddr is the "host:port" we use for connecting to redis.
 	// Default: "localhost:6379"
 	// Environment variable: $BUS_REDIS_ADDR
@@ -61,6 +66,13 @@ var (
 	// Default: None
 	// Environment variable: $BUS_GTFS_URLS
 	GTFSURLs string
+
+	// LoadForever is a boolean that determines whether we just load
+	// the GTFS URLs once and exit or whether we continually load them (every
+	// 24 hours).
+	// Default: true
+	// Environment variable: $BUS_LOAD_FOREVER
+	LoadForever string
 
 	// BusAPIKey is your API key for accessing http://bustime.mta.info/
 	// Default: None
@@ -99,8 +111,8 @@ func MustDB() *sqlx.DB {
 
 	db, err := sqlx.Connect("postgres",
 		fmt.Sprintf(
-			"user=%s host=%s port=%s sslmode=disable",
-			DBUser, host, port,
+			"user=%s host=%s port=%s dbname=%s sslmode=disable",
+			DBUser, host, port, DBName,
 		),
 	)
 	if err != nil {
