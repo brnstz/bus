@@ -14,7 +14,7 @@ export GOPATH=$GOPATH_TEMP
 export GOOS=linux
 export GOARCH=amd64
 
-# cleanup cleans our tempoary directory
+# cleanup cleans our temporary directory
 cleanup() {
     rm -rf $GOPATH_TEMP
 }
