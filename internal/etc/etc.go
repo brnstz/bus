@@ -4,18 +4,33 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/brnstz/bus/internal/conf"
 	"github.com/fzzy/radix/redis"
+	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
 
 const (
 	// metersInMile is a constant for converting between meters and miles
 	metersInMile = 1609.344
+
+	// redisTTL is how many seconds we cache things in redis
+	redisTTL = 30
+
+	// redisConnectTimeout is how long we wait to connect to redis
+	// before giving up
+	redisConnectTimeout = 1 * time.Second
+)
+
+var (
+	// DB is our shared connection to postgres
+	DB *sqlx.DB
 )
 
 // MileToMeter converts miles to meters
@@ -66,9 +81,9 @@ func SecsToTimeStr(secs int) string {
 }
 
 // RedisCache takes a URL and returns the bytes of the response from running a
-// GET on that URL. Responses are cached for conf.RedisTTL seconds.
+// GET on that URL. Responses are cached for redisTTL seconds.
 func RedisCache(u string) (b []byte, err error) {
-	c, err := redis.DialTimeout("tcp", conf.RedisAddr, conf.RedisConnectTimeout)
+	c, err := redis.DialTimeout("tcp", conf.RedisAddr, redisConnectTimeout)
 	if err != nil {
 		log.Println("can't connect to redis", err)
 		return
@@ -95,7 +110,7 @@ func RedisCache(u string) (b []byte, err error) {
 		return
 	}
 
-	err = c.Cmd("set", u, b, "ex", strconv.Itoa(conf.RedisTTL)).Err
+	err = c.Cmd("set", u, b, "ex", strconv.Itoa(redisTTL)).Err
 
 	if err != nil {
 		log.Println("can't set value in redis")
@@ -103,4 +118,24 @@ func RedisCache(u string) (b []byte, err error) {
 	}
 
 	return
+}
+
+// MustDB returns an *sqlx.DB or panics
+func MustDB() *sqlx.DB {
+	host, port, err := net.SplitHostPort(DBAddr)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	db, err := sqlx.Connect("postgres",
+		fmt.Sprintf(
+			"user=%s host=%s port=%s dbname=%s sslmode=disable",
+			DBUser, host, port, DBName,
+		),
+	)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	return db
 }
