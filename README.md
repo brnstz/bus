@@ -4,7 +4,7 @@
 [MTA](http://www.mta.info/) bus and subway stops close to a given 
 geolocation within a specified range.
 
-[![Build Status](https://travis-ci.org/brnstz/bus.svg?branch=master)](https://travis-ci.org/brnstz/bus.svg?branch=master)
+[![Build Status](https://travis-ci.org/brnstz/bus?branch=master)](https://travis-ci.org/brnstz/bus.svg?branch=master)
 
 ## Requirements
 
