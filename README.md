@@ -9,9 +9,9 @@ geolocation within a specified range.
 * Go 1.6+ and dependencies:
   * https://github.com/jmoiron/sqlx
   * https://github.com/lib/pq
-  * https://github.com/fzzy/radix/redis
+  * https://github.com/fzzy/radix
   * https://github.com/kelseyhightower/envconfig
-  * https://github.com/golang/protobuf/proto
+  * https://github.com/golang/protobuf
 * PostgreSQL 9.3+ with earthdistance and cube extensions
 * Redis
 
