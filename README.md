@@ -8,8 +8,8 @@ geolocation within a specified range.
 
 | Route                  | Scheduled | Live | 
 |------------------------|-----------|------|
-| 1, 2, 3                | Yes       | Yes  |
-| 4, 5, 6                | Yes       | Yes  |
+| 1 2 3                  | Yes       | Yes  |
+| 4 5 6                  | Yes       | Yes  |
 | 7                      | Yes       | No   |
 | A C E                  | Yes       | No   |
 | B D F M                | Yes       | No   |
