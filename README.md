@@ -4,6 +4,8 @@
 [MTA](http://www.mta.info/) bus and subway stops close to a given 
 geolocation within a specified range.
 
+[![Build Status](https://travis-ci.org/brnstz/bus.svg?branch=master)](https://travis-ci.org/brnstz/bus.svg?branch=master)
+
 ## Requirements
 
 * Go 1.6+ and dependencies:
