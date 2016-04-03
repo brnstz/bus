@@ -144,7 +144,7 @@ In the `automation/` directory, there is a sample of how to fully deploy the
 system. A full configuration for a deploy consists of an inventory file and a
 `group_vars/` file. The included config is called `inventory_vagrant`. For 
 security reasons (the API keys), the vars are encrypted in this repo. You can
-create your own config and deploy it locally by doing the following.
+create your own config and deploy it locally by doing the following:
 
 ```bash
 
