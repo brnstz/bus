@@ -36,9 +36,9 @@ type DBSpec struct {
 type APISpec struct {
 
 	// APIAddr is the "host:port" we listen to for incoming HTTP connections
-	// Default: "0:8000"
+	// Default: "0.0.0.0:8000"
 	// Environment variable: $BUS_API_ADDR
-	Addr string `envconfig:"api_addr" default:"0:8000"`
+	Addr string `envconfig:"api_addr" default:"0.0.0.0:8000"`
 
 	// RedisAddr is the "host:port" we use for connecting to redis
 	// Default: "localhost:6379"
