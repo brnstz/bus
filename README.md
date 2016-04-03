@@ -1,141 +1,165 @@
 # bus
-MTA bus and train times
 
-"Time To Go"?
+`bus` is an API that returns live and scheduled departures for
+[MTA](http://www.mta.info/) bus and subway stops close to a given 
+geolocation within a specified range.
 
-# init
+## Supported routes
 
-```
-# install postgres
-# install postgres earthdistance and cube extensions
-# install redis
-# set local trust in /etc/postgresql/9.3/main/pg_hba.conf
-# host    all             all             127.0.0.1/32            trust
+| Route                  | Scheduled | Live | 
+|------------------------|-----------|------|
+| 1, 2, 3                | Yes       | Yes  |
+| 4, 5, 6                | Yes       | Yes  |
+| 7                      | Yes       | No   |
+| A C E                  | Yes       | No   |
+| B D F M                | Yes       | No   |
+| G                      | Yes       | No   |
+| J Z                    | Yes       | No   |
+| L                      | Yes       | Yes  |
+| N Q R                  | Yes       | No   |
+| S                      | Yes       | Yes  |
+| Staten Island Railroad | Yes       | Yes  |
+| Buses                  | Yes       | Yes  |
 
-# set env vars
-export BUS_DB_ADDR=localhost:5432
-export BUS_DB_USER=postgres
-export BUS_REDIS_ADDR=localhost:6379
-export BUS_TMP_DIR=/mnt/data/tmp
-export BUS_API_ADDR=:8000
-export MTA_BUS_TIME_API_KEY=<your bus time key>
-export MTA_SUBWAY_TIME_API_KEY=<your subway time key>
+## Requirements
 
-# load initial schema
-psql -U postgres -h $BUS_DB_HOST < schema/schema.sql
+* Go 1.6+
+  * github.com/jmoiron/sqlx
+  * github.com/lib/pq
+  * github.com/fzzy/radix/redis
+  * github.com/kelseyhightower/envconfig
+  * github.com/golang/protobuf/proto
+* PostgreSQL 9.3+ with earthdistance and cube extensions
+* Redis
 
-# build binaries
-go install github.com/brnstz/bus/cmds/busapi
+## Binaries
 
-# Run it
-$GOPATH/bin/busapi
+The full system consists of two binaries. Each binary can be configured
+using environment variables and typically are run as daemons. They are both 
+located under the `cmds/` directory.
 
-# Hit it
-# filter is optional, can be "subway" or "bus"
-curl 'http://localhost:8000/api/v1/stops?lat=40.729183&lon=-73.95154&&miles=0.5&filter=subway' 
+## Shared Database Config
+
+Since both binaries connect to the database, they share the following
+config variables:
+
+| Name           | Description                 | Default value    |
+|----------------|-----------------------------|------------------|
+| `BUS_DB_ADDR`  | `host:port` of postgres     | `localhost:5432` |
+| `BUS_DB_USER`  | The username to use         | `postgres`       |
+| `BUS_DB_NAME`  | The database name to use    | `postgres`       |
+
+### `busapi`
+
+`busapi` is the queryable API. 
+
+#### Config
+
+| Name                        | Description                            | Default value     |
+|-----------------------------|----------------------------------------|-------------------|
+| `BUS_API_ADDR`              | `host:port` to listen on               | `0.0.0.0:8000`          |
+| `BUS_REDIS_ADDR`            | `host:port` of redis                   | `localhost:6379`  |
+| `BUS_MTA_BUSTIME_API_KEY`   |  API key for http://bustime.mta.info/  | *None*            |
+| `BUS_MTA_DATAMINE_API_KEY`  |  API key for http://datamine.mta.info/ | *None*            |
+
+##### `/api/v1/stops` Endpoint
+
+##### Query Parameters
+
+| Name     | Description                                     | Example     | Required | 
+|----------|-------------------------------------------------|-------------|----------|
+| lat      | The latitude of the requested location          | `40.729183` | Yes      |
+| lon      | The longitude of the requested location         | `-73.95154` | Yes      |
+| miles    | The maximum radius to search                    | `0.5`       | Yes      |
+| filter   | Filter results by either `subway` or `bus` only | `subway`    | No       |
+
+
+#### Example
+
+```bash
+curl 'http://localhost:8000/api/v1/stops?lat=40.729183&lon=-73.95154&miles=0.5&filter=subway' 
 [
     {
-        "direction_id": 0,
-        "dist": 344.2649351427617,
-        "headsign": "COURT SQ",
-        "lat": 40.731352,
-        "live": null,
-        "lon": -73.954449,
-        "route_id": "G",
-        "scheduled": [
-            {
-                "desc": "",
-                "time": "2015-07-10T17:43:30-04:00"
-            },
-            {
-                "desc": "",
-                "time": "2015-07-10T17:52:30-04:00"
-            },
-            {
-                "desc": "",
-                "time": "2015-07-10T17:59:30-04:00"
-            }
+        "direction_id": 0, "dist": 175.27451644362773, "headsign": "LI CITY QUEENS PLAZA",
+        "lat": 40.728436, "lon": -73.953369, "route_id": "B62",
+        "station_type": "bus", "stop_id": "305157", "stop_name": "MANHATTAN AV/CALYER ST",
+        "live": [
+            { "desc": "1.7 miles away", "time": "0001-01-01T00:00:00Z" },
+            { "desc": "3.9 miles away", "time": "0001-01-01T00:00:00Z" },
+            { "desc": "5.8 miles away", "time": "0001-01-01T00:00:00Z" }
         ],
-        "station_type": "subway",
-        "stop_id": "G26N",
-        "stop_name": "Greenpoint Av"
+        "scheduled": [
+            { "desc": "", "time": "2016-04-03T02:12:52Z" },
+            { "desc": "", "time": "2016-04-03T03:02:52Z" },
+            { "desc": "", "time": "2016-04-03T03:52:52Z" }
+        ]
     },
     {
-        "direction_id": 1,
-        "dist": 344.2649351427617,
-        "headsign": "CHURCH AV",
-        "lat": 40.731352,
+        "direction_id": 0, "dist": 344.2649351427617, "headsign": "COURT SQ",
+        "lat": 40.731352, "lon": -73.954449, "route_id": "G",
+        "station_type": "subway", "stop_id": "G26N", "stop_name": "Greenpoint Av",
         "live": null,
-        "lon": -73.954449,
-        "route_id": "G",
         "scheduled": [
-            {
-                "desc": "",
-                "time": "2015-07-10T17:47:30-04:00"
-            },
-            {
-                "desc": "",
-                "time": "2015-07-10T17:55:30-04:00"
-            },
-            {
-                "desc": "",
-                "time": "2015-07-10T18:03:30-04:00"
-            }
-        ],
-        "station_type": "subway",
-        "stop_id": "G26S",
-        "stop_name": "Greenpoint Av"
+            { "desc": "", "time": "2016-04-03T02:14:30Z" },
+            { "desc": "", "time": "2016-04-03T02:34:30Z" },
+            { "desc": "", "time": "2016-04-03T02:54:30Z" }
+        ]
     }
 ]
 ```
 
-# schema of transit files
+### `busloader`
 
+`busloader` downloads 
+[GTFS](https://developers.google.com/transit/gtfs/) files and loads
+them to the database. Typically, these files are updated periodically
+from a well-known URL. The loader incorporates these updates to the 
+database without losing old values.
+
+#### Config
+
+| Name                        | Description                                                                              | Default value       |
+|-----------------------------|------------------------------------------------------------------------------------------|---------------------|
+| `BUS_TMP_DIR`               | Path to temporary directory                                                              |`os.TempDir()`       |
+| `BUS_GTFS_URLS`             | Comma-separated path to GTFS zip files                                                   | *None*              |
+| `BUS_ROUTE_FILTER`          | Comma-separated list of `route_id` values to filter on (i.e., *only* load these routes)  | *None (no filter)*  |
+| `BUS_LOAD_FOREVER`          | Load forever (24 hour delay between loads) if `true`, exit after first load if `false`   |  `true`             |
+
+#### Example
+
+```bash
+# Load only the G and L train info and exit after initial load
+export BUS_GTFS_URLS="http://web.mta.info/developers/data/nyct/subway/google_transit.zip"
+export BUS_ROUTE_FILTER="G,L"
+export BUS_LOAD_FOREVER="false"
+busloader 
 ```
-==> agency.txt <==
-agency_id,agency_name,agency_url,agency_timezone,agency_lang,agency_phone
 
-==> calendar.txt <==
-service_id,monday,tuesday,wednesday,thursday,friday,saturday,sunday,start_date,end_date
+## Automation
 
-==> calendar_dates.txt <==
-service_id,date,exception_type
+In the `automation/` directory, there is a sample of how to fully deploy the
+system. A full configuration for a deploy consists of an inventory file and a
+`group_vars/` file. The included config is called `inventory_vagrant`. For 
+security reasons (the API keys), the vars are encrypted in this repo. You can
+create your own config and deploy it locally by doing the following.
 
-==> routes.txt <==
-route_id,agency_id,route_short_name,route_long_name,route_desc,route_type,route_url,route_color,route_text_color
+```bash
 
-==> shapes.txt <==
-shape_id,shape_pt_lat,shape_pt_lon,shape_pt_sequence
+# Create vagrant server
+$ cd automation/vagrant
+$ vagrant up
+$ cd ../..
 
-==> stop_times.txt <==
-trip_id,arrival_time,departure_time,stop_id,stop_sequence,pickup_type,drop_off_type
+# Overwrite group vars with defaults
+$ cd automation/group_vars
+$ cp defaults.yml inventory_vagrant.yml
 
-==> stops.txt <==
-stop_id,stop_name,stop_desc,stop_lat,stop_lon,zone_id,stop_url,location_type,parent_station
+# Add your API keys
+$ vim inventory_vagrant.yml
 
-==> trips.txt <==
-route_id,service_id,trip_id,trip_headsign,direction_id,shape_id
+# Deploy the system
+$ cd ../..
+$ ./build.sh && ./deploy.sh inventory_vagrant db.yml api.yml loader.yml
+
+# If all goes well, system is available on http://localhost:8000
 ```
-
-# todo
-
-  * ~~Load stops~~
-  * ~~Load scheduled times / services~~
-  * Load service exception days
-  * ensure query for getServiceIdByDay is correct
-  * Fix IP tables
-  * ~~Document environment variables~~
-  * ~~Automatically load new files from MTA~~
-  * Build sample UI via web (get current location)
-  * Build APIs:
-    * ~~Given a lat/long, find a list of stops~~
-    * Given a stop, find:
-        * ~~A list of scheduled stop times (via database)~~
-        * ~~A list of live stop times for bus~~
-        * ~~A list of live stop times for subway~~
-  * BUGS:
-     * ~~API returns routes within the specified distance, but it chooses a
-       random stop.~~
-     * ~~Duplicate results from bus API (onward call vs. cur call? yes!)~~
-     * ~~Needs caching~~
-
