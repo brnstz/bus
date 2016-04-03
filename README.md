@@ -156,9 +156,10 @@ $ cp defaults.yml inventory_vagrant.yml
 
 # Add your API keys
 $ vim inventory_vagrant.yml
+$ cd ../..
 
 # Deploy the system
-$ cd ../..
+$ cd automation
 $ ./build.sh && ./deploy.sh inventory_vagrant db.yml api.yml loader.yml
 
 # If all goes well, system is available on http://localhost:8000
