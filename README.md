@@ -4,6 +4,17 @@
 [MTA](http://www.mta.info/) bus and subway stops close to a given 
 geolocation within a specified range.
 
+## Requirements
+
+* Go 1.6+ and dependencies:
+  * https://github.com/jmoiron/sqlx
+  * https://github.com/lib/pq
+  * https://github.com/fzzy/radix/redis
+  * https://github.com/kelseyhightower/envconfig
+  * https://github.com/golang/protobuf/proto
+* PostgreSQL 9.3+ with earthdistance and cube extensions
+* Redis
+
 ## Supported routes
 
 | Route                  | Scheduled | Live | 
@@ -21,16 +32,6 @@ geolocation within a specified range.
 | Staten Island Railroad | Yes       | Yes  |
 | Buses                  | Yes       | Yes  |
 
-## Requirements
-
-* Go 1.6+
-  * github.com/jmoiron/sqlx
-  * github.com/lib/pq
-  * github.com/fzzy/radix/redis
-  * github.com/kelseyhightower/envconfig
-  * github.com/golang/protobuf/proto
-* PostgreSQL 9.3+ with earthdistance and cube extensions
-* Redis
 
 ## Binaries
 
@@ -49,11 +50,11 @@ config variables:
 | `BUS_DB_USER`  | The username to use         | `postgres`       |
 | `BUS_DB_NAME`  | The database name to use    | `postgres`       |
 
-### `busapi`
+## `busapi`
 
 `busapi` is the queryable API. 
 
-#### Config
+### Config
 
 | Name                        | Description                            | Default value     |
 |-----------------------------|----------------------------------------|-------------------|
@@ -62,9 +63,9 @@ config variables:
 | `BUS_MTA_BUSTIME_API_KEY`   |  API key for http://bustime.mta.info/  | *None*            |
 | `BUS_MTA_DATAMINE_API_KEY`  |  API key for http://datamine.mta.info/ | *None*            |
 
-##### `/api/v1/stops` Endpoint
+### `/api/v1/stops` Endpoint
 
-##### Query Parameters
+### Query Parameters
 
 | Name     | Description                                     | Example     | Required | 
 |----------|-------------------------------------------------|-------------|----------|
@@ -74,7 +75,7 @@ config variables:
 | filter   | Filter results by either `subway` or `bus` only | `subway`    | No       |
 
 
-#### Example
+### Example
 
 ```bash
 curl 'http://localhost:8000/api/v1/stops?lat=40.729183&lon=-73.95154&miles=0.5&filter=subway' 
@@ -108,7 +109,7 @@ curl 'http://localhost:8000/api/v1/stops?lat=40.729183&lon=-73.95154&miles=0.5&f
 ]
 ```
 
-### `busloader`
+## `busloader`
 
 `busloader` downloads 
 [GTFS](https://developers.google.com/transit/gtfs/) files and loads
@@ -116,16 +117,16 @@ them to the database. Typically, these files are updated periodically
 from a well-known URL. The loader incorporates these updates to the 
 database without losing old values.
 
-#### Config
+### Config
 
 | Name                        | Description                                                                              | Default value       |
 |-----------------------------|------------------------------------------------------------------------------------------|---------------------|
 | `BUS_TMP_DIR`               | Path to temporary directory                                                              |`os.TempDir()`       |
-| `BUS_GTFS_URLS`             | Comma-separated path to GTFS zip files                                                   | *None*              |
+| `BUS_GTFS_URLS`             | Comma-separated path to GTFS zip URLs                                                   | *None*              |
 | `BUS_ROUTE_FILTER`          | Comma-separated list of `route_id` values to filter on (i.e., *only* load these routes)  | *None (no filter)*  |
 | `BUS_LOAD_FOREVER`          | Load forever (24 hour delay between loads) if `true`, exit after first load if `false`   |  `true`             |
 
-#### Example
+### Example
 
 ```bash
 # Load only the G and L train info and exit after initial load
