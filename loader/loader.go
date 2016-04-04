@@ -44,7 +44,9 @@ type Loader struct {
 	// mapping of service_id to map of unique route_id
 	serviceRoute map[string]map[string]bool
 
-	routes map[string]bool
+	routeIDs map[string]bool
+
+	Routes []*models.Route
 
 	Stops []*models.Stop
 
@@ -66,9 +68,9 @@ func NewLoader(dir string, routeFilters []string) *Loader {
 	}
 
 	if len(routeFilters) > 0 {
-		l.routes = map[string]bool{}
+		l.routeIDs = map[string]bool{}
 		for _, v := range routeFilters {
-			l.routes[v] = true
+			l.routeIDs[v] = true
 		}
 	}
 
@@ -78,6 +80,7 @@ func NewLoader(dir string, routeFilters []string) *Loader {
 }
 
 func (l *Loader) init() {
+	l.loadRoutes()
 	l.loadTrips()
 	l.loadStopTrips()
 	l.loadTripRoute()
@@ -121,11 +124,58 @@ func find(header []string, col string) int {
 // skipRoute returns true if we should skip this route given our routeFilter
 // config
 func (l *Loader) skipRoute(routeID string) bool {
-	if l.routes != nil && l.routes[routeID] == false {
+	if l.routeIDs != nil && l.routeIDs[routeID] == false {
 		return true
 	} else {
 		return false
 	}
+}
+
+func (l *Loader) loadRoutes() {
+	f := getcsv(l.dir, "routes.txt")
+
+	header, err := f.Read()
+	if err != nil {
+		log.Fatalf("unable to read header: %v", err)
+	}
+
+	routeIdx := find(header, "route_id")
+	routeTypeIdx := find(header, "route_type")
+	routeColorIdx := find(header, "route_color")
+	routeTextColorIdx := find(header, "route_text_color")
+
+	for i := 0; ; i++ {
+		rec, err := f.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatalf("%v on line %v of routes.txt", err, i)
+		}
+
+		route := rec[routeIdx]
+		if l.skipRoute(route) {
+			continue
+		}
+
+		routeType, err := strconv.Atoi(rec[routeTypeIdx])
+		if err != nil {
+			log.Fatalf("%v on line %v of routes.txt", err, i)
+		}
+
+		routeColor := rec[routeColorIdx]
+		routeTextColor := rec[routeTextColorIdx]
+
+		r, err := models.NewRoute(
+			route, routeType, routeColor, routeTextColor,
+		)
+		if err != nil {
+			log.Fatalf("%v on line %v of routes.txt", err, i)
+		}
+
+		l.Routes = append(l.Routes, r)
+	}
+
 }
 
 func (l *Loader) loadTrips() {
@@ -379,10 +429,19 @@ func (l *Loader) loadCalendars() {
 	}
 }
 
-func doOne(dir string, stype string, routeFilters []string) {
+func doOne(dir string, routeFilters []string) {
+	var err error
+
 	db := etc.DBConn
 
 	l := NewLoader(dir, routeFilters)
+
+	for _, r := range l.Routes {
+		err = r.Save()
+		if err != nil {
+			log.Fatalf("ERROR ROUTE: %v", err)
+		}
+	}
 
 	for i, s := range l.ServiceRouteDays {
 		_, err := db.Exec(`
@@ -405,11 +464,11 @@ func doOne(dir string, stype string, routeFilters []string) {
 		_, err := db.Exec(`
 				INSERT INTO stop
 				(stop_id, stop_name, direction_id, headsign, route_id,
-				 location, stype)
-				VALUES($1, $2, $3, $4, $5, ll_to_earth($6, $7), $8)
+				 location)
+				VALUES($1, $2, $3, $4, $5, ll_to_earth($6, $7))
 			`,
 			s.Id, s.Name, s.DirectionId, s.Headsign, s.RouteId,
-			s.Lat, s.Lon, stype,
+			s.Lat, s.Lon,
 		)
 
 		if err != nil && !strings.Contains(err.Error(), "violates unique constraint") {
@@ -441,13 +500,6 @@ func doOne(dir string, stype string, routeFilters []string) {
 func LoadOnce(routeFilters []string, urls ...string) {
 	for _, url := range urls {
 
-		var stype string
-		if strings.Contains(url, "subway") {
-			stype = "subway"
-		} else {
-			stype = "bus"
-		}
-
 		// FIXME: do this in Go, need to make it integrated with loader
 		dir, err := ioutil.TempDir(conf.Loader.TmpDir, "")
 		if err != nil {
@@ -466,10 +518,10 @@ func LoadOnce(routeFilters []string, urls ...string) {
 		}
 
 		func() {
-			log.Println(url, dir, stype)
+			log.Println(url, dir)
 			defer os.RemoveAll(dir)
 			t1 := time.Now()
-			doOne(dir, stype, routeFilters)
+			doOne(dir, routeFilters)
 			t2 := time.Now()
 			log.Printf("took %v for %v\n", t2.Sub(t1), dir)
 		}()

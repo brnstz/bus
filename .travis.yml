@@ -7,6 +7,6 @@ services:
     - redis-server
 
 env:
-    - BUS_API_ADDR=":8000" BUS_DB_ADDR="localhost:5432" BUS_DB_USER="postgres" BUS_DB_NAME="postgres" BUS_REDIS_ADDR="localhost:6379" BUS_LOAD_FOREVER="false" BUS_GTFS_URLS="http://web.mta.info/developers/data/nyct/subway/google_transit.zip" BUS_ROUTE_FILTER="G"
+    - BUS_API_ADDR=":8000" BUS_DB_ADDR="localhost:5432" BUS_DB_USER="postgres" BUS_DB_NAME="postgres" BUS_REDIS_ADDR="localhost:6379" BUS_LOAD_FOREVER="false" BUS_GTFS_URLS="http://web.mta.info/developers/data/nyct/subway/google_transit.zip" BUS_ROUTE_FILTER="G,L"
 
 script: ./automation/ci.sh

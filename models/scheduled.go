@@ -71,10 +71,9 @@ func (s ScheduledStopTime) String() string {
 }
 
 type Stop struct {
-	Id          string `json:"stop_id" db:"stop_id"`
-	Name        string `json:"stop_name" db:"stop_name"`
-	RouteId     string `json:"route_id" db:"route_id"`
-	StationType string `json:"station_type" db:"stype"`
+	Id      string `json:"stop_id" db:"stop_id"`
+	Name    string `json:"stop_name" db:"stop_name"`
+	RouteId string `json:"route_id" db:"route_id"`
 
 	DirectionId int    `json:"direction_id" db:"direction_id"`
 	Headsign    string `json:"headsign" db:"headsign"`
@@ -89,8 +88,14 @@ type Stop struct {
 }
 
 func (s *Stop) AppendLive(now time.Time) {
+	route, err := GetRoute(s.RouteId)
+	if err != nil {
+		log.Println("can't load route", err)
+		return
+	}
+
 	log.Println("AppendLive(): ", s)
-	if s.StationType == "bus" {
+	if route.Type == Bus {
 		calls, err := GetCallsByRouteStop(
 			s.RouteId, strconv.Itoa(s.DirectionId),
 			s.Id,
@@ -106,7 +111,7 @@ func (s *Stop) AppendLive(now time.Time) {
 				Desc: calls[i].Extensions.Distances.PresentableDistance,
 			})
 		}
-	} else if s.StationType == "subway" {
+	} else if route.Type == Subway {
 
 		times, err := GetLiveSubways(
 			s.RouteId, strconv.Itoa(s.DirectionId),
@@ -297,32 +302,30 @@ func GetStopsByLoc(db sqlx.Ext, lat, lon, meters float64, filter string) (stops 
 	stops = []*Stop{}
 	params := []interface{}{lat, lon, lat, lon, meters}
 
-	// FIXME: this is not returning the closet stop
-	// DONTFIXME: I think the above is already fixed
 	q := `
 		SELECT * FROM (
 			SELECT
-				DISTINCT ON (route_id, direction_id)
+				DISTINCT ON (stop.route_id, direction_id)
 				stop_id,
 				stop_name,
 				direction_id,
 				headsign,
-				route_id,
-				stype,
+				stop.route_id,
 				latitude(location) AS lat,
 				longitude(location) AS lon,
 				earth_distance(location, ll_to_earth($1, $2)) AS dist
-			FROM stop
+			FROM stop INNER JOIN
+			     route ON stop.route_id = route.route_id
 			WHERE earth_box(ll_to_earth($3, $4), $5) @> location
 	`
 
 	if len(filter) > 0 {
-		q = q + ` AND stype = $6 `
-		params = append(params, filter)
+		q = q + ` AND route.route_type = $6 `
+		params = append(params, routeTypeInt[filter])
 	}
 
 	q = q + ` 
-			ORDER BY route_id, direction_id, dist
+			ORDER BY stop.route_id, direction_id, dist
 		) unique_routes
 
 		ORDER BY dist ASC

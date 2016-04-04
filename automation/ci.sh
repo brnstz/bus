@@ -21,6 +21,6 @@ $GOPATH/bin/busapi &
 sleep 2
 
 port=`echo $BUS_API_ADDR | cut -f2 -d:`
-curl -i "http://localhost:$port/api/v1/stops?lat=40.729183&lon=-73.95154&&miles=0.5&filter=subway" | grep 'Greenpoint Av' || exit 1
+curl -i "http://localhost:$port/api/v1/stops?lat=40.729183&lon=-73.95154&&miles=1.0" | grep 'Greenpoint Av' | grep 'Bedford Av' || error
 
 cleanup
