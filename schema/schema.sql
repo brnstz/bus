@@ -4,7 +4,22 @@ CREATE schema PUBLIC;
 CREATE EXTENSION IF NOT EXISTS cube;
 CREATE EXTENSION IF NOT EXISTS earthdistance;
 
-CREATE TYPE stop_type AS ENUM ('bus', 'subway');
+-- route contains selected fields from 
+-- https://developers.google.com/transit/gtfs/reference#routestxt
+CREATE TABLE route (
+    -- route_id is the unique id of this route
+    route_id            TEXT NOT NULL PRIMARY KEY,
+
+    -- route_type is an id code for whether it's a subway, bus, etc. 
+    -- (e.g., subway=1, bus=3, see link above for full doc)
+    route_type          INT NOT NULL,
+
+    -- route_color and route_text_color are the hex values for the background
+    -- and foreground color of the route, respectively (e.g., #000000)
+    route_color         TEXT NOT NULL,
+    route_text_color    TEXT NOT NULL
+);
+
 CREATE TABLE stop (
     -- the unique id and name of the stop
     stop_id   TEXT NOT NULL,
@@ -21,9 +36,6 @@ CREATE TABLE stop (
 
     -- lat and lon converted into an earthdistance type
     location    EARTH NOT NULL,
-
-    -- is this a bus or is this a subway?
-    stype STOP_TYPE NOT NULL,
 
     UNIQUE(route_id, stop_id)
 );
