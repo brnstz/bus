@@ -345,21 +345,6 @@ func GetStopsByLoc(db sqlx.Ext, lat, lon, meters float64, filter string) (stops 
 	return stops, err
 }
 
-type ServiceRouteDay struct {
-	ServiceId string
-	RouteId   string
-	Day       string
-
-	StartDate time.Time
-	EndDate   time.Time
-}
-
-func (s ServiceRouteDay) String() string {
-	return fmt.Sprintf("{%v %v %v %v %v}",
-		s.ServiceId, s.RouteId, s.Day, df(s.StartDate), df(s.EndDate),
-	)
-}
-
 type ServiceRouteException struct {
 	ServiceId     string
 	RouteId       string

@@ -416,8 +416,8 @@ func (l *Loader) loadCalendars() {
 			}
 			for route, _ := range l.serviceRoute[serviceId] {
 				srd := models.ServiceRouteDay{
-					ServiceId: serviceId,
-					RouteId:   route,
+					ServiceID: serviceId,
+					RouteID:   route,
 					Day:       day,
 					StartDate: startDate,
 					EndDate:   endDate,
@@ -439,19 +439,14 @@ func doOne(dir string, routeFilters []string) {
 	for _, r := range l.Routes {
 		err = r.Save()
 		if err != nil {
-			log.Fatalf("ERROR ROUTE: %v", err)
+			log.Fatalf("cannot save route: %v", err)
 		}
 	}
 
 	for i, s := range l.ServiceRouteDays {
-		_, err := db.Exec(`
-				INSERT INTO service_route_day
-				(route_id, service_id, day, start_date, end_date)
-				VALUES($1, $2, $3, $4, $5)
-			`, s.RouteId, s.ServiceId, s.Day, s.StartDate, s.EndDate,
-		)
-		if err != nil && !strings.Contains(err.Error(), "violates unique constraint") {
-			log.Println("ERROR SERVICE ROUTE DAYS: ", err, s)
+		err = s.Save()
+		if err != nil {
+			log.Fatalf("cannot save route: %v", err)
 		}
 
 		if i%100 == 0 && i > 0 {
