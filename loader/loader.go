@@ -356,13 +356,13 @@ func (l *Loader) loadUniqueStop() {
 					continue
 				}
 				obj := models.Stop{
-					Id:      rec[stopIdx],
+					ID:      rec[stopIdx],
 					Name:    rec[stopNameIdx],
 					Lat:     stopLat,
 					Lon:     stopLon,
-					RouteId: l.tripRoute[trip],
+					RouteID: l.tripRoute[trip],
 
-					DirectionId: l.trips[trip].DirectionId,
+					DirectionID: l.trips[trip].DirectionId,
 					Headsign:    l.trips[trip].Headsign,
 				}
 				l.uniqueStop[obj.Key()] = &obj
@@ -446,28 +446,18 @@ func doOne(dir string, routeFilters []string) {
 	for i, s := range l.ServiceRouteDays {
 		err = s.Save()
 		if err != nil {
-			log.Fatalf("cannot save route: %v", err)
+			log.Fatalf("cannot save service route day: %v", err)
 		}
 
 		if i%100 == 0 && i > 0 {
 			log.Printf("loaded %v service route days", i)
 		}
-
 	}
 
 	for i, s := range l.Stops {
-		_, err := db.Exec(`
-				INSERT INTO stop
-				(stop_id, stop_name, direction_id, headsign, route_id,
-				 location)
-				VALUES($1, $2, $3, $4, $5, ll_to_earth($6, $7))
-			`,
-			s.Id, s.Name, s.DirectionId, s.Headsign, s.RouteId,
-			s.Lat, s.Lon,
-		)
-
-		if err != nil && !strings.Contains(err.Error(), "violates unique constraint") {
-			log.Println("ERROR STOPS: ", err, s)
+		err = s.Save()
+		if err != nil {
+			log.Fatalf("cannot save stop: %v", err)
 		}
 
 		if i%100 == 0 && i > 0 {
