@@ -300,25 +300,30 @@ func GetStopsByLoc(db sqlx.Ext, lat, lon, meters float64, filter string) (stops 
 	return stops, err
 }
 
-// FIXME: is this correct?
-func getServiceIDByDay(db sqlx.Ext, routeId, day string, now *time.Time) (serviceId string, err error) {
+func getServiceIDByDay(db sqlx.Ext, routeID, day string, now *time.Time) (serviceID string, err error) {
+
+	// Select the service_id that:
+	//   * matches our routeID and day
+	//   * has an end_date after now
+	//   * has a start_date before now
+	//   * if there's more than one, choose the one with the latest start_date
+
 	row := db.QueryRowx(`
-		SELECT service_id, route_id, max(start_date)
-		FROM   service_route_day
-		WHERE  day         = $1 AND
-		       end_date    > $2 AND
-			   route_id    = $3
-		GROUP BY service_id, route_id
+		SELECT service_id 
+		FROM   service_route_day 
+		WHERE  day = $1 AND
+			   end_date >= $2 AND
+			   start_date <= $3 AND 
+			   route_id = $4
+		ORDER BY start_date DESC
 		LIMIT 1
-	`, day, now, routeId,
+	`,
+		day, now, now, routeID,
 	)
 
-	var dummy1 string
-	var dummy2 time.Time
-
-	err = row.Scan(&serviceId, &dummy1, &dummy2)
+	err = row.Scan(&serviceID)
 	if err != nil {
-		log.Println("can't scan service id", err, day, now, routeId)
+		log.Println("can't scan service id", err, day, now, routeID)
 		return
 	}
 
