@@ -59,16 +59,3 @@ func getServiceIdByDay(db sqlx.Ext, routeId, day string, now *time.Time) (servic
 
 	return
 }
-
-type ServiceRouteException struct {
-	ServiceId     string
-	RouteId       string
-	ExceptionDate time.Time
-}
-
-type Departure struct {
-	Time time.Time `json:"time" db:"time"`
-	Desc string    `json:"desc"`
-
-	// FIXME: stops away? miles away?
-}
