@@ -91,22 +91,19 @@ func RedisCache(u string) (b []byte, err error) {
 
 	b, err = c.Cmd("get", u).Bytes()
 	if err == nil {
-		log.Printf("found %v in redis cache\n", u)
 		return
 	}
 
-	log.Println("didn't find value in redis, going to get: ", u)
-
 	resp, err := http.Get(u)
 	if err != nil {
-		log.Println("can't get URL", err, u)
+		log.Println("can't get URL", err)
 		return
 	}
 	defer resp.Body.Close()
 
 	b, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Println("can't read body", err, u)
+		log.Println("can't read body", err)
 		return
 	}
 
