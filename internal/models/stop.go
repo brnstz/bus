@@ -25,11 +25,17 @@ type Stop struct {
 	DirectionID int    `json:"direction_id" db:"direction_id"`
 	Headsign    string `json:"headsign" db:"headsign"`
 
-	Lat float64 `json:"lat" db:"-" upsert:"omit"`
-	Lon float64 `json:"lon" db:"-" upsert:"omit"`
+	Lat float64 `json:"lat" db:"lat" upsert:"omit"`
+	Lon float64 `json:"lon" db:"lon" upsert:"omit"`
 
-	Dist float64 `json:"dist" db:"-"`
+	// Location is an "earth" field value that combines lat and lon into
+	// a single field.
+	Location interface{} `json:"-" db:"location" upsert_value:"ll_to_earth(:lat, :lon)"`
 
+	// Dist, Scheduled, and Live and columns that are only filled in
+	// when returning a response from an API request.
+
+	Dist      float64      `json:"dist" db:"dist" upsert:"omit"`
 	Scheduled []*Departure `json:"scheduled" db:"-" upsert:"omit"`
 	Live      []*Departure `json:"live" db:"-" upsert:"omit"`
 }
