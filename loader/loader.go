@@ -14,7 +14,7 @@ import (
 
 	"github.com/brnstz/bus/internal/conf"
 	"github.com/brnstz/bus/internal/etc"
-	"github.com/brnstz/bus/models"
+	"github.com/brnstz/bus/internal/models"
 )
 
 var days = []string{"monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"}

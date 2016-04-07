@@ -6,10 +6,11 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/kelseyhightower/envconfig"
+
 	"github.com/brnstz/bus/internal/conf"
 	"github.com/brnstz/bus/internal/etc"
-	"github.com/brnstz/bus/models"
-	"github.com/kelseyhightower/envconfig"
+	"github.com/brnstz/bus/internal/models"
 )
 
 func floatOrDie(w http.ResponseWriter, r *http.Request, name string) (f float64, err error) {
