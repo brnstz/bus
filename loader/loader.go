@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/brnstz/bus/internal/conf"
-	"github.com/brnstz/bus/internal/etc"
 	"github.com/brnstz/bus/internal/models"
 )
 
@@ -275,7 +274,7 @@ func (l *Loader) loadStopTrips() {
 			log.Fatal("can't create sst", rec, err)
 		}
 
-		l.ScheduledStopTimes = append(l.ScheduledStopTimes, &sst)
+		l.ScheduledStopTimes = append(l.ScheduledStopTimes, sst)
 
 	}
 }
@@ -434,8 +433,6 @@ func (l *Loader) loadCalendars() {
 func doOne(dir string, routeFilters []string) {
 	var err error
 
-	db := etc.DBConn
-
 	l := NewLoader(dir, routeFilters)
 
 	for _, r := range l.Routes {
@@ -467,15 +464,10 @@ func doOne(dir string, routeFilters []string) {
 		}
 	}
 
-	for i, s := range l.ScheduledStopTimes {
-		_, err := db.Exec(`
-				INSERT INTO scheduled_stop_time
-				(route_id, stop_id, service_id, departure_sec)
-				VALUES($1, $2, $3, $4)
-			`, s.RouteId, s.StopId, s.ServiceId, s.DepartureSec,
-		)
-		if err != nil && !strings.Contains(err.Error(), "violates unique constraint") {
-			log.Println("ERROR SCHEDULED STOP TIMES: ", err, s)
+	for i, sst := range l.ScheduledStopTimes {
+		err = sst.Save()
+		if err != nil {
+			log.Fatalf("cannot save scheduled stop time: %v", err)
 		}
 
 		if i%100000 == 0 && i > 0 {
