@@ -2,11 +2,8 @@ package models
 
 import (
 	"fmt"
-	"log"
-	"time"
 
 	"github.com/brnstz/bus/internal/etc"
-	"github.com/jmoiron/sqlx"
 )
 
 type ScheduledStopTime struct {
@@ -33,29 +30,4 @@ func (s ScheduledStopTime) String() string {
 		s.RouteId, s.ServiceId, s.StopId,
 		etc.SecsToTimeStr(s.DepartureSec), s.DepartureSec,
 	)
-}
-
-// FIXME: is this correct?
-func getServiceIdByDay(db sqlx.Ext, routeId, day string, now *time.Time) (serviceId string, err error) {
-	row := db.QueryRowx(`
-		SELECT service_id, route_id, max(start_date)
-		FROM   service_route_day
-		WHERE  day         = $1 AND
-		       end_date    > $2 AND
-			   route_id    = $3
-		GROUP BY service_id, route_id
-		LIMIT 1
-	`, day, now, routeId,
-	)
-
-	var dummy1 string
-	var dummy2 time.Time
-
-	err = row.Scan(&serviceId, &dummy1, &dummy2)
-	if err != nil {
-		log.Println("can't scan service id", err, day, now, routeId)
-		return
-	}
-
-	return
 }

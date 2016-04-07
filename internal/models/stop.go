@@ -300,6 +300,31 @@ func GetStopsByLoc(db sqlx.Ext, lat, lon, meters float64, filter string) (stops 
 	return stops, err
 }
 
+// FIXME: is this correct?
+func getServiceIdByDay(db sqlx.Ext, routeId, day string, now *time.Time) (serviceId string, err error) {
+	row := db.QueryRowx(`
+		SELECT service_id, route_id, max(start_date)
+		FROM   service_route_day
+		WHERE  day         = $1 AND
+		       end_date    > $2 AND
+			   route_id    = $3
+		GROUP BY service_id, route_id
+		LIMIT 1
+	`, day, now, routeId,
+	)
+
+	var dummy1 string
+	var dummy2 time.Time
+
+	err = row.Scan(&serviceId, &dummy1, &dummy2)
+	if err != nil {
+		log.Println("can't scan service id", err, day, now, routeId)
+		return
+	}
+
+	return
+}
+
 type timeSlice []time.Time
 
 func (p timeSlice) Len() int {
