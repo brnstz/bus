@@ -9,42 +9,11 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-const maxStops = 3
-
-type Trip struct {
-	Id          string
-	Headsign    string
-	DirectionId int
-}
-
-type Service struct {
-	Id      string
-	RouteId string
-}
-
 type ScheduledStopTime struct {
 	RouteId      string `db:"route_id"`
 	StopId       string `db:"stop_id"`
 	ServiceId    string `db:"service_id"`
 	DepartureSec int    `db:"departure_sec"`
-}
-
-func df(t time.Time) string {
-	return t.Format("2006-01-02")
-}
-
-type timeSlice []time.Time
-
-func (p timeSlice) Len() int {
-	return len(p)
-}
-
-func (p timeSlice) Less(i, j int) bool {
-	return p[i].Before(p[j])
-}
-
-func (p timeSlice) Swap(i, j int) {
-	p[i], p[j] = p[j], p[i]
 }
 
 func NewScheduledStopTime(routeId, stopId, serviceId, timeStr string) (sst ScheduledStopTime, err error) {

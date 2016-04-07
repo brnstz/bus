@@ -207,8 +207,8 @@ func (l *Loader) loadTrips() {
 		}
 
 		trip := &models.Trip{
-			Id:          rec[tripIdx],
-			DirectionId: direction,
+			ID:          rec[tripIdx],
+			DirectionID: direction,
 			Headsign:    rec[headIdx],
 		}
 
@@ -219,14 +219,14 @@ func (l *Loader) loadTrips() {
 			continue
 		}
 
-		l.trips[trip.Id] = trip
+		l.trips[trip.ID] = trip
 
 		serviceObj := &models.Service{
-			Id:      service,
-			RouteId: route,
+			ID:      service,
+			RouteID: route,
 		}
 
-		l.tripService[trip.Id] = serviceObj
+		l.tripService[trip.ID] = serviceObj
 
 		if l.serviceRoute[service] == nil {
 			l.serviceRoute[service] = map[string]bool{}
@@ -268,7 +268,9 @@ func (l *Loader) loadStopTrips() {
 			continue
 		}
 
-		sst, err := models.NewScheduledStopTime(service.RouteId, stop, service.Id, timeStr)
+		sst, err := models.NewScheduledStopTime(
+			service.RouteID, stop, service.ID, timeStr,
+		)
 		if err != nil {
 			log.Fatal("can't create sst", rec, err)
 		}
@@ -362,7 +364,7 @@ func (l *Loader) loadUniqueStop() {
 					Lon:     stopLon,
 					RouteID: l.tripRoute[trip],
 
-					DirectionID: l.trips[trip].DirectionId,
+					DirectionID: l.trips[trip].DirectionID,
 					Headsign:    l.trips[trip].Headsign,
 				}
 				l.uniqueStop[obj.Key()] = &obj

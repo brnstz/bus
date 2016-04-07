@@ -39,3 +39,7 @@ func (s ServiceRouteDay) String() string {
 		s.ServiceID, s.RouteID, s.Day, df(s.StartDate), df(s.EndDate),
 	)
 }
+
+func df(t time.Time) string {
+	return t.Format("2006-01-02")
+}

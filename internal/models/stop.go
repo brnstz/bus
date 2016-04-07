@@ -14,6 +14,10 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+const (
+	maxStops = 3
+)
+
 // Stop is a single transit stop for a particular route. If a
 // stop serves more than one route, there are multiple distinct
 // entries for that stop.
@@ -294,4 +298,18 @@ func GetStopsByLoc(db sqlx.Ext, lat, lon, meters float64, filter string) (stops 
 	}
 
 	return stops, err
+}
+
+type timeSlice []time.Time
+
+func (p timeSlice) Len() int {
+	return len(p)
+}
+
+func (p timeSlice) Less(i, j int) bool {
+	return p[i].Before(p[j])
+}
+
+func (p timeSlice) Swap(i, j int) {
+	p[i], p[j] = p[j], p[i]
 }
