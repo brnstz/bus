@@ -14,6 +14,7 @@ geolocation within a specified range.
   * https://github.com/fzzy/radix
   * https://github.com/kelseyhightower/envconfig
   * https://github.com/golang/protobuf
+  * https://github.com/brnstz/upsert
 * PostgreSQL 9.3+ with earthdistance and cube extensions
 * Redis
 
