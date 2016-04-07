@@ -6,5 +6,6 @@ gts_urls:
     - "http://web.mta.info/developers/data/nyct/bus/google_transit_queens.zip"
     - "http://web.mta.info/developers/data/nyct/bus/google_transit_staten_island.zip"
 route_filter: []
+web_dir: "/usr/local/bus/web"
 mta_bustime_api_key: "FIXME"
 mta_datamine_api_key: "FIXME"

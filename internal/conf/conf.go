@@ -54,6 +54,11 @@ type APISpec struct {
 	// Default: None
 	// Environment variable: $BUS_MTA_DATAMINE_API_KEY
 	DatamineAPIKey string `envconfig:"mta_datamine_api_key" required:"true"`
+
+	// WebDir is the location of the static web assets
+	// Default: ../../web
+	// Environment variable: $BUS_WEB_DIR
+	WebDir string `envconfig:"web_dir" default:"../../web"`
 }
 
 // LoaderSpec is our config spec used by busloader

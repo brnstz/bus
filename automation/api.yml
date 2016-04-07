@@ -1,6 +1,7 @@
 - hosts: api
   sudo: yes
   vars_files:
+    - "group_vars/defaults.yml"
     - "group_vars/{{ inventory }}.yml"
   vars:
     busapi_bin_path: "/usr/local/bin/busapi"
@@ -16,6 +17,12 @@
 
     - name: Create bus user
       user: name="{{ busapi_user }}"
+
+    - name: Create bus web directory
+      file: path="{{ web_dir }}" owner=bus mode=755 state=directory
+
+    - name: Copy static web assets
+      copy: src=../web/ dest="{{ web_dir }}"
 
     - name: Install busapi binary
       copy: src=bin/busapi dest="{{ busapi_bin_path }}" mode=755
