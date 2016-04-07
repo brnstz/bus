@@ -133,7 +133,7 @@ func (s *Stop) setDepartures(now time.Time, db sqlx.Ext) (err error) {
 			var yesterdayID string
 			// Looks for trips starting yesterday that arrive here
 			// after midnight
-			yesterdayID, err = getServiceIdByDay(
+			yesterdayID, err = getServiceIDByDay(
 				db, s.RouteID, yesterdayName, &now,
 			)
 			if err == sql.ErrNoRows {
@@ -186,7 +186,7 @@ func (s *Stop) setDepartures(now time.Time, db sqlx.Ext) (err error) {
 
 	func() {
 		var todayID string
-		todayID, err = getServiceIdByDay(db, s.RouteID, todayName, &now)
+		todayID, err = getServiceIDByDay(db, s.RouteID, todayName, &now)
 		if err == sql.ErrNoRows {
 			err = nil
 			log.Println("no rows there", err)
@@ -301,7 +301,7 @@ func GetStopsByLoc(db sqlx.Ext, lat, lon, meters float64, filter string) (stops 
 }
 
 // FIXME: is this correct?
-func getServiceIdByDay(db sqlx.Ext, routeId, day string, now *time.Time) (serviceId string, err error) {
+func getServiceIDByDay(db sqlx.Ext, routeId, day string, now *time.Time) (serviceId string, err error) {
 	row := db.QueryRowx(`
 		SELECT service_id, route_id, max(start_date)
 		FROM   service_route_day
