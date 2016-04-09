@@ -106,7 +106,7 @@ func TestScheduledSubway(t *testing.T) {
 	var err error
 
 	params := url.Values{}
-	now := time.Now()
+	now := time.Now().Add(-time.Minute * 5)
 
 	expectedStop := "Greenpoint Av"
 	expectedRoute := "G"
@@ -154,7 +154,7 @@ func TestLiveSubway(t *testing.T) {
 	var err error
 
 	params := url.Values{}
-	now := time.Now()
+	now := time.Now().Add(-time.Minute * 5)
 
 	expectedStop := "Bedford Av"
 	expectedRoute := "L"
@@ -243,7 +243,7 @@ func TestScheduledBus(t *testing.T) {
 	var err error
 
 	params := url.Values{}
-	now := time.Now()
+	now := time.Now().Add(-time.Minute * 5)
 
 	expectedStop := "BOX ST/MANHATTAN AV"
 	expectedRoute := "B43"
