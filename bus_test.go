@@ -67,8 +67,6 @@ func TestMain(m *testing.M) {
 	defer server.Close()
 	serverURL = server.URL
 
-	log.Printf("%#v", server)
-
 	os.Exit(m.Run())
 }
 
