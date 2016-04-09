@@ -16,9 +16,11 @@ import (
 	"github.com/brnstz/bus/internal/models"
 )
 
-var days = []string{"monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"}
-
-var datefmt = "20060102"
+var (
+	days        = []string{"monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"}
+	datefmt     = "20060102"
+	loaderBreak = time.Hour * 24
+)
 
 type Loader struct {
 	// the dir from which we load google transit files
@@ -55,7 +57,7 @@ type Loader struct {
 	ServiceRouteExceptions []*models.ServiceRouteException
 }
 
-func NewLoader(dir string, routeFilters []string) *Loader {
+func NewLoader(dir string) *Loader {
 	l := Loader{
 		dir:          dir,
 		trips:        map[string]*models.Trip{},
@@ -66,9 +68,15 @@ func NewLoader(dir string, routeFilters []string) *Loader {
 		serviceRoute: map[string]map[string]bool{},
 	}
 
-	if len(routeFilters) > 0 {
+	// Checking the length of the 0th entry ensures we ignore the case where
+	// BUS_ROUTE_FILTER was an empty string (resulting in []string{""}).
+	// Possibly we want to check this with the conf package, but doing this for
+	// now.
+	if len(conf.Loader.RouteFilter) > 0 &&
+		len(conf.Loader.RouteFilter[0]) > 0 {
+
 		l.routeIDs = map[string]bool{}
-		for _, v := range routeFilters {
+		for _, v := range conf.Loader.RouteFilter {
 			l.routeIDs[v] = true
 		}
 	}
@@ -430,10 +438,10 @@ func (l *Loader) loadCalendars() {
 	}
 }
 
-func doOne(dir string, routeFilters []string) {
+func doOne(dir string) {
 	var err error
 
-	l := NewLoader(dir, routeFilters)
+	l := NewLoader(dir)
 
 	for _, r := range l.Routes {
 		err = r.Save()
@@ -476,8 +484,11 @@ func doOne(dir string, routeFilters []string) {
 	}
 }
 
-func LoadOnce(routeFilters []string, urls ...string) {
-	for _, url := range urls {
+// LoadOnce loads the files in conf.Loader.GTFSURLs, possibly filtering by the
+// routes specified in conf.Loader.RouteFilter. If no filter is defined,
+// it loads all data in the specified URLs.
+func LoadOnce() {
+	for _, url := range conf.Loader.GTFSURLs {
 
 		// FIXME: do this in Go, need to make it integrated with loader
 		dir, err := ioutil.TempDir(conf.Loader.TmpDir, "")
@@ -497,21 +508,25 @@ func LoadOnce(routeFilters []string, urls ...string) {
 		}
 
 		func() {
-			log.Println(url, dir)
+			log.Printf("loading: %v in %v", url, dir)
 			defer os.RemoveAll(dir)
+
 			t1 := time.Now()
-			doOne(dir, routeFilters)
+			doOne(dir)
 			t2 := time.Now()
-			log.Printf("took %v for %v\n", t2.Sub(t1), dir)
+
+			log.Printf("took %v for %v", t2.Sub(t1), url)
 		}()
 
 	}
 }
 
-func LoadForever(routeFilters []string, urls ...string) {
+// LoadForever continuously runs LoadOnce, breaking for 24 hours between loads
+func LoadForever() {
 	for {
-		LoadOnce(routeFilters, urls...)
-		log.Println("finished loading, sleeping for 24 hours")
-		time.Sleep(time.Hour * 24)
+		LoadOnce()
+
+		log.Println("finished loading, sleeping for %v", loaderBreak)
+		time.Sleep(loaderBreak)
 	}
 }

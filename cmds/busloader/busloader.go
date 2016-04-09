@@ -23,17 +23,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Ensure that conf.Route doesn't have a single empty entry.
-	// This occurs when the env var is a single empty string.
-	if len(conf.Loader.RouteFilter) > 0 && len(conf.Loader.RouteFilter[0]) < 1 {
-		conf.Loader.RouteFilter = []string{}
-	}
-
 	etc.DBConn = etc.MustDB()
 
 	if conf.Loader.LoadForever {
-		loader.LoadForever(conf.Loader.RouteFilter, conf.Loader.GTFSURLs...)
+		loader.LoadForever()
 	} else {
-		loader.LoadOnce(conf.Loader.RouteFilter, conf.Loader.GTFSURLs...)
+		loader.LoadOnce()
 	}
 }
