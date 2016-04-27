@@ -1,117 +1,40 @@
 <!DOCTYPE html>
-<html>
-<body>
+<html lang="en">
+    <head>
+    	<meta charset="utf-8">
+    	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+    	<meta name="viewport" content="width=device-width, initial-scale=1">	
 
+		<!-- From http://getbootstrap.com/getting-started/ -->
+		<!-- Latest compiled and minified CSS -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
 
-<script>
-    var x = document.getElementById("demo");
+		<!-- Optional theme -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+		
+        <script src="https://code.jquery.com/jquery-2.2.3.min.js" integrity="sha256-a23g1Nt4dtEYOj7bR+vTu7+T8VP13humZFBJNIYoEJo=" crossorigin="anonymous"></script>
 
-    function getLocation() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(showPosition);
-        }
-    }
+		<!-- Latest compiled and minified JavaScript -->
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 
-    function showPosition(position) {
-        document.getElementById("lat").setAttribute("value", position.coords.latitude);
-        document.getElementById("lon").setAttribute("value", position.coords.longitude);
-    }
+        <script src="js/bus.js"></script>
 
-    function setLocation(lat, lon, miles) {
-        document.getElementById("lat").setAttribute("value", lat);
-        document.getElementById("lon").setAttribute("value", lon);
-        document.getElementById("miles").setAttribute("value", miles);
-    }
-
-    function appendCell(row, value) {
-        var cell = document.createElement("td");    
-        var cellText = document.createTextNode(value);
-
-        cell.appendChild(cellText);
-        row.appendChild(cell);	
-    }
-
-    function appendTime(row, res, type) {
-        if (res[type] && res[type].length > 0) {
-                var mytext = "Next " + type + ": " + res[type][0]["desc"];
-                var mytime = new Date(res[type][0]["time"]);
-
-                if (mytime.getFullYear() > 0) {
-                    var diff = Math.abs(new Date() - mytime);
-                    console.log(diff);
-                    mytext = mytext + " " + mytime.toTimeString();
-                }
-
-                appendCell(row, mytext);
-            } else {
-                appendCell(row, "")
+        <style>
+            body {
+                padding-top: 30px;
             }
-    }
+        </style>
+	</head>
 
-    function getTrips() {
-        var xhr = new XMLHttpRequest();
-        var url = '/api/v1/stops?lat=' + document.getElementById("lat").value +
-                  '&lon='			   + document.getElementById("lon").value +
-                  '&filter='	       + document.getElementById("filter").value +
-                  '&miles='	           + document.getElementById("miles").value;
+    <body>
+        <div class="container" role="main">
+            <p>
+            <button type="button" class="btn-success form-control" onclick="bus.refresh();">Refresh</button>
+            </p>
+        </div>
 
-        xhr.open('GET', url);
-        xhr.onload = function(e) {
-            var data = JSON.parse(this.response);
-            var tbl     = document.createElement("table");
-            var tblBody = document.createElement("tbody");
-            var results = document.getElementById("results");
+        <div id="results"></div>
 
-            if (results.childNodes.length > 0) {
-                results.removeChild(results.childNodes[0]);
-            }
+    </body>
 
-            for (var i = 0; i < data.length; i++) {
-                var res = data[i];
-                var row = document.createElement("tr");	
-
-                appendCell(row, res["route_id"]);
-                appendCell(row, res["stop_name"]);
-                appendCell(row, res["headsign"]);
-                appendTime(row, res, "live");
-                appendTime(row, res, "scheduled");
-
-                appendCell(row, Math.round(res["dist"]) + " meters");
-
-                tblBody.appendChild(row);
-            }		
-
-            tbl.appendChild(tblBody);
-            results.appendChild(tbl);
-        }
-        xhr.send();
-    }
-
-</script>
-Latitude: <input type="text" id="lat" name="lat"><br>
-Longitude: <input type="text" id="lon" name="lon"><br>
-Filter:
-    <select id="filter">
-        <option value="">Subway and bus</option>
-        <option value="subway">Subway only</option>
-        <option value="bus">Bus only</option>
-    </select><br>
-Radius: <input type="text" id="miles" value="0.2"> miles<br>
-
-<button onclick="getLocation()">Detect location</button><br>
-<button onclick="setLocation(40.758895,-73.985131, 0.2)">Times Square</button><br>
-<button onclick="setLocation(40.7236448,-74.0006793, 0.2)">SoHo</button><br>
-<button onclick="setLocation(40.730198,-73.9542742, 0.2)">Greenpoint</button><br>
-<button onclick="setLocation(40.6825236,-73.9750134, 0.2)">Barclays Center</button><br>
-<button onclick="setLocation(40.84932,-73.877154, 0.2)">Bronx Zoo</button><br>
-<button onclick="setLocation(40.7501217,-73.8463344, 0.3)">US Open</button><br>
-<button onclick="setLocation(40.5031274,-74.253251, 0.3)">Conference House Park</button><br><br>
-
-
-<button onclick="getTrips()">Get upcoming trips</button><br><br>
-
-<div id="results"/>
-
-</body>
 </html>
-
