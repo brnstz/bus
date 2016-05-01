@@ -14,7 +14,7 @@ import (
 func NewHandler() http.Handler {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/api/v1/stops", getStops)
+	mux.HandleFunc("/api/v2/stops", getStops)
 	mux.Handle("/", http.FileServer(http.Dir(conf.API.WebDir)))
 
 	return mux
@@ -33,8 +33,24 @@ func floatOrDie(w http.ResponseWriter, r *http.Request, name string) (f float64,
 	return
 }
 
-// getStops
+// stopResponse is the value returned by getStops
+type stopResponse struct {
+	Results []stopResult `json:"results"`
+}
+
+type stopResult struct {
+	Route      *models.Route `json:"route"`
+	Stop       *models.Stop  `json:"stop"`
+	Departures struct {
+		Live      []*models.Departure `json:"live"`
+		Scheduled []*models.Departure `json:"scheduled"`
+	} `json:"departures"`
+	Dist float64 `json:"dist"`
+}
+
 func getStops(w http.ResponseWriter, r *http.Request) {
+	var err error
+
 	lat, err := floatOrDie(w, r, "lat")
 	if err != nil {
 		return
@@ -61,7 +77,24 @@ func getStops(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	b, err := json.Marshal(stops)
+	resp := stopResponse{}
+	resp.Results = make([]stopResult, len(stops))
+
+	for i, stop := range stops {
+		resp.Results[i].Route, err = models.GetRoute(stop.RouteID)
+		if err != nil {
+			log.Println("can't get route for stop", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		resp.Results[i].Stop = stop
+		resp.Results[i].Dist = stop.Dist
+		resp.Results[i].Departures.Live = stop.Live
+		resp.Results[i].Departures.Scheduled = stop.Scheduled
+	}
+
+	b, err := json.Marshal(resp)
 	if err != nil {
 		log.Println("can't marshal to json", err)
 		w.WriteHeader(http.StatusInternalServerError)

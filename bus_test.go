@@ -90,14 +90,13 @@ type stopResponse struct {
 		}
 
 		Stop struct {
-			Dist         string
 			Lat          float64
 			Lon          float64
 			Stop_ID      string
 			Stop_Name    string
 			Route_ID     string
 			Headsign     string
-			Direction_ID string
+			Direction_ID int
 		}
 
 		Departures struct {

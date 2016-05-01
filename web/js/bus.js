@@ -49,7 +49,7 @@ Bus.prototype.appendTime = function(row, res, type) {
 Bus.prototype.getTrips = function() {
     var self = this;
     var xhr = new XMLHttpRequest();
-    var url = '/api/v1/stops?lat=' + this.lat +
+    var url = '/api/v2/stops?lat=' + this.lat +
               '&lon='			   + this.lon +
               '&filter='           + this.filter +
               '&miles='	           + this.miles;

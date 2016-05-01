@@ -36,12 +36,12 @@ type Stop struct {
 	// a single field.
 	Location interface{} `json:"-" db:"location" upsert_value:"ll_to_earth(:lat, :lon)"`
 
-	// Dist, Scheduled, and Live and columns that are only filled in
-	// when returning a response from an API request.
-
-	Dist      float64      `json:"dist" db:"dist" upsert:"omit"`
-	Scheduled []*Departure `json:"scheduled" db:"-" upsert:"omit"`
-	Live      []*Departure `json:"live" db:"-" upsert:"omit"`
+	// Dist, Scheduled, and Live fields that are only filled in
+	// when returning a response from an API request. Do not directly
+	// display them in JSON since
+	Dist      float64      `json:"-" db:"dist" upsert:"omit"`
+	Scheduled []*Departure `json:"-" db:"-" upsert:"omit"`
+	Live      []*Departure `json:"-" db:"-" upsert:"omit"`
 }
 
 // Table implements the upsert.Upserter interface, returning the table
@@ -56,9 +56,9 @@ func (s *Stop) Save() error {
 	return err
 }
 
-// AppendLive calls either the bus time API or the subway datamine API
+// appendLive calls either the bus time API or the subway datamine API
 // to add live info to our stop info.
-func (s *Stop) AppendLive(now time.Time) {
+func (s *Stop) appendLive(now time.Time) {
 	route, err := GetRoute(s.RouteID)
 	if err != nil {
 		log.Println("can't load route", err)
@@ -245,7 +245,7 @@ func (s *Stop) setDepartures(now time.Time, db sqlx.Ext) (err error) {
 
 	// After reading scheduled times in the db, try to also append any
 	// live info available
-	s.AppendLive(now)
+	s.appendLive(now)
 
 	return
 }
@@ -293,8 +293,11 @@ func GetStopsByLoc(db sqlx.Ext, lat, lon, meters float64, filter string) (stops 
 
 	now := time.Now()
 	for _, stop := range stops {
-		// FIXME: handle error here?
-		stop.setDepartures(now, db)
+		err = stop.setDepartures(now, db)
+		if err != nil {
+			log.Println("can't set departures", err)
+			return stops, err
+		}
 	}
 
 	return stops, err
