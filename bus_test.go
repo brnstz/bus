@@ -63,8 +63,11 @@ func TestMain(m *testing.M) {
 	// Get a db connection
 	etc.DBConn = etc.MustDB()
 
-	// Load files once and return
-	loader.LoadOnce()
+	// Alow skipping the load if we trust our db is ok
+	if os.Getenv("BUS_TEST_SKIP_LOADER") != "true" {
+		// Load files once and return
+		loader.LoadOnce()
+	}
 
 	// Create an HTTP server for our tests and set the URL
 	server := httptest.NewServer(api.NewHandler())
