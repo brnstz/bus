@@ -18,9 +18,6 @@ type ServiceRouteException struct {
 
 type Departure struct {
 	Time time.Time `json:"time" db:"time"`
-	Desc string    `json:"desc"`
-
-	// FIXME: stops away? miles away?
 }
 
 type Service struct {

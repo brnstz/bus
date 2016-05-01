@@ -16,7 +16,8 @@ var (
 )
 
 type Call struct {
-	Extensions struct {
+	ExpectedDepartureTime time.Time
+	Extensions            struct {
 		Distances struct {
 			CallDistanceAlongRoute float64
 			DistanceFromCall       float64
@@ -101,7 +102,7 @@ func GetCallsByRouteStop(route, dir, stop string) (calls CallSlice, err error) {
 
 			for _, oc := range act.MonitoredVehicleJourney.OnwardCalls.OnwardCall {
 				if oc.StopPointRef == stopPointRef {
-					log.Println("onward call: ", route, dir, stop, oc.Extensions.Distances.PresentableDistance)
+					log.Println("onward call: ", route, dir, stop, oc.Extensions.Distances.PresentableDistance, oc.ExpectedDepartureTime)
 					calls = append(calls, oc)
 				}
 			}

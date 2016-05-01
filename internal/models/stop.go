@@ -78,7 +78,7 @@ func (s *Stop) AppendLive(now time.Time) {
 		sort.Sort(calls)
 		for i := 0; i < len(calls) && i < maxStops; i++ {
 			s.Live = append(s.Live, &Departure{
-				Desc: calls[i].Extensions.Distances.PresentableDistance,
+				Time: calls[i].ExpectedDepartureTime,
 			})
 		}
 	} else if route.Type == Subway {
