@@ -82,17 +82,22 @@ func TestMain(m *testing.M) {
 type stopResponse struct {
 	Results []struct {
 		Route struct {
-			Route_ID     string
-			Headsign     string
-			Direction_ID string
+			Route_ID         string
+			Route_Type       int
+			Route_Type_Name  string
+			Route_Color      string
+			Route_Text_Color string
 		}
 
 		Stop struct {
-			Dist      string
-			Lat       float64
-			Lon       float64
-			Stop_ID   string
-			Stop_Name string
+			Dist         string
+			Lat          float64
+			Lon          float64
+			Stop_ID      string
+			Stop_Name    string
+			Route_ID     string
+			Headsign     string
+			Direction_ID string
 		}
 
 		Departures struct {
@@ -104,6 +109,7 @@ type stopResponse struct {
 				Time time.Time
 			}
 		}
+		Dist float64
 	}
 }
 

@@ -33,6 +33,7 @@ func floatOrDie(w http.ResponseWriter, r *http.Request, name string) (f float64,
 	return
 }
 
+// getStops
 func getStops(w http.ResponseWriter, r *http.Request) {
 	lat, err := floatOrDie(w, r, "lat")
 	if err != nil {
