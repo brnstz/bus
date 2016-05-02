@@ -19,7 +19,7 @@ function Bus() {
         MaxZoom: 20
     };
 
-    // zoom is the zoom value when drawing the Leaflet map
+    // zoom is the initial zoom value when drawing the Leaflet map
     this.zoom = 15;
 
     // map is our Leaflet JS map object
@@ -49,30 +49,31 @@ Bus.prototype.updatePosition = function(position) {
     this.lat = position.coords.latitude;
     this.lon = position.coords.longitude;
 
-    this.map = L.map('map').setView([this.lat, this.lon], this.zoom);
+    if (this.map == null) {
+        this.map = L.map('map').setView([this.lat, this.lon], this.zoom);
+    } else {
+        this.map.setView([this.lat, this.lon], this.zoom);
+    }
+
     L.tileLayer(this.tileURL, this.tileOptions).addTo(this.map);
 
     this.getTrips();
 };
 
 
-// appendCell creates a td cell with the value and appends it to row
-Bus.prototype.appendCell = function(row, value) {
+// appendCell creates a td cell with the value and appends it to row, 
+// optionally including an fg and bg color
+Bus.prototype.appendCell = function(row, value, fgcolor, bgcolor) {
     var cell = document.createElement("td");
     var cellText = document.createTextNode(value);
 
-    cell.appendChild(cellText);
-    row.appendChild(cell);
-};
+    if (fgcolor !== undefined) {
+        cell.style.color = fgcolor;
+    }
 
-// appendCell creates a td cell with the value and appends it to row
-// along with setting the fg and bg colors
-Bus.prototype.appendCellColor = function(row, value, fgcolor, bgcolor) {
-    var cell = document.createElement("td");
-    var cellText = document.createTextNode(value);
-
-    cell.style.color = "#" + fgcolor;
-    cell.style.backgroundColor = "#" + bgcolor;
+    if (bgcolor !== undefined) {
+        cell.style.backgroundColor = bgcolor;
+    }
 
     cell.appendChild(cellText);
     row.appendChild(cell);
@@ -113,49 +114,77 @@ Bus.prototype.appendTime = function(row, departures) {
     this.appendCell(row, mytext);
 };
 
+// addResult adds a single result value to the page
+Bus.prototype.addResult = function(tbody, res) {
+    var row = document.createElement("tr");
+
+    // Add the route cell with color
+    this.appendCell(
+        row, res.stop.route_id,
+        "#" + res.route.route_text_color,
+        "#" + res.route.route_color
+    );
+
+    // Adding the stop name and headsign
+    this.appendCell(row, res.stop.stop_name);
+    this.appendCell(row, res.stop.headsign);
+
+    // If we have live departures use those, otherwise fall back to
+    // scheduled departures
+    if (res.departures.live != null && res.departures.live.length > 0) {
+        this.appendTime(row, res.departures.live);
+    } else {
+        this.appendTime(row, res.departures.scheduled);
+    }
+
+    // Add cell with distance of the stop from current location
+    this.appendCell(row, Math.round(res.dist) + " meters");
+
+    // Append ourselves to the body
+    tbody.appendChild(row);
+};
+
 // getTrips calls the stops API with our current state and updates
 // the UI with the results
 Bus.prototype.getTrips = function() {
     var self = this;
+
+    // Create an AJAX request with our current location
     var xhr = new XMLHttpRequest();
     var url = '/api/v2/stops?lat=' + this.lat +
         '&lon=' + this.lon +
         '&filter=' + this.filter +
         '&miles=' + this.miles;
 
+    // Open the connection
     xhr.open('GET', url);
-    xhr.onload = function(e) {
-        var data = JSON.parse(this.response);
-        var tbl = document.createElement("table");
-        tbl.setAttribute("class", "table");
-        var tblBody = document.createElement("tbody");
-        var results = document.getElementById("results");
 
+    // When it succeeds, update the page
+    xhr.onload = function(e) {
+        // Parse the response
+        var data = JSON.parse(this.response);
+
+        // Destroy the old results if any
+        var results = document.getElementById("results");
         if (results.childNodes.length > 0) {
             results.removeChild(results.childNodes[0]);
         }
 
+        // Create a new table with Bootstrap's table class
+        var table = document.createElement("table");
+        table.setAttribute("class", "table");
+        var tbody = document.createElement("tbody");
+
+        // Add each result to our new table
         for (var i = 0; i < data.results.length; i++) {
-            var res = data.results[i];
-            var row = document.createElement("tr");
-
-            self.appendCellColor(row, res.stop.route_id, res.route.route_text_color, res.route.route_color);
-            self.appendCell(row, res.stop.stop_name);
-            self.appendCell(row, res.stop.headsign);
-
-            if (res.departures.live != null && res.departures.live.length > 0) {
-                self.appendTime(row, res.departures.live);
-            } else {
-                self.appendTime(row, res.departures.scheduled);
-            }
-
-            self.appendCell(row, Math.round(res.dist) + " meters");
-
-            tblBody.appendChild(row);
+            self.addResult(tbody, data.results[i]);
         }
 
-        tbl.appendChild(tblBody);
-        results.appendChild(tbl);
+        // Display results
+        table.appendChild(tbody);
+        results.appendChild(table);
     }
+
+    // Trigger the request
     xhr.send();
 };
