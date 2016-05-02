@@ -79,7 +79,7 @@ Bus.prototype.appendCell = function(row, value, fgcolor, bgcolor) {
     row.appendChild(cell);
 };
 
-// hourFormat takes a time object and returns the format we want to display on
+// timeFormat takes a time object and returns the format we want to display on
 // screen
 Bus.prototype.timeFormat = function(time) {
     var t = new Date(time);
