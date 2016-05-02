@@ -5,41 +5,41 @@
     	<meta http-equiv="X-UA-Compatible" content="IE=edge">
     	<meta name="viewport" content="width=device-width, initial-scale=1">	
 
-		<!-- From http://getbootstrap.com/getting-started/ -->
-		<!-- Latest compiled and minified CSS -->
+        <!-- jQuery -->
+		<script src="https://code.jquery.com/jquery-2.2.3.min.js" integrity="sha256-a23g1Nt4dtEYOj7bR+vTu7+T8VP13humZFBJNIYoEJo=" crossorigin="anonymous"></script>
+
+		<!-- Bootstrap -->
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
-
-		<!-- Optional theme -->
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
-		
-        <script src="https://code.jquery.com/jquery-2.2.3.min.js" integrity="sha256-a23g1Nt4dtEYOj7bR+vTu7+T8VP13humZFBJNIYoEJo=" crossorigin="anonymous"></script>
-
-		<!-- Latest compiled and minified JavaScript -->
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 
-        <script src="js/bus.js"></script>
+		<!-- Leaflet -->
+         <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
 
+	     <script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
+
+		<!-- Bus -->
+        <link rel="stylesheet" href="css/bus.css">
+        <script src="js/bus.js"></script>
         <script>
             $(function() {
-                bus.refresh();
+                bus.init();
             });
         </script>
 
-        <style>
-            body {
-                padding-top: 30px;
-            }
-        </style>
 	</head>
 
     <body>
         <div class="container" role="main">
+			<div id="map"></div>
+
             <p>
             <button type="button" class="btn-success form-control" onclick="bus.refresh();">Refresh</button>
             </p>
-        </div>
 
-        <div id="results"></div>
+        	<div id="results"></div>
+
+        </div>
 
     </body>
 
