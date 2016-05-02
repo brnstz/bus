@@ -144,6 +144,17 @@ Bus.prototype.addResult = function(tbody, res) {
     tbody.appendChild(row);
 };
 
+// addMarker adds a marker to the map for this result
+Bus.prototype.addMarker = function(res) {
+    var pathOptions = {
+        color: "#" + res.route.route_color,
+        fillColor: "#" + res.route.route_color,
+        clickable: true
+    };
+
+    L.circle([res.stop.lat, res.stop.lon], 10, pathOptions).addTo(this.map);
+};
+
 // getTrips calls the stops API with our current state and updates
 // the UI with the results
 Bus.prototype.getTrips = function() {
@@ -178,6 +189,7 @@ Bus.prototype.getTrips = function() {
         // Add each result to our new table
         for (var i = 0; i < data.results.length; i++) {
             self.addResult(tbody, data.results[i]);
+            self.addMarker(data.results[i]);
         }
 
         // Display results
