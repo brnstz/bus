@@ -22,53 +22,57 @@ Bus.prototype.refresh = function() {
 
 // appendCell creates a td cell with the value and appends it to row
 Bus.prototype.appendCell = function(row, value) {
-    var cell = document.createElement("td");    
+    var cell = document.createElement("td");
     var cellText = document.createTextNode(value);
 
     cell.appendChild(cellText);
-    row.appendChild(cell);	
+    row.appendChild(cell);
 };
 
 // appendCell creates a td cell with the value and appends it to row
 // along with setting the fg and bg colors
 Bus.prototype.appendCellColor = function(row, value, fgcolor, bgcolor) {
-    var cell = document.createElement("td");    
+    var cell = document.createElement("td");
     var cellText = document.createTextNode(value);
 
     cell.style.color = "#" + fgcolor;
     cell.style.backgroundColor = "#" + bgcolor;
 
     cell.appendChild(cellText);
-    row.appendChild(cell);	
+    row.appendChild(cell);
 };
 
-
+// appendTime adds a cell to this row with the current time values
 Bus.prototype.appendTime = function(row, times) {
     var mytext = "";
 
-    for (var i = 0; i < times.length; i++) {
-        var mytime = new Date(times[i].time);
-        mytext = mytext + " " + mytime.toLocaleTimeString();
-        if (i != times.length - 1) {
-            mytext = mytext + ",";
+    if (times != null) {
+        for (var i = 0; i < times.length; i++) {
+            var mytime = new Date(times[i].time);
+            mytext = mytext + " " + mytime.toLocaleTimeString();
+            if (i != times.length - 1) {
+                mytext = mytext + ",";
+            }
         }
     }
 
     this.appendCell(row, mytext);
 };
 
+// getTrips calls the stops API with our current state and updates
+// the UI with the results
 Bus.prototype.getTrips = function() {
     var self = this;
     var xhr = new XMLHttpRequest();
     var url = '/api/v2/stops?lat=' + this.lat +
-              '&lon='			   + this.lon +
-              '&filter='           + this.filter +
-              '&miles='	           + this.miles;
+        '&lon=' + this.lon +
+        '&filter=' + this.filter +
+        '&miles=' + this.miles;
 
     xhr.open('GET', url);
     xhr.onload = function(e) {
         var data = JSON.parse(this.response);
-        var tbl     = document.createElement("table");
+        var tbl = document.createElement("table");
         tbl.setAttribute("class", "table");
         var tblBody = document.createElement("tbody");
         var results = document.getElementById("results");
@@ -79,7 +83,7 @@ Bus.prototype.getTrips = function() {
 
         for (var i = 0; i < data.results.length; i++) {
             var res = data.results[i];
-            var row = document.createElement("tr");	
+            var row = document.createElement("tr");
 
             self.appendCellColor(row, res.stop.route_id, res.route.route_text_color, res.route.route_color);
             self.appendCell(row, res.stop.stop_name);
@@ -94,7 +98,7 @@ Bus.prototype.getTrips = function() {
             self.appendCell(row, Math.round(res.dist) + " meters");
 
             tblBody.appendChild(row);
-        }		
+        }
 
         tbl.appendChild(tblBody);
         results.appendChild(tbl);
