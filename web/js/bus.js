@@ -29,6 +29,20 @@ Bus.prototype.appendCell = function(row, value) {
     row.appendChild(cell);	
 };
 
+// appendCell creates a td cell with the value and appends it to row
+// along with setting the fg and bg colors
+Bus.prototype.appendCellColor = function(row, value, fgcolor, bgcolor) {
+    var cell = document.createElement("td");    
+    var cellText = document.createTextNode(value);
+
+    cell.style.color = "#" + fgcolor;
+    cell.style.backgroundColor = "#" + bgcolor;
+
+    cell.appendChild(cellText);
+    row.appendChild(cell);	
+};
+
+
 Bus.prototype.appendTime = function(row, times) {
     var mytext = "";
 
@@ -67,7 +81,7 @@ Bus.prototype.getTrips = function() {
             var res = data.results[i];
             var row = document.createElement("tr");	
 
-            self.appendCell(row, res.stop.route_id);
+            self.appendCellColor(row, res.stop.route_id, res.route.route_text_color, res.route.route_color);
             self.appendCell(row, res.stop.stop_name);
             self.appendCell(row, res.stop.headsign);
 
