@@ -81,35 +81,68 @@ config variables:
 ### Example
 
 ```bash
-curl 'http://localhost:8000/api/v1/stops?lat=40.729183&lon=-73.95154&miles=0.5&filter=subway' 
-[
-    {
-        "direction_id": 0, "dist": 175.27451644362773, "headsign": "LI CITY QUEENS PLAZA",
-        "lat": 40.728436, "lon": -73.953369, "route_id": "B62",
-        "station_type": "bus", "stop_id": "305157", "stop_name": "MANHATTAN AV/CALYER ST",
-        "live": [
-            { "desc": "1.7 miles away", "time": "0001-01-01T00:00:00Z" },
-            { "desc": "3.9 miles away", "time": "0001-01-01T00:00:00Z" },
-            { "desc": "5.8 miles away", "time": "0001-01-01T00:00:00Z" }
-        ],
-        "scheduled": [
-            { "desc": "", "time": "2016-04-03T02:12:52Z" },
-            { "desc": "", "time": "2016-04-03T03:02:52Z" },
-            { "desc": "", "time": "2016-04-03T03:52:52Z" }
-        ]
-    },
-    {
-        "direction_id": 0, "dist": 344.2649351427617, "headsign": "COURT SQ",
-        "lat": 40.731352, "lon": -73.954449, "route_id": "G",
-        "station_type": "subway", "stop_id": "G26N", "stop_name": "Greenpoint Av",
-        "live": null,
-        "scheduled": [
-            { "desc": "", "time": "2016-04-03T02:14:30Z" },
-            { "desc": "", "time": "2016-04-03T02:34:30Z" },
-            { "desc": "", "time": "2016-04-03T02:54:30Z" }
-        ]
-    }
-]
+curl 'http://localhost:8000/api/v2/stops?lat=40.729183&lon=-73.95154&miles=0.5&filter=subway' 
+```
+
+```json
+{
+    "results": [
+        {
+            "departures": {
+                "live": null,
+                "scheduled": [
+                    { "time": "2016-05-01T21:10:00-04:00" },
+                    { "time": "2016-05-01T21:22:00-04:00" },
+                    { "time": "2016-05-01T21:34:00-04:00" }
+                ]
+            },
+            "dist": 344.2649351427617,
+            "route": {
+                "route_color": "6CBE45",
+                "route_id": "G",
+                "route_text_color": "000000",
+                "route_type": 1,
+                "route_type_name": "subway"
+            },
+            "stop": {
+                "direction_id": 0,
+                "headsign": "COURT SQ",
+                "lat": 40.731352,
+                "lon": -73.954449,
+                "route_id": "G",
+                "stop_id": "G26N",
+                "stop_name": "Greenpoint Av"
+            }
+        },
+        {
+            "departures": {
+                "live": null,
+                "scheduled": [
+                    { "time": "2016-05-01T21:13:00-04:00" },
+                    { "time": "2016-05-01T21:25:00-04:00" },
+                    { "time": "2016-05-01T21:37:00-04:00" }
+                ]
+            },
+            "dist": 344.2649351427617,
+            "route": {
+                "route_color": "6CBE45",
+                "route_id": "G",
+                "route_text_color": "000000",
+                "route_type": 1,
+                "route_type_name": "subway"
+            },
+            "stop": {
+                "direction_id": 1,
+                "headsign": "CHURCH AV",
+                "lat": 40.731352,
+                "lon": -73.954449,
+                "route_id": "G",
+                "stop_id": "G26S",
+                "stop_name": "Greenpoint Av"
+            }
+        }
+    ]
+}
 ```
 
 ## `busloader`
