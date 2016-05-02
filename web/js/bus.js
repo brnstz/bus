@@ -49,10 +49,17 @@ Bus.prototype.appendTime = function(row, times) {
     if (times != null) {
         for (var i = 0; i < times.length; i++) {
             var mytime = new Date(times[i].time);
-            mytext = mytext + " " + mytime.toLocaleTimeString();
-            if (i != times.length - 1) {
-                mytext = mytext + ",";
+            var h = mytime.getHours();
+            var ampm = "am";
+            if (h >= 12) {
+                h = h - 12;
+                ampm = "pm";
+            } else if (h == 0) {
+                h = 12;
             }
+            var hour = ("00" + h).slice(-2);
+            var minute = ("00" + mytime.getMinutes()).slice(-2);
+            mytext = mytext + " " + hour + ":" + minute + ampm;
         }
     }
 

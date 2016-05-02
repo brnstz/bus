@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/brnstz/bus/internal/conf"
 	"github.com/brnstz/bus/internal/etc"
@@ -35,7 +36,8 @@ func floatOrDie(w http.ResponseWriter, r *http.Request, name string) (f float64,
 
 // stopResponse is the value returned by getStops
 type stopResponse struct {
-	Results []stopResult `json:"results"`
+	UpdatedAt time.Time    `json:"updated_at"`
+	Results   []stopResult `json:"results"`
 }
 
 type stopResult struct {
@@ -46,6 +48,12 @@ type stopResult struct {
 		Scheduled []*models.Departure `json:"scheduled"`
 	} `json:"departures"`
 	Dist float64 `json:"dist"`
+}
+
+func newStopResponse() stopResponse {
+	return stopResponse{
+		UpdatedAt: time.Now().UTC(),
+	}
 }
 
 func getStops(w http.ResponseWriter, r *http.Request) {
@@ -77,7 +85,7 @@ func getStops(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := stopResponse{}
+	resp := newStopResponse()
 	resp.Results = make([]stopResult, len(stops))
 
 	for i, stop := range stops {
