@@ -29,21 +29,18 @@ Bus.prototype.appendCell = function(row, value) {
     row.appendChild(cell);	
 };
 
-Bus.prototype.appendTime = function(row, res, type) {
-    if (res[type] && res[type].length > 0) {
-        var mytext = "Next " + type + ": " + res[type][0]["desc"];
-        var mytime = new Date(res[type][0]["time"]);
+Bus.prototype.appendTime = function(row, times) {
+    var mytext = "";
 
-        if (mytime.getFullYear() > 0) {
-            var diff = Math.abs(new Date() - mytime);
-            console.log(diff);
-            mytext = mytext + " " + mytime.toTimeString();
+    for (var i = 0; i < times.length; i++) {
+        var mytime = new Date(times[i].time);
+        mytext = mytext + " " + mytime.toTimeString();
+        if (i != times.length - 1) {
+            mytext = mytext + ",";
         }
-
-        this.appendCell(row, mytext);
-    } else {
-        this.appendCell(row, "")
     }
+
+    this.appendCell(row, mytext);
 };
 
 Bus.prototype.getTrips = function() {
@@ -66,17 +63,21 @@ Bus.prototype.getTrips = function() {
             results.removeChild(results.childNodes[0]);
         }
 
-        for (var i = 0; i < data.length; i++) {
-            var res = data[i];
+        for (var i = 0; i < data.results.length; i++) {
+            var res = data.results[i];
             var row = document.createElement("tr");	
 
-            self.appendCell(row, res["route_id"]);
-            self.appendCell(row, res["stop_name"]);
-            self.appendCell(row, res["headsign"]);
-            self.appendTime(row, res, "live");
-            self.appendTime(row, res, "scheduled");
+            self.appendCell(row, res.stop.route_id);
+            self.appendCell(row, res.stop.stop_name);
+            self.appendCell(row, res.stop.headsign);
 
-            self.appendCell(row, Math.round(res["dist"]) + " meters");
+            if (res.departures.live != null && res.departures.live.length > 0) {
+                self.appendTime(row, res.departures.live);
+            } else {
+                self.appendTime(row, res.departures.scheduled);
+            }
+
+            self.appendCell(row, Math.round(res.dist) + " meters");
 
             tblBody.appendChild(row);
         }		
