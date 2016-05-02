@@ -34,7 +34,7 @@ Bus.prototype.appendTime = function(row, times) {
 
     for (var i = 0; i < times.length; i++) {
         var mytime = new Date(times[i].time);
-        mytext = mytext + " " + mytime.toTimeString();
+        mytext = mytext + " " + mytime.toLocaleTimeString();
         if (i != times.length - 1) {
             mytext = mytext + ",";
         }
