@@ -1,0 +1,8 @@
+[api]
+66.246.138.161 ansible_ssh_user=bseitz
+
+[loader]
+66.246.138.161 ansible_ssh_user=bseitz
+
+[db]
+66.246.138.161 ansible_ssh_user=bseitz
