@@ -66,7 +66,7 @@ config variables:
 | `BUS_MTA_BUSTIME_API_KEY`   |  API key for http://bustime.mta.info/  | *None*            |
 | `BUS_MTA_DATAMINE_API_KEY`  |  API key for http://datamine.mta.info/ | *None*            |
 
-### `/api/v1/stops` Endpoint
+### `/api/v2/stops` Endpoint
 
 ### Query Parameters
 
