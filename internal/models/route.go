@@ -1,6 +1,8 @@
 package models
 
 import (
+	"strings"
+
 	"github.com/brnstz/bus/internal/etc"
 	"github.com/brnstz/upsert"
 	"github.com/jmoiron/sqlx"
@@ -66,10 +68,12 @@ func (r *Route) Table() string {
 func NewRoute(id string, rtype int, color, textColor string) (r *Route, err error) {
 	var ok bool
 
+	color = strings.TrimSpace(color)
 	if len(color) < 1 {
 		color = defaultColor
 	}
 
+	textColor = strings.TrimSpace(textColor)
 	if len(textColor) < 1 {
 		textColor = defaultTextColor
 	}
