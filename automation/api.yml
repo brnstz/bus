@@ -41,3 +41,6 @@
 
     - name: Reload monit config
       service: name=monit state=reloaded
+
+    - name: Restart buspi
+      service: name=busapi state=restarted

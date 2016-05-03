@@ -18,11 +18,8 @@
     - name: Create bus user
       user: name="{{ busloader_user }}"
 
-    - name: Install busapi binary
+    - name: Install busloader binary
       copy: src=bin/busloader dest="{{ busloader_bin_path }}" mode=755
-
-    - name: setcap to bind lower ports as non-root
-      command: setcap cap_net_bind_service=+ep "{{ busloader_bin_path }}"
 
     - name: Install busloader upstart config
       template: src=templates/busloader_upstart.conf.j2 dest="{{ busloader_conf_path }}" owner=root group=root mode=644
@@ -35,3 +32,6 @@
 
     - name: Reload monit config
       service: name=monit state=reloaded
+
+    - name: Restart busloader
+      service: name=busloader state=restarted

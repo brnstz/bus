@@ -8,5 +8,6 @@ gts_urls:
 route_filter: []
 web_dir: "/usr/local/bus/web"
 api_addr: "0.0.0.0:8000"
+load_forever: true
 mta_bustime_api_key: "FIXME"
 mta_datamine_api_key: "FIXME"
