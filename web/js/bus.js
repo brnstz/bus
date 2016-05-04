@@ -12,7 +12,7 @@ function Bus() {
     this.filter = '';
 
     // tileURL is passed to Leaflet JS for drawing the map
-    this.tileURL = 'http://otile1.mqcdn.com/tiles/1.0.0/map/{z}/{x}/{y}.png';
+    this.tileURL = 'https://otile1-s.mqcdn.com/tiles/1.0.0/map/{z}/{x}/{y}.png';
 
     // tileOptions is passed to Leatlef JS for drawing the map
     this.tileOptions = {
