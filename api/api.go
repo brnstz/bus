@@ -41,6 +41,9 @@ type stopResponse struct {
 }
 
 type stopResult struct {
+	// ID is a unique ID for this result. For now it is
+	// "{route_id}_{stop_id}"
+	ID         string        `json:"id"`
 	Route      *models.Route `json:"route"`
 	Stop       *models.Stop  `json:"stop"`
 	Departures struct {
@@ -100,6 +103,8 @@ func getStops(w http.ResponseWriter, r *http.Request) {
 		resp.Results[i].Dist = stop.Dist
 		resp.Results[i].Departures.Live = stop.Live
 		resp.Results[i].Departures.Scheduled = stop.Scheduled
+
+		resp.Results[i].ID = resp.Results[i].Route.ID + "_" + resp.Results[i].Stop.ID
 	}
 
 	b, err := json.Marshal(resp)
