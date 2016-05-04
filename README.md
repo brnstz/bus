@@ -6,6 +6,8 @@ geolocation within a specified range.
 
 [![Build Status](https://travis-ci.org/brnstz/bus.svg?branch=master)](https://travis-ci.org/brnstz/bus?branch=master)
 
+*Alpha version in development:* https://bus.brnstz.com/
+
 ## Requirements
 
 * Go 1.6+ and dependencies:
