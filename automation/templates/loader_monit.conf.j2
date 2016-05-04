@@ -1,13 +1,3 @@
 check process busloader with pidfile /var/run/busloader.pid
     start program = "/usr/sbin/service busloader start"
     stop program = "/usr/sbin/service busloader stop"
-    depends on busloader_conf
-    depends on busloader_bin
-
-check file busloader_conf with path {{ busloader_conf_path }}
-    if changed timestamp then restart
-
-check file busloader_bin with path {{ busloader_bin_path }}
-    if changed timestamp then restart
-
-
