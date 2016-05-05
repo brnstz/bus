@@ -136,18 +136,20 @@ Bus.prototype.appendTime = function(row, departures) {
 
 // addResult adds a single result value to the page
 Bus.prototype.addResult = function(tbody, r) {
+    var self = this;
+
     var row = document.createElement("tr");
 
     // Add the route cell with color
-    this.appendCell(
+    self.appendCell(
         row, r.result.stop.route_id,
-        "#" + r.result.route.route_text_color,
-        "#" + r.result.route.route_color
+        r.result.route.route_text_color,
+        r.result.route.route_color
     );
 
     // Adding the stop name and headsign
-    this.appendCell(row, r.result.stop.stop_name);
-    this.appendCell(row, r.result.stop.headsign);
+    self.appendCell(row, r.result.stop.stop_name);
+    self.appendCell(row, r.result.stop.headsign);
 
     // If we have live departures use those, otherwise fall back to
     // scheduled departures
@@ -155,16 +157,27 @@ Bus.prototype.addResult = function(tbody, r) {
         r.result.departures.live.length > 0) {
 
         // Use live departures if we have those
-        this.appendTime(row, r.result.departures.live);
+        self.appendTime(row, r.result.departures.live);
 
     } else {
 
         // Otherise fall back to scheduled departures
-        this.appendTime(row, r.result.departures.scheduled);
+        self.appendTime(row, r.result.departures.scheduled);
     }
 
     // Add cell with distance of the stop from current location
-    this.appendCell(row, Math.round(r.result.dist) + " meters");
+    self.appendCell(row, Math.round(r.result.dist) + " meters");
+
+    // Set onclick for the result
+    row.onclick = function() {
+        for (var i = 0; i < self.results.length; i++) {
+            self.results[i].background();
+        }
+
+        console.log("map", self.resultsMap);
+        console.log("r", r);
+        self.resultsMap[r.result.id].foreground();
+    };
 
     // Append ourselves to the body
     tbody.appendChild(row);
@@ -232,7 +245,7 @@ Bus.prototype.getTrips = function() {
         for (var i = 0; i < data.results.length; i++) {
             var r = new Result(data.results[i]);
             self.results[i] = r;
-            self.resultsMap[r.id] = r;
+            self.resultsMap[r.result.id] = r;
         }
 
         self.draw();

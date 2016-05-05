@@ -526,7 +526,7 @@ func LoadForever() {
 	for {
 		LoadOnce()
 
-		log.Println("finished loading, sleeping for %v", loaderBreak)
+		log.Printf("finished loading, sleeping for %v", loaderBreak)
 		time.Sleep(loaderBreak)
 	}
 }
