@@ -4,7 +4,7 @@ function Result(result) {
     this.result = result;
 
     this.backgroundOpacity = 0.2;
-    this.foregrounOpacity = 1.0;
+    this.foregroundOpacity = 1.0;
 
     // marker is the marker we should draw on the map
     this.marker = this.createMarker();
