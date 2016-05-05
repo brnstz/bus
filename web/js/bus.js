@@ -99,27 +99,6 @@ Bus.prototype.appendCell = function(row, value, fgcolor, bgcolor) {
     row.appendChild(cell);
 };
 
-// timeFormat takes a time object and returns the format we want to display on
-// screen
-Bus.prototype.timeFormat = function(time) {
-    var t = new Date(time);
-
-    // Get minutes as a 00 padded value
-    var minutes = ("00" + t.getMinutes()).slice(-2);
-
-    // Get a temporary value for hours, format it below
-    var hours = t.getHours();
-
-    // Convert to US time
-    if (hours > 12) {
-        hours -= 12;
-    }
-    if (hours == 0) {
-        hours = 12;
-    }
-
-    return hours + ":" + minutes;
-}
 
 // appendTime adds a cell to this row with the current time values
 Bus.prototype.appendTime = function(row, departures) {
@@ -132,58 +111,6 @@ Bus.prototype.appendTime = function(row, departures) {
     }
 
     this.appendCell(row, mytext);
-};
-
-// addResult adds a single result value to the page
-Bus.prototype.addResult = function(tbody, r) {
-    var self = this;
-
-    var row = document.createElement("tr");
-
-    // Add the route cell with color
-    self.appendCell(
-        row, r.result.stop.route_id,
-        r.result.route.route_text_color,
-        r.result.route.route_color
-    );
-
-    // Adding the stop name and headsign
-    self.appendCell(row, r.result.stop.stop_name);
-    self.appendCell(row, r.result.stop.headsign);
-
-    // If we have live departures use those, otherwise fall back to
-    // scheduled departures
-    if (r.result.departures.live != null &&
-        r.result.departures.live.length > 0) {
-
-        // Use live departures if we have those
-        self.appendTime(row, r.result.departures.live);
-
-    } else {
-
-        // Otherise fall back to scheduled departures
-        self.appendTime(row, r.result.departures.scheduled);
-    }
-
-    // Add cell with distance of the stop from current location
-    self.appendCell(row, Math.round(r.result.dist) + " meters");
-
-    // Set onclick for the result
-    row.onclick = function() {
-        // Set all other results to background
-        for (var i = 0; i < self.results.length; i++) {
-            self.results[i].background();
-        }
-
-        // Set this one to foreground
-        self.resultsMap[r.result.id].foreground();
-
-        // Re-center map on this result
-        self.map.setView([r.result.stop.lat, r.result.stop.lon]);
-    };
-
-    // Append ourselves to the body
-    tbody.appendChild(row);
 };
 
 // draw puts the current state of bus onto the screen
@@ -206,8 +133,7 @@ Bus.prototype.draw = function() {
     for (var i = 0; i < self.results.length; i++) {
         var r = self.results[i];
 
-        // Add result to table row
-        self.addResult(tbody, r);
+        tbody.appendChild(r.row);
 
         // Put it on the map
         r.marker.addTo(self.map);
@@ -216,6 +142,22 @@ Bus.prototype.draw = function() {
     // Display results
     table.appendChild(tbody);
     results.appendChild(table);
+};
+
+Bus.prototype.clickResult = function(res) {
+    var self = this;
+    console.log("here is res", res);
+
+    // Set all results to background
+    for (var i = 0; i < self.results.length; i++) {
+        self.results[i].background();
+    }
+
+    // Set this one to foreground
+    self.resultsMap[res.result.id].foreground();
+
+    // Re-center map on this result
+    self.map.setView([res.result.stop.lat, res.result.stop.lon]);
 };
 
 // getTrips calls the stops API with our current state and updates
@@ -249,6 +191,16 @@ Bus.prototype.getTrips = function() {
             var r = new Result(data.results[i]);
             self.results[i] = r;
             self.resultsMap[r.result.id] = r;
+
+            // Set onclick for the result
+            r.row.onclick = function() {
+                console.log("here is this1", this);
+                self.clickResult(r);
+            }
+            r.marker.onclick = function() {
+                console.log("here is this2", this);
+                self.clickResult(r);
+            }
         }
 
         self.draw();
