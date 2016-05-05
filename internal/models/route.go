@@ -20,8 +20,8 @@ const (
 )
 
 const (
-	defaultColor     = "FFFFFF"
-	defaultTextColor = "000000"
+	defaultColor     = "#FFFFFF"
+	defaultTextColor = "#000000"
 )
 
 var (
