@@ -23,7 +23,7 @@ function Bus() {
     };
 
     // zoom is the initial zoom value when drawing the Leaflet map
-    this.zoom = 15;
+    this.zoom = 16;
 
     // map is our Leaflet JS map object
     this.map = null;
@@ -170,13 +170,16 @@ Bus.prototype.addResult = function(tbody, r) {
 
     // Set onclick for the result
     row.onclick = function() {
+        // Set all other results to background
         for (var i = 0; i < self.results.length; i++) {
             self.results[i].background();
         }
 
-        console.log("map", self.resultsMap);
-        console.log("r", r);
+        // Set this one to foreground
         self.resultsMap[r.result.id].foreground();
+
+        // Re-center map on this result
+        self.map.setView([r.result.stop.lat, r.result.stop.lon]);
     };
 
     // Append ourselves to the body
