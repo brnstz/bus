@@ -63,20 +63,28 @@ func (r *Route) Table() string {
 	return "route"
 }
 
+// checkColor ensures that color is a non-empty string and ensures
+// it is prepended by #
+func checkColor(color, def string) string {
+	color = strings.TrimSpace(color)
+	if len(color) < 1 {
+		color = def
+	}
+
+	if color[0] != '#' {
+		color = "#" + color
+	}
+
+	return color
+}
+
 // NewRoute creates a Route given incoming data, typically from a routes.txt
 // file
 func NewRoute(id string, rtype int, color, textColor string) (r *Route, err error) {
 	var ok bool
 
-	color = strings.TrimSpace(color)
-	if len(color) < 1 {
-		color = defaultColor
-	}
-
-	textColor = strings.TrimSpace(textColor)
-	if len(textColor) < 1 {
-		textColor = defaultTextColor
-	}
+	color = checkColor(color, defaultColor)
+	textColor = checkColor(textColor, defaultTextColor)
 
 	if len(id) < 1 {
 		err = ErrNoID
