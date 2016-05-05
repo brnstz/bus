@@ -1,3 +1,5 @@
+// bus is our controller for the bus application. It handles AJAX requests, 
+// drawing to the screen and creating/managing other objects.
 var bus = new Bus();
 
 function Bus() {
@@ -25,6 +27,14 @@ function Bus() {
 
     // map is our Leaflet JS map object
     this.map = null;
+
+    // resultsMap is the most recent list of results from the API, mapped
+    // from ID to a Result object.
+    this.resultsMap = {};
+
+    // results is the list of results in the order returned by the API 
+    // (i.e., distance from location)
+    this.results = [];
 }
 
 // init is run when the page initially loads
@@ -36,6 +46,7 @@ Bus.prototype.init = function() {
 // gets new trips from the API 
 Bus.prototype.refresh = function() {
     var self = this;
+
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(p) {
             self.updatePosition(p)
@@ -43,21 +54,26 @@ Bus.prototype.refresh = function() {
     }
 };
 
-
 // updatePosition takes an HTML5 geolocation position response and 
 // updates our map and trip info
 Bus.prototype.updatePosition = function(position) {
+
+    // Set our lat and lon based on the coords
     this.lat = position.coords.latitude;
     this.lon = position.coords.longitude;
 
+    // If we don't have a map, create one.
     if (this.map == null) {
-        this.map = L.map('map').setView([this.lat, this.lon], this.zoom);
-    } else {
-        this.map.setView([this.lat, this.lon], this.zoom);
+        this.map = L.map('map');
     }
 
+    // Set location and zoom of the map.
+    this.map.setView([this.lat, this.lon], this.zoom);
+
+    // Add our tiles
     L.tileLayer(this.tileURL, this.tileOptions).addTo(this.map);
 
+    // Get the results for this location
     this.getTrips();
 };
 
@@ -65,17 +81,20 @@ Bus.prototype.updatePosition = function(position) {
 // appendCell creates a td cell with the value and appends it to row, 
 // optionally including an fg and bg color
 Bus.prototype.appendCell = function(row, value, fgcolor, bgcolor) {
+
+    // Create the cell and its text
     var cell = document.createElement("td");
     var cellText = document.createTextNode(value);
 
+    // Set colors when requested
     if (fgcolor !== undefined) {
         cell.style.color = fgcolor;
     }
-
     if (bgcolor !== undefined) {
         cell.style.backgroundColor = bgcolor;
     }
 
+    // Add values to the actual row
     cell.appendChild(cellText);
     row.appendChild(cell);
 };
@@ -116,44 +135,71 @@ Bus.prototype.appendTime = function(row, departures) {
 };
 
 // addResult adds a single result value to the page
-Bus.prototype.addResult = function(tbody, res) {
+Bus.prototype.addResult = function(tbody, r) {
     var row = document.createElement("tr");
 
     // Add the route cell with color
     this.appendCell(
-        row, res.stop.route_id,
-        "#" + res.route.route_text_color,
-        "#" + res.route.route_color
+        row, r.result.stop.route_id,
+        "#" + r.result.route.route_text_color,
+        "#" + r.result.route.route_color
     );
 
     // Adding the stop name and headsign
-    this.appendCell(row, res.stop.stop_name);
-    this.appendCell(row, res.stop.headsign);
+    this.appendCell(row, r.result.stop.stop_name);
+    this.appendCell(row, r.result.stop.headsign);
 
     // If we have live departures use those, otherwise fall back to
     // scheduled departures
-    if (res.departures.live != null && res.departures.live.length > 0) {
-        this.appendTime(row, res.departures.live);
+    if (r.result.departures.live != null &&
+        r.result.departures.live.length > 0) {
+
+        // Use live departures if we have those
+        this.appendTime(row, r.result.departures.live);
+
     } else {
-        this.appendTime(row, res.departures.scheduled);
+
+        // Otherise fall back to scheduled departures
+        this.appendTime(row, r.result.departures.scheduled);
     }
 
     // Add cell with distance of the stop from current location
-    this.appendCell(row, Math.round(res.dist) + " meters");
+    this.appendCell(row, Math.round(r.result.dist) + " meters");
 
     // Append ourselves to the body
     tbody.appendChild(row);
 };
 
-// addMarker adds a marker to the map for this result
-Bus.prototype.addMarker = function(res) {
-    var pathOptions = {
-        color: "#" + res.route.route_color,
-        fillColor: "#" + res.route.route_color,
-        clickable: true
-    };
+// draw puts the current state of bus onto the screen
+Bus.prototype.draw = function() {
+    var self = this;
 
-    L.circle([res.stop.lat, res.stop.lon], 10, pathOptions).addTo(this.map);
+    // Destroy the old resDiv if any
+    var resDiv = document.getElementById("results");
+    if (resDiv.childNodes.length > 0) {
+        resDiv.removeChild(resDiv.childNodes[0]);
+    }
+
+    // Create a new table with Bootstrap's table class and also
+    // the tbody
+    var table = document.createElement("table");
+    table.setAttribute("class", "table");
+    var tbody = document.createElement("tbody");
+
+    // Add each result to our new table
+    for (var i = 0; i < self.results.length; i++) {
+        var r = self.results[i];
+
+        // Add result to table row
+        self.addResult(tbody, r);
+
+        // Put it on the map
+        r.marker.addTo(self.map);
+    }
+
+    // Display results
+    table.appendChild(tbody);
+    results.appendChild(table);
 };
 
 // getTrips calls the stops API with our current state and updates
@@ -173,29 +219,23 @@ Bus.prototype.getTrips = function() {
 
     // When it succeeds, update the page
     xhr.onload = function(e) {
+        console.log("onload says", e);
+
         // Parse the response
         var data = JSON.parse(this.response);
 
-        // Destroy the old results if any
-        var results = document.getElementById("results");
-        if (results.childNodes.length > 0) {
-            results.removeChild(results.childNodes[0]);
-        }
+        // Reset stops value
+        self.results = [];
+        self.resultsMap = {};
 
-        // Create a new table with Bootstrap's table class
-        var table = document.createElement("table");
-        table.setAttribute("class", "table");
-        var tbody = document.createElement("tbody");
-
-        // Add each result to our new table
+        // Add each result to our list
         for (var i = 0; i < data.results.length; i++) {
-            self.addResult(tbody, data.results[i]);
-            self.addMarker(data.results[i]);
+            var r = new Result(data.results[i]);
+            self.results[i] = r;
+            self.resultsMap[r.id] = r;
         }
 
-        // Display results
-        table.appendChild(tbody);
-        results.appendChild(table);
+        self.draw();
     }
 
     // Trigger the request
