@@ -5,3 +5,7 @@ body {
 #map { 
 	height: 300px; 
 }
+
+.headsign { 
+    font-size: 10px;
+    font-weight: bold;

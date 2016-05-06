@@ -1,0 +1,18 @@
+- hosts: web
+  become: yes
+  become_user: root
+  vars_files:
+    - "group_vars/defaults.yml"
+    - "group_vars/{{ inventory }}.yml"
+  vars:
+    busapi_user: "bus"
+
+  tasks:
+    - name: Create bus user
+      user: name="{{ busapi_user }}"
+
+    - name: Create bus web directory
+      file: path="{{ web_dir }}" owner=bus mode=755 state=directory
+
+    - name: Copy static web assets
+      copy: src=../web/ dest="{{ web_dir }}"

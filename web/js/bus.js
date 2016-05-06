@@ -1,5 +1,5 @@
-// bus is our controller for the bus application. It handles AJAX requests, 
-// drawing to the screen and creating/managing other objects.
+// bus is our controller for the bus application. It handles drawing to the
+// screen and managing objects.
 var bus = new Bus();
 
 function Bus() {
@@ -14,7 +14,6 @@ function Bus() {
     this.filter = '';
 
     // tileURL is passed to Leaflet JS for drawing the map
-    //this.tileURL = 'https://otile1-s.mqcdn.com/tiles/1.0.0/map/{z}/{x}/{y}.png';
     this.tileURL = 'https://stamen-tiles.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png';
 
     // tileOptions is passed to Leatlef JS for drawing the map
@@ -28,13 +27,18 @@ function Bus() {
     // map is our Leaflet JS map object
     this.map = null;
 
-    // resultsMap is the most recent list of results from the API, mapped
-    // from ID to a Result object.
-    this.resultsMap = {};
-
-    // results is the list of results in the order returned by the API 
+    // stopList is the list of results in the order returned by the API 
     // (i.e., distance from location)
-    this.results = [];
+    this.stopList = [];
+
+    // stops is stop ids mapped to stop objects
+    this.stops = {};
+
+    // markers is stop ids mapped to markers on the map
+    this.markers = {};
+
+    // rows is stop ids mapped to rows in the results table
+    this.rows = {};
 }
 
 // init is run when the page initially loads
@@ -57,155 +61,144 @@ Bus.prototype.refresh = function() {
 // updatePosition takes an HTML5 geolocation position response and 
 // updates our map and trip info
 Bus.prototype.updatePosition = function(position) {
+    var self = this;
 
     // Set our lat and lon based on the coords
-    this.lat = position.coords.latitude;
-    this.lon = position.coords.longitude;
+    self.lat = position.coords.latitude;
+    self.lon = position.coords.longitude;
 
     // If we don't have a map, create one.
-    if (this.map == null) {
-        this.map = L.map('map');
+    if (self.map == null) {
+        self.map = L.map('map');
     }
 
     // Set location and zoom of the map.
-    this.map.setView([this.lat, this.lon], this.zoom);
+    self.map.setView([self.lat, self.lon], self.zoom);
 
     // Add our tiles
-    L.tileLayer(this.tileURL, this.tileOptions).addTo(this.map);
+    L.tileLayer(self.tileURL, self.tileOptions).addTo(self.map);
 
     // Get the results for this location
-    this.getTrips();
+    self.getStops();
 };
 
 
-// appendCell creates a td cell with the value and appends it to row, 
-// optionally including an fg and bg color
-Bus.prototype.appendCell = function(row, value, fgcolor, bgcolor) {
 
-    // Create the cell and its text
-    var cell = document.createElement("td");
-    var cellText = document.createTextNode(value);
+// parseStops reads the text of response from the stops API and updates
+// the initial list of stop objects
+Bus.prototype.parseStops = function(data) {
+    var self = this;
 
-    // Set colors when requested
-    if (fgcolor !== undefined) {
-        cell.style.color = fgcolor;
+    // Reset list of stops
+    self.stopList = [];
+
+    // Create a stop object for each result and save to our list
+    for (var i = 0; i < data.results.length; i++) {
+        var s = new Stop(data.results[i]);
+        self.stopList[i] = s;
     }
-    if (bgcolor !== undefined) {
-        cell.style.backgroundColor = bgcolor;
-    }
-
-    // Add values to the actual row
-    cell.appendChild(cellText);
-    row.appendChild(cell);
 };
 
+Bus.prototype.createMarker = function(stop) {
+    var self = this;
 
-// appendTime adds a cell to this row with the current time values
-Bus.prototype.appendTime = function(row, departures) {
-    var mytext = "";
-
-    if (departures != null) {
-        for (var i = 0; i < departures.length; i++) {
-            mytext += " " + this.timeFormat(departures[i].time);
+    return L.circle(
+        [stop.api.stop.lat, stop.api.stop.lon],
+        stop.radius, {
+            color: stop.api.route.route_color,
+            fillColor: stop.api.route.route_color,
+            opacity: stop.backgroundOpacity,
+            fillOpacity: stop.backgroundOpacity
         }
-    }
-
-    this.appendCell(row, mytext);
+    );
 };
 
-// draw puts the current state of bus onto the screen
-Bus.prototype.draw = function() {
+Bus.prototype.createRow = function(stop) {
+    var cellCSS = {
+        "color": stop.api.route.route_text_color,
+        "background-color": stop.api.route.route_color,
+        "opacity": stop.bgOpacity
+    };
+
+    // Create our row object
+    var row = $("<tr>").css(cellCSS);
+
+    // Create and append the cell containing the route identifier
+    // with colored background
+    $(row).append($("<td>").text(stop.api.stop.route_id));
+
+    var headsign = $('<span class="headsign">' + stop.api.stop.headsign + '</span>');
+    $(row).append($("<td>").append(headsign));
+
+    // Create and append cell with text of departure times
+    $(row).append($("<td>").text(stop.departuresText));
+
+    return row;
+};
+
+// updateStops runs any manipulation necessary after parsing stops
+// into stopList
+Bus.prototype.updateStops = function() {
     var self = this;
 
-    // Destroy the old resDiv if any
-    var resDiv = document.getElementById("results");
-    if (resDiv.childNodes.length > 0) {
-        resDiv.removeChild(resDiv.childNodes[0]);
+    // Reset maps
+    self.stops = {};
+    self.markers = {};
+    self.rows = {};
+
+    // Create new table
+    var table = $("<table class='table'>");
+    var tbody = $("<tbody>");
+    var results = $("#results");
+
+    for (var i = 0; i < self.stopList.length; i++) {
+        // create the stop row and markers
+        var stop = self.stopList[i];
+        var row = self.createRow(stop);
+        var marker = self.createMarker(stop);
+
+        // Put into maps
+        self.stops[stop.id] = stop;
+        self.markers[stop.id] = marker;
+        self.rows[stop.id] = row;
+
+        console.log(stop, marker, row);
+
+        // Add to display
+        $(tbody).append(row);
+        marker.addTo(self.map);
     }
 
-    // Create a new table with Bootstrap's table class and also
-    // the tbody
-    var table = document.createElement("table");
-    table.setAttribute("class", "table");
-    var tbody = document.createElement("tbody");
+    console.log("before", table, tbody, results);
 
-    // Add each result to our new table
-    for (var i = 0; i < self.results.length; i++) {
-        var r = self.results[i];
+    // Destroy and recreate results
+    $(table).append(tbody);
+    $(results).empty();
+    $(results).append(table);
 
-        tbody.appendChild(r.row);
-
-        // Put it on the map
-        r.marker.addTo(self.map);
-    }
-
-    // Display results
-    table.appendChild(tbody);
-    results.appendChild(table);
+    console.log("after", table, tbody, results);
 };
 
-Bus.prototype.clickResult = function(res) {
-    var self = this;
-    console.log("here is res", res);
-
-    // Set all results to background
-    for (var i = 0; i < self.results.length; i++) {
-        self.results[i].background();
-    }
-
-    // Set this one to foreground
-    self.resultsMap[res.result.id].foreground();
-
-    // Re-center map on this result
-    self.map.setView([res.result.stop.lat, res.result.stop.lon]);
-};
-
-// getTrips calls the stops API with our current state and updates
+// getStops calls the stops API with our current state and updates
 // the UI with the results
-Bus.prototype.getTrips = function() {
+Bus.prototype.getStops = function() {
     var self = this;
 
-    // Create an AJAX request with our current location
-    var xhr = new XMLHttpRequest();
     var url = '/api/v2/stops?lat=' + this.lat +
         '&lon=' + this.lon +
         '&filter=' + this.filter +
         '&miles=' + this.miles;
 
-    // Open the connection
-    xhr.open('GET', url);
+    $.ajax(url, {
+        dataType: "json",
+        success: function(data) {
+            self.parseStops(data);
+            self.updateStops();
+        },
 
-    // When it succeeds, update the page
-    xhr.onload = function(e) {
-        console.log("onload says", e);
-
-        // Parse the response
-        var data = JSON.parse(this.response);
-
-        // Reset stops value
-        self.results = [];
-        self.resultsMap = {};
-
-        // Add each result to our list
-        for (var i = 0; i < data.results.length; i++) {
-            var r = new Result(data.results[i]);
-            self.results[i] = r;
-            self.resultsMap[r.result.id] = r;
-
-            // Set onclick for the result
-            r.row.onclick = function() {
-                console.log("here is this1", this);
-                self.clickResult(r);
-            }
-            r.marker.onclick = function() {
-                console.log("here is this2", this);
-                self.clickResult(r);
-            }
+        error: function(xhr, stat, err) {
+            console.log("error in request");
+            console.log(xhr, stat, err);
         }
-
-        self.draw();
-    }
-
-    // Trigger the request
-    xhr.send();
+    });
 };

@@ -19,14 +19,6 @@
     - name: Create bus user
       user: name="{{ busapi_user }}"
 
-    - name: Create bus web directory
-      file: path="{{ web_dir }}" owner=bus mode=755 state=directory
-      when: dev_mode == false
-
-    - name: Copy static web assets
-      copy: src=../web/ dest="{{ web_dir }}"
-      when: dev_mode == false
-
     - name: Install busapi binary
       copy: src=bin/busapi dest="{{ busapi_bin_path }}" mode=755
 

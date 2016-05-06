@@ -1,10 +1,12 @@
-function Result(result) {
-    // result is the object returned by the API. We add next to this
-    // things that are relevant to JS only. 
-    this.result = result;
+// Stop is a single instance of a stop
+function Stop(api) {
+    // api is the object returned by the API. We leave this as read-only
+    // and add any other info we want as a sibling data piece.
+    this.api = api;
 
-    this.backgroundOpacity = 0.50;
-    this.foregroundOpacity = 1.0;
+    this.bgOpacity = 0.50;
+    this.fgOpacity = 1.0;
+    this.radius = 10;
 
     // live is true if we have live departures
     this.live = this.isLive();
@@ -12,36 +14,16 @@ function Result(result) {
     // departuresText is the text of the departures we want to display 
     // in the table
     this.departuresText = this.createDeparturesText();
-
-    // marker is the marker we should draw on the map
-    this.marker = this.createMarker();
-
-    // row is the row in the result table
-    this.row = this.createRow();
 }
-
-// createMarker builds the map marker for this stop
-Result.prototype.createMarker = function() {
-    var opt = {
-        color: this.result.route.route_color,
-        fillColor: this.result.route.route_color,
-        opacity: this.backgroundOpacity,
-        fillOpacity: this.backgroundOpacity
-    };
-    var radius = 10;
-    var latlon = [this.result.stop.lat, this.result.stop.lon];
-
-    return L.circle(latlon, radius, opt);
-};
 
 // isLive returns true if we have live departures, false if we are using
 // scheduled departures
-Result.prototype.isLive = function() {
+Stop.prototype.isLive = function() {
     var self = this;
     var live = false;
 
-    if (self.result.departures.live != null &&
-        self.result.departures.live.length > 0) {
+    if (self.api.departures.live != null &&
+        self.api.departures.live.length > 0) {
         live = true;
     }
 
@@ -50,7 +32,9 @@ Result.prototype.isLive = function() {
 
 // timeFormat takes a time object and returns the format we want to display on
 // screen
-Result.prototype.timeFormat = function(time) {
+Stop.prototype.timeFormat = function(time) {
+    var self = this;
+
     var t = new Date(time);
 
     // Get minutes as a 00 padded value
@@ -71,16 +55,16 @@ Result.prototype.timeFormat = function(time) {
 }
 
 
-Result.prototype.createDeparturesText = function() {
+Stop.prototype.createDeparturesText = function() {
     var self = this;
 
     var departures = [];
     var text = "";
 
     if (self.live) {
-        departures = self.result.departures.live;
+        departures = self.api.departures.live;
     } else {
-        departures = self.result.departures.scheduled;
+        departures = self.api.departures.scheduled;
     }
 
     console.log(self);
@@ -94,20 +78,20 @@ Result.prototype.createDeparturesText = function() {
     return text;
 };
 
-Result.prototype.createRow = function() {
+Stop.prototype.createRow = function() {
     var self = this;
 
     // Create our empty row in the background
     var row = document.createElement("tr");
-    row.style.opacity = this.backgroundOpacity;
+    row.style.opacity = self.bgOpacity;
 
     // Create cell for the name of the route
     var routeCell = document.createElement("td");
-    var routeCellText = document.createTextNode(self.result.stop.route_id);
+    var routeCellText = document.createTextNode(self.api.stop.route_id);
 
     // Set the route cell's color
-    routeCell.style.color = self.result.route.route_text_color;
-    routeCell.style.backgroundColor = self.result.route.route_color;
+    routeCell.style.color = self.api.route.route_text_color;
+    routeCell.style.backgroundColor = self.api.route.route_color;
 
     // Add route cell to the row
     routeCell.appendChild(routeCellText);
@@ -124,7 +108,7 @@ Result.prototype.createRow = function() {
 
     // infoText is text of the direction and departures
     var infoText = document.createTextNode(
-        " " + self.result.stop.headsign + " " + self.departuresText
+        " " + self.api.stop.headsign + " " + self.departuresText
     );
 
     // Append span and text to the cell, then to the row
@@ -136,23 +120,27 @@ Result.prototype.createRow = function() {
 };
 
 // foreground puts this result in the foreground
-Result.prototype.foreground = function() {
-    this.marker.setStyle({
-        opacity: this.foregroundOpacity,
-        fillOpacity: this.foregroundOpacity
+Stop.prototype.foreground = function() {
+    var self = this;
+
+    self.marker.setStyle({
+        opacity: self.fgOpacity,
+        fillOpacity: self.fgOpacity
     });
 
-    this.marker.bringToFront();
+    self.marker.bringToFront();
 
-    this.row.style.opacity = this.foregroundOpacity;
+    self.row.style.opacity = self.fgOpacity;
 };
 
 // background puts this result in the background
-Result.prototype.background = function() {
-    this.marker.setStyle({
-        opacity: this.backgroundOpacity,
-        fillOpacity: this.backgroundOpacity
+Stop.prototype.background = function() {
+    var self = this;
+
+    self.marker.setStyle({
+        opacity: self.bgOpacity,
+        fillOpacity: self.bgOpacity
     });
 
-    this.row.style.opacity = this.backgroundOpacity;
+    self.row.style.opacity = self.bgOpacity;
 };
