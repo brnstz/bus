@@ -82,8 +82,6 @@ Bus.prototype.updatePosition = function(position) {
     self.getStops();
 };
 
-
-
 // parseStops reads the text of response from the stops API and updates
 // the initial list of stop objects
 Bus.prototype.parseStops = function(data) {
@@ -99,6 +97,7 @@ Bus.prototype.parseStops = function(data) {
     }
 };
 
+// createMarker creates the map marker for this stop
 Bus.prototype.createMarker = function(stop) {
     var self = this;
 
@@ -113,6 +112,7 @@ Bus.prototype.createMarker = function(stop) {
     );
 };
 
+// createRow creates a results row for this stop
 Bus.prototype.createRow = function(stop) {
     var cellCSS = {
         "color": stop.api.route.route_text_color,
@@ -136,6 +136,7 @@ Bus.prototype.createRow = function(stop) {
     return row;
 };
 
+// clickHandler highlights the marker and the row for this stop_id
 Bus.prototype.clickHandler = function(stop_id) {
     var self = this;
 
@@ -144,18 +145,23 @@ Bus.prototype.clickHandler = function(stop_id) {
             var stop = self.stopList[i];
             var marker = self.markers[stop.api.id];
             var row = self.rows[stop.api.id];
-            var opacity;
 
             if (stop.api.id == stop_id) {
-                opacity = stop.fg_opacity;
-            } else {
-                opacity = stop.bg_opacity;
-            }
+                $(row).css("opacity", stop.fg_opacity);
+                marker.setStyle({
+                    fillOpacity: stop.fg_opacity,
+                });
+                marker.bringToFront();
 
-            $(row).css("opacity", opacity);
-            marker.setStyle({
-                fillOpacity: opacity
-            });
+                self.map.setView([stop.api.stop.lat, stop.api.stop.lon]);
+
+            } else {
+                $(row).css("opacity", stop.bg_opacity);
+                marker.setStyle({
+                    fillOpacity: stop.bg_opacity
+                });
+                marker.bringToBack();
+            }
         }
     };
 };
