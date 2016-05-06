@@ -4,16 +4,16 @@ function Stop(api) {
     // and add any other info we want as a sibling data piece.
     this.api = api;
 
-    this.bgOpacity = 0.50;
-    this.fgOpacity = 1.0;
-    this.radius = 10;
+    this.bg_opacity = 0.5;
+    this.fg_opacity = 1.0;
+    this.radius = 20;
 
     // live is true if we have live departures
     this.live = this.isLive();
 
-    // departuresText is the text of the departures we want to display 
+    // departures is the text of the departures we want to display 
     // in the table
-    this.departuresText = this.createDeparturesText();
+    this.departures = this.createDepartures();
 }
 
 // isLive returns true if we have live departures, false if we are using
@@ -55,7 +55,7 @@ Stop.prototype.timeFormat = function(time) {
 }
 
 
-Stop.prototype.createDeparturesText = function() {
+Stop.prototype.createDepartures = function() {
     var self = this;
 
     var departures = [];
@@ -67,8 +67,6 @@ Stop.prototype.createDeparturesText = function() {
         departures = self.api.departures.scheduled;
     }
 
-    console.log(self);
-
     if (departures != null) {
         for (var i = 0; i < departures.length; i++) {
             text += " " + self.timeFormat(departures[i].time);
@@ -76,71 +74,4 @@ Stop.prototype.createDeparturesText = function() {
     }
 
     return text;
-};
-
-Stop.prototype.createRow = function() {
-    var self = this;
-
-    // Create our empty row in the background
-    var row = document.createElement("tr");
-    row.style.opacity = self.bgOpacity;
-
-    // Create cell for the name of the route
-    var routeCell = document.createElement("td");
-    var routeCellText = document.createTextNode(self.api.stop.route_id);
-
-    // Set the route cell's color
-    routeCell.style.color = self.api.route.route_text_color;
-    routeCell.style.backgroundColor = self.api.route.route_color;
-
-    // Add route cell to the row
-    routeCell.appendChild(routeCellText);
-    row.appendChild(routeCell);
-
-    // Create info cell
-    var infoCell = document.createElement("td");
-
-    // infoSpan is a span for a glyphicon arrow
-    var infoSpan = document.createElement("span");
-    infoSpan.classList.add("glyphicon");
-    infoSpan.classList.add("glyphicon-arrow-right");
-    infoSpan.setAttribute("aria-hidden", "true");
-
-    // infoText is text of the direction and departures
-    var infoText = document.createTextNode(
-        " " + self.api.stop.headsign + " " + self.departuresText
-    );
-
-    // Append span and text to the cell, then to the row
-    infoCell.appendChild(infoSpan);
-    infoCell.appendChild(infoText);
-    row.appendChild(infoCell);
-
-    return row;
-};
-
-// foreground puts this result in the foreground
-Stop.prototype.foreground = function() {
-    var self = this;
-
-    self.marker.setStyle({
-        opacity: self.fgOpacity,
-        fillOpacity: self.fgOpacity
-    });
-
-    self.marker.bringToFront();
-
-    self.row.style.opacity = self.fgOpacity;
-};
-
-// background puts this result in the background
-Stop.prototype.background = function() {
-    var self = this;
-
-    self.marker.setStyle({
-        opacity: self.bgOpacity,
-        fillOpacity: self.bgOpacity
-    });
-
-    self.row.style.opacity = self.bgOpacity;
 };

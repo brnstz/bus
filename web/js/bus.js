@@ -107,8 +107,8 @@ Bus.prototype.createMarker = function(stop) {
         stop.radius, {
             color: stop.api.route.route_color,
             fillColor: stop.api.route.route_color,
-            opacity: stop.backgroundOpacity,
-            fillOpacity: stop.backgroundOpacity
+            opacity: 0.0,
+            fillOpacity: stop.bg_opacity
         }
     );
 };
@@ -117,7 +117,7 @@ Bus.prototype.createRow = function(stop) {
     var cellCSS = {
         "color": stop.api.route.route_text_color,
         "background-color": stop.api.route.route_color,
-        "opacity": stop.bgOpacity
+        "opacity": stop.bg_opacity
     };
 
     // Create our row object
@@ -131,9 +131,33 @@ Bus.prototype.createRow = function(stop) {
     $(row).append($("<td>").append(headsign));
 
     // Create and append cell with text of departure times
-    $(row).append($("<td>").text(stop.departuresText));
+    $(row).append($("<td>").text(stop.departures));
 
     return row;
+};
+
+Bus.prototype.clickHandler = function(stop_id) {
+    var self = this;
+
+    return function(e) {
+        for (var i = 0; i < self.stopList.length; i++) {
+            var stop = self.stopList[i];
+            var marker = self.markers[stop.api.id];
+            var row = self.rows[stop.api.id];
+            var opacity;
+
+            if (stop.api.id == stop_id) {
+                opacity = stop.fg_opacity;
+            } else {
+                opacity = stop.bg_opacity;
+            }
+
+            $(row).css("opacity", opacity);
+            marker.setStyle({
+                fillOpacity: opacity
+            });
+        }
+    };
 };
 
 // updateStops runs any manipulation necessary after parsing stops
@@ -158,25 +182,23 @@ Bus.prototype.updateStops = function() {
         var marker = self.createMarker(stop);
 
         // Put into maps
-        self.stops[stop.id] = stop;
-        self.markers[stop.id] = marker;
-        self.rows[stop.id] = row;
-
-        console.log(stop, marker, row);
+        self.stops[stop.api.id] = stop;
+        self.markers[stop.api.id] = marker;
+        self.rows[stop.api.id] = row;
 
         // Add to display
         $(tbody).append(row);
         marker.addTo(self.map);
-    }
 
-    console.log("before", table, tbody, results);
+        var handler = self.clickHandler(stop.api.id);
+        marker.on('click', handler);
+        $(row).click(handler);
+    }
 
     // Destroy and recreate results
     $(table).append(tbody);
     $(results).empty();
     $(results).append(table);
-
-    console.log("after", table, tbody, results);
 };
 
 // getStops calls the stops API with our current state and updates
