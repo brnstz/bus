@@ -9,3 +9,8 @@ body {
 .headsign { 
     font-size: 10px;
     font-weight: bold;
+}
+
+#results tr {
+    cursor: pointer;
+}
