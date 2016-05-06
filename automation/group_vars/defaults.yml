@@ -7,6 +7,7 @@ gts_urls:
     - "http://web.mta.info/developers/data/nyct/bus/google_transit_staten_island.zip"
 route_filter: []
 web_dir: "/usr/local/bus/web"
+dev_mode: false
 api_addr: "0.0.0.0:8000"
 load_forever: true
 mta_bustime_api_key: "FIXME"
