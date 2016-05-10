@@ -31,6 +31,7 @@ var (
 )
 
 func GetLiveSubways(route, dir, stop string) (ts timeSlice, err error) {
+
 	feed, exists := routeToFeed[route]
 	if !exists {
 		return
@@ -53,8 +54,11 @@ func GetLiveSubways(route, dir, stop string) (ts timeSlice, err error) {
 		log.Println("can't unmarshal", err)
 	}
 
+	log.Printf("received %d entity values for %v => %v", len(tr.Entity), route, dir)
+
 	for _, e := range tr.Entity {
 		updates := e.GetTripUpdate().GetStopTimeUpdate()
+		log.Printf("received %d update values for %v => %v", len(updates), route, dir)
 		for _, u := range updates {
 			if u.GetStopId() == stop {
 				ts = append(ts, time.Unix(u.GetDeparture().GetTime(), 0))
