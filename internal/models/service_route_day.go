@@ -15,6 +15,7 @@ import (
 type ServiceRouteDay struct {
 	ServiceID string `db:"service_id" upsert:"key"`
 	RouteID   string `db:"route_id" upsert:"key"`
+	AgencyID  string `db:"agency_id" upsert:"key"`
 	Day       string `db:"day" upsert:"key"`
 
 	StartDate time.Time `db:"start_date" upsert:"key"`

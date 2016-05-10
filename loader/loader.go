@@ -32,9 +32,6 @@ type Loader struct {
 	// mapping from stop_id to a slice of trip_ids
 	stopTrips map[string][]string
 
-	// mapping trip_id to route_id
-	tripRoute map[string]string
-
 	// a map of "{stop_id}-{route_id}" to stop objects. Essentially a
 	// list of unique stops by route.
 	uniqueStop map[string]*models.Stop
@@ -47,12 +44,21 @@ type Loader struct {
 
 	routeIDs map[string]bool
 
-	Routes []*models.Route
+	// routeAgency contains the agency for each route after we loadRoutes()
+	routeAgency map[string]string
 
-	Stops []*models.Stop
+	// mapping trip_id to route_id
+	tripRoute map[string]string
 
-	ScheduledStopTimes []*models.ScheduledStopTime
+	// shapeRoute maps shape_id to route_id (for purposes of adding agency_id
+	// to shapes table)
+	shapeRoute map[string]string
 
+	Routes                 []*models.Route
+	Trips                  []*models.Trip
+	Shapes                 []*models.Shape
+	Stops                  []*models.Stop
+	ScheduledStopTimes     []*models.ScheduledStopTime
 	ServiceRouteDays       []*models.ServiceRouteDay
 	ServiceRouteExceptions []*models.ServiceRouteException
 }
@@ -66,6 +72,8 @@ func NewLoader(dir string) *Loader {
 		uniqueStop:   map[string]*models.Stop{},
 		tripService:  map[string]*models.Service{},
 		serviceRoute: map[string]map[string]bool{},
+		routeAgency:  map[string]string{},
+		shapeRoute:   map[string]string{},
 	}
 
 	// Checking the length of the 0th entry ensures we ignore the case where
@@ -90,9 +98,9 @@ func (l *Loader) init() {
 	l.loadRoutes()
 	l.loadTrips()
 	l.loadStopTrips()
-	l.loadTripRoute()
 	l.loadUniqueStop()
 	l.loadCalendars()
+	l.loadShapes()
 
 	l.Stops = make([]*models.Stop, len(l.uniqueStop))
 
@@ -150,6 +158,7 @@ func (l *Loader) loadRoutes() {
 	routeTypeIdx := find(header, "route_type")
 	routeColorIdx := find(header, "route_color")
 	routeTextColorIdx := find(header, "route_text_color")
+	routeAgencyIdx := find(header, "agency_id")
 
 	for i := 0; ; i++ {
 		rec, err := f.Read()
@@ -172,15 +181,18 @@ func (l *Loader) loadRoutes() {
 
 		routeColor := rec[routeColorIdx]
 		routeTextColor := rec[routeTextColorIdx]
+		agencyID := rec[routeAgencyIdx]
 
 		r, err := models.NewRoute(
-			route, routeType, routeColor, routeTextColor,
+			route, routeType, routeColor, routeTextColor, agencyID,
 		)
 		if err != nil {
 			log.Fatalf("%v on line %v of routes.txt", err, i)
 		}
 
 		l.Routes = append(l.Routes, r)
+
+		l.routeAgency[route] = agencyID
 	}
 
 }
@@ -198,6 +210,7 @@ func (l *Loader) loadTrips() {
 	headIdx := find(header, "trip_headsign")
 	serviceIdx := find(header, "service_id")
 	routeIdx := find(header, "route_id")
+	shapeIdx := find(header, "shape_id")
 
 	for i := 0; ; i++ {
 		rec, err := f.Read()
@@ -213,17 +226,21 @@ func (l *Loader) loadTrips() {
 			log.Fatalf("%v on line %v of trips.txt", err, i)
 		}
 
-		trip := &models.Trip{
-			ID:          rec[tripIdx],
-			DirectionID: direction,
-			Headsign:    rec[headIdx],
-		}
-
+		id := rec[tripIdx]
 		service := rec[serviceIdx]
 		route := rec[routeIdx]
+		shape := rec[shapeIdx]
+		agency := l.routeAgency[route]
 
 		if l.skipRoute(route) {
 			continue
+		}
+
+		trip, err := models.NewTrip(
+			id, agency, service, shape, rec[headIdx], direction,
+		)
+		if err != nil {
+			log.Fatalf("%v on line %v of trips.txt", err, i)
 		}
 
 		l.trips[trip.ID] = trip
@@ -239,6 +256,11 @@ func (l *Loader) loadTrips() {
 			l.serviceRoute[service] = map[string]bool{}
 		}
 		l.serviceRoute[service][route] = true
+
+		l.Trips = append(l.Trips, trip)
+
+		l.tripRoute[id] = route
+		l.shapeRoute[shape] = route
 	}
 
 }
@@ -267,6 +289,7 @@ func (l *Loader) loadStopTrips() {
 		stop := rec[stopIdx]
 		trip := rec[tripIdx]
 		timeStr := rec[timeIdx]
+		agencyID := l.routeAgency[l.tripRoute[trip]]
 
 		l.stopTrips[stop] = append(l.stopTrips[stop], trip)
 
@@ -276,7 +299,7 @@ func (l *Loader) loadStopTrips() {
 		}
 
 		sst, err := models.NewScheduledStopTime(
-			service.RouteID, stop, service.ID, timeStr,
+			service.RouteID, stop, service.ID, timeStr, agencyID, trip,
 		)
 		if err != nil {
 			log.Fatal("can't create sst", rec, err)
@@ -284,40 +307,6 @@ func (l *Loader) loadStopTrips() {
 
 		l.ScheduledStopTimes = append(l.ScheduledStopTimes, sst)
 
-	}
-}
-
-func (l *Loader) loadTripRoute() {
-
-	trips := getcsv(l.dir, "trips.txt")
-
-	header, err := trips.Read()
-	if err != nil {
-		log.Fatalf("unable to read header: %v", err)
-	}
-
-	tripIdx := find(header, "trip_id")
-	routeIdx := find(header, "route_id")
-
-	trips.Read()
-	for i := 0; ; i++ {
-		rec, err := trips.Read()
-		if err == io.EOF {
-			break
-		}
-
-		if err != nil {
-			log.Fatalf("%v on line %v of trips.txt", err, i)
-		}
-
-		trip := rec[tripIdx]
-		route := rec[routeIdx]
-
-		if l.skipRoute(route) {
-			continue
-		}
-
-		l.tripRoute[trip] = route
 	}
 }
 
@@ -373,6 +362,7 @@ func (l *Loader) loadUniqueStop() {
 
 					DirectionID: l.trips[trip].DirectionID,
 					Headsign:    l.trips[trip].Headsign,
+					AgencyID:    l.routeAgency[l.tripRoute[trip]],
 				}
 				l.uniqueStop[obj.Key()] = &obj
 			}
@@ -381,9 +371,9 @@ func (l *Loader) loadUniqueStop() {
 }
 
 func (l *Loader) loadCalendars() {
-	stops := getcsv(l.dir, "calendar.txt")
+	cal := getcsv(l.dir, "calendar.txt")
 
-	header, err := stops.Read()
+	header, err := cal.Read()
 	if err != nil {
 		log.Fatalf("unable to read header: %v", err)
 	}
@@ -397,7 +387,7 @@ func (l *Loader) loadCalendars() {
 	endDateIdx := find(header, "end_date")
 
 	for i := 0; ; i++ {
-		rec, err := stops.Read()
+		rec, err := cal.Read()
 		if err == io.EOF {
 			break
 		}
@@ -427,6 +417,7 @@ func (l *Loader) loadCalendars() {
 				srd := models.ServiceRouteDay{
 					ServiceID: serviceId,
 					RouteID:   route,
+					AgencyID:  l.routeAgency[route],
 					Day:       day,
 					StartDate: startDate,
 					EndDate:   endDate,
@@ -435,6 +426,55 @@ func (l *Loader) loadCalendars() {
 				l.ServiceRouteDays = append(l.ServiceRouteDays, &srd)
 			}
 		}
+	}
+}
+
+func (l *Loader) loadShapes() {
+	shapes := getcsv(l.dir, "shapes.txt")
+
+	header, err := shapes.Read()
+	if err != nil {
+		log.Fatalf("unable to read header: %v", err)
+	}
+
+	idIDX := find(header, "shape_id")
+	latIDX := find(header, "shape_pt_lat")
+	lonIDX := find(header, "shape_pt_lon")
+	seqIDX := find(header, "shape_pt_sequence")
+
+	for i := 0; ; i++ {
+		rec, err := shapes.Read()
+		if err == io.EOF {
+			break
+		}
+
+		lat, err := strconv.ParseFloat(
+			strings.TrimSpace(rec[latIDX]), 64,
+		)
+		if err != nil {
+			log.Fatalf("%v on line %v of shapes.txt", err, i)
+		}
+
+		lon, err := strconv.ParseFloat(
+			strings.TrimSpace(rec[lonIDX]), 64,
+		)
+		if err != nil {
+			log.Fatalf("%v on line %v of shapes.txt", err, i)
+		}
+
+		seq, err := strconv.ParseInt(
+			strings.TrimSpace(rec[seqIDX]), 10, 32,
+		)
+
+		id := rec[idIDX]
+
+		agency := l.routeAgency[l.shapeRoute[id]]
+
+		shape, err := models.NewShape(
+			id, agency, int(seq), lat, lon,
+		)
+
+		l.Shapes = append(l.Shapes, shape)
 	}
 }
 
@@ -482,6 +522,29 @@ func doOne(dir string) {
 			log.Printf("loaded %v stop times", i)
 		}
 	}
+
+	for i, t := range l.Trips {
+		err = t.Save()
+		if err != nil {
+			log.Fatalf("cannot save trip: %v", err)
+		}
+
+		if i%100 == 0 && i > 0 {
+			log.Printf("loaded %v trips", i)
+		}
+	}
+
+	for i, s := range l.Shapes {
+		err = s.Save()
+		if err != nil {
+			log.Fatalf("cannot save shape: %v", err)
+		}
+
+		if i%100 == 0 && i > 0 {
+			log.Printf("loaded %v shapes", i)
+		}
+	}
+
 }
 
 // LoadOnce loads the files in conf.Loader.GTFSURLs, possibly filtering by the

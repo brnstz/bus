@@ -51,6 +51,7 @@ func init() {
 // Route is https://developers.google.com/transit/gtfs/reference#routestxt
 type Route struct {
 	ID        string `json:"route_id" db:"route_id" upsert:"key"`
+	AgencyID  string `json:"agency_id" db:"agency_id" upsert:"key"`
 	Type      int    `json:"route_type" db:"route_type"`
 	TypeName  string `json:"route_type_name" db:"-" upsert:"omit"`
 	Color     string `json:"route_color" db:"route_color"`
@@ -80,7 +81,7 @@ func checkColor(color, def string) string {
 
 // NewRoute creates a Route given incoming data, typically from a routes.txt
 // file
-func NewRoute(id string, rtype int, color, textColor string) (r *Route, err error) {
+func NewRoute(id string, rtype int, color, textColor, agencyID string) (r *Route, err error) {
 	var ok bool
 
 	color = checkColor(color, defaultColor)
@@ -96,6 +97,7 @@ func NewRoute(id string, rtype int, color, textColor string) (r *Route, err erro
 		Type:      rtype,
 		Color:     color,
 		TextColor: textColor,
+		AgencyID:  agencyID,
 	}
 
 	// Load the string name of the route type, also checking that the incoming
