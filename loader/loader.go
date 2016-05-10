@@ -467,6 +467,10 @@ func (l *Loader) loadShapes() {
 		)
 
 		id := rec[idIDX]
+		route := l.shapeRoute[id]
+		if len(route) < 1 || l.skipRoute(route) {
+			continue
+		}
 
 		agency := l.routeAgency[l.shapeRoute[id]]
 
@@ -544,7 +548,6 @@ func doOne(dir string) {
 			log.Printf("loaded %v shapes", i)
 		}
 	}
-
 }
 
 // LoadOnce loads the files in conf.Loader.GTFSURLs, possibly filtering by the
