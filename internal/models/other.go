@@ -4,12 +4,6 @@ import "time"
 
 // This file contains transient types that aren't stored in the db
 
-type Trip struct {
-	ID          string
-	Headsign    string
-	DirectionID int
-}
-
 type ServiceRouteException struct {
 	ServiceID     string
 	RouteID       string

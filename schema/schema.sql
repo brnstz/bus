@@ -19,7 +19,7 @@ CREATE TABLE route (
     -- route_color and route_text_color are the hex values for the background
     -- and foreground color of the route, respectively (e.g., 000000)
     route_color         TEXT NOT NULL,
-    route_text_color    TEXT NOT NULL
+    route_text_color    TEXT NOT NULL,
 
     UNIQUE(agency_id, route_id)
 );
@@ -60,18 +60,22 @@ CREATE TABLE service_route_day (
 );
 
 CREATE TABLE trip (
-    trip_id     TEXT NOT NULL PRIMARY KEY,
+    agency_id   TEXT NOT NULL,
+    trip_id     TEXT NOT NULL,
     service_id  TEXT NOT NULL,
-    shape_id    TEXT NOT NULL
-)
+    shape_id    TEXT NOT NULL,
+
+    UNIQUE(agency_id, trip_id)
+);
 
 CREATE TABLE shape (
-    shape_id TEXT NOT NULL,
-    location EARTH NOT NULL,
-    seq      INT NOT NULL,
+    agency_id   TEXT NOT NULL,
+    shape_id    TEXT NOT NULL,
+    location    EARTH NOT NULL,
+    seq         INT NOT NULL,
 
-    UNIQUE(shape_id, seq)
-)
+    UNIQUE(agency_id, shape_id, seq)
+);
 
 CREATE TABLE service_route_exception (
     agency_id       TEXT NOT NULL,
@@ -87,6 +91,7 @@ CREATE TABLE scheduled_stop_time (
     route_id       TEXT NOT NULL,
     stop_id        TEXT NOT NULL,
     service_id     TEXT NOT NULL,
+    trip_id        TEXT NOT NULL,
     departure_sec  INT  NOT NULL,
     
     UNIQUE(agency_id, route_id, stop_id, service_id, departure_sec)

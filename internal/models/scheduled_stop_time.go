@@ -8,13 +8,16 @@ import (
 )
 
 type ScheduledStopTime struct {
+	AgencyID     string `db:"agency_id" upsert:"key"`
 	RouteID      string `db:"route_id" upsert:"key"`
 	StopID       string `db:"stop_id" upsert:"key"`
 	ServiceID    string `db:"service_id" upsert:"key"`
 	DepartureSec int    `db:"departure_sec" upsert:"key"`
+
+	TripID string `db:"trip_id"`
 }
 
-func NewScheduledStopTime(routeID, stopID, serviceID, timeStr string) (sst *ScheduledStopTime, err error) {
+func NewScheduledStopTime(routeID, stopID, serviceID, timeStr, agencyID, tripID string) (sst *ScheduledStopTime, err error) {
 	dsec := etc.TimeStrToSecs(timeStr)
 
 	sst = &ScheduledStopTime{
@@ -22,6 +25,8 @@ func NewScheduledStopTime(routeID, stopID, serviceID, timeStr string) (sst *Sche
 		StopID:       stopID,
 		ServiceID:    serviceID,
 		DepartureSec: dsec,
+		AgencyID:     agencyID,
+		TripID:       tripID,
 	}
 
 	return

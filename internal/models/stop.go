@@ -22,9 +22,10 @@ const (
 // stop serves more than one route, there are multiple distinct
 // entries for that stop.
 type Stop struct {
-	ID      string `json:"stop_id" db:"stop_id" upsert:"key"`
-	RouteID string `json:"route_id" db:"route_id" upsert:"key"`
-	Name    string `json:"stop_name" db:"stop_name"`
+	ID       string `json:"stop_id" db:"stop_id" upsert:"key"`
+	RouteID  string `json:"route_id" db:"route_id" upsert:"key"`
+	AgencyID string `json:"agency_id" db:"agency_id" upsert:"key"`
+	Name     string `json:"stop_name" db:"stop_name"`
 
 	DirectionID int    `json:"direction_id" db:"direction_id"`
 	Headsign    string `json:"headsign" db:"headsign"`
@@ -265,6 +266,7 @@ func GetStopsByLoc(db sqlx.Ext, lat, lon, meters float64, filter string) (stops 
 				direction_id,
 				headsign,
 				stop.route_id,
+				stop.agency_id,
 				latitude(location) AS lat,
 				longitude(location) AS lon,
 				earth_distance(location, ll_to_earth($1, $2)) AS dist
