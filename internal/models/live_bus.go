@@ -85,7 +85,6 @@ func GetLiveBus(route, dir, stop string) (d Departures, err error) {
 	q.Set("VehicleMonitoringDetailLevel", "calls")
 	q.Set("LineRef", lineRef)
 	u := fmt.Sprint(vmURL, "?", q.Encode())
-	log.Println(u)
 
 	b, err := etc.RedisCache(u)
 	if err != nil {

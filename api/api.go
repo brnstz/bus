@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"strconv"
@@ -14,28 +15,25 @@ import (
 	"github.com/brnstz/bus/internal/models"
 )
 
+var (
+	errBadRequest = errors.New("bad request")
+
+	// errCodes is a mapping from known errors to HTTP status codes
+	errCodes = map[error]int{
+		models.ErrNotFound: http.StatusNotFound,
+		errBadRequest:      http.StatusBadRequest,
+	}
+)
+
 func NewHandler() http.Handler {
 	mux := httprouter.New()
 
 	mux.GET("/api/v2/stops", getStops)
-	mux.GET("/api/v2/trips/:tripID/shapes", getShapes)
+	mux.GET("/api/v2/agencies/:agencyID/trips/:tripID", getTrip)
 
 	mux.Handler("GET", "/", http.FileServer(http.Dir(conf.API.WebDir)))
 
 	return mux
-}
-
-func floatOrDie(w http.ResponseWriter, r *http.Request, name string) (f float64, err error) {
-
-	val := r.FormValue(name)
-	f, err = strconv.ParseFloat(val, 64)
-	if err != nil {
-		log.Println("bad float value", val, err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	return
 }
 
 // stopResponse is the value returned by getStops
@@ -88,7 +86,7 @@ func getStops(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	stops, err := models.GetStopsByLoc(etc.DBConn, lat, lon, meters, filter)
 	if err != nil {
 		log.Println("can't get stops", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		webErr(w, err)
 		return
 	}
 
@@ -99,7 +97,7 @@ func getStops(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		resp.Results[i].Route, err = models.GetRoute(stop.RouteID)
 		if err != nil {
 			log.Println("can't get route for stop", err)
-			w.WriteHeader(http.StatusInternalServerError)
+			webErr(w, err)
 			return
 		}
 
@@ -114,16 +112,52 @@ func getStops(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	b, err := json.Marshal(resp)
 	if err != nil {
 		log.Println("can't marshal to json", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		webErr(w, err)
 		return
 	}
 
 	w.Write(b)
 }
 
-type shapesResponse struct {
+func getTrip(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+
+	trip, err := models.GetTrip(p.ByName("agencyID"), p.ByName("tripID"))
+	if err != nil {
+		log.Println("can't get trip", err)
+		webErr(w, err)
+		return
+	}
+
+	b, err := json.Marshal(trip)
+	if err != nil {
+		log.Println("can't marshal to json", err)
+		webErr(w, err)
+		return
+	}
+
+	w.Write(b)
 }
 
-func getShapes(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func floatOrDie(w http.ResponseWriter, r *http.Request, name string) (f float64, err error) {
 
+	val := r.FormValue(name)
+	f, err = strconv.ParseFloat(val, 64)
+	if err != nil {
+		log.Println("bad float value", val, err)
+		err = errBadRequest
+		return
+	}
+
+	return
+}
+
+// webErr writes an appropriate response to w given the incoming error
+// by looking at the errCodes map
+func webErr(w http.ResponseWriter, err error) {
+	code, ok := errCodes[err]
+	if !ok {
+		code = http.StatusInternalServerError
+	}
+
+	w.WriteHeader(code)
 }
