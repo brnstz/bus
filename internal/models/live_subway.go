@@ -54,15 +54,16 @@ func GetLiveSubways(route, dir, stop string) (d Departures, err error) {
 		log.Println("can't unmarshal", err)
 	}
 
-	log.Printf("received %d entity values for %v => %v", len(tr.Entity), route, dir)
-
 	for _, e := range tr.Entity {
+		tripID := e.TripUpdate.GetTrip().GetTripId()
 		updates := e.GetTripUpdate().GetStopTimeUpdate()
-		log.Printf("received %d update values for %v => %v", len(updates), route, dir)
 		for _, u := range updates {
 			if u.GetStopId() == stop {
 				d = append(d,
-					&Departure{Time: time.Unix(u.GetDeparture().GetTime(), 0)},
+					&Departure{
+						Time:   time.Unix(u.GetDeparture().GetTime(), 0),
+						TripID: tripID,
+					},
 				)
 			}
 		}
