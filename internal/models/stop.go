@@ -128,7 +128,7 @@ func (s *Stop) setDepartures(now time.Time, db sqlx.Ext) (err error) {
 			// Looks for trips starting yesterday that arrive here
 			// after midnight
 			yesterdayID, err = getServiceIDByDay(
-				db, s.RouteID, yesterdayName, &now,
+				db, s.RouteID, yesterdayName, yesterday,
 			)
 			if err == sql.ErrNoRows {
 				err = nil
@@ -159,7 +159,7 @@ func (s *Stop) setDepartures(now time.Time, db sqlx.Ext) (err error) {
 
 	func() {
 		var todayID string
-		todayID, err = getServiceIDByDay(db, s.RouteID, todayName, &now)
+		todayID, err = getServiceIDByDay(db, s.RouteID, todayName, today)
 		if err == sql.ErrNoRows {
 			err = nil
 			log.Println("no rows there", err)
@@ -256,7 +256,7 @@ func GetStopsByLoc(db sqlx.Ext, lat, lon, meters float64, filter string) (stops 
 	return stops, err
 }
 
-func getServiceIDByDay(db sqlx.Ext, routeID, day string, now *time.Time) (serviceID string, err error) {
+func getServiceIDByDay(db sqlx.Ext, routeID, day string, now time.Time) (serviceID string, err error) {
 
 	// Select the service_id that:
 	//   * matches our routeID and day

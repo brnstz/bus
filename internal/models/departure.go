@@ -28,7 +28,6 @@ type Departure struct {
 }
 
 func (d *Departure) init() error {
-	log.Println("what is basetime?", d.baseTime)
 	d.Time = d.baseTime.Add(time.Second * time.Duration(d.DepartureSec))
 
 	return nil
@@ -58,16 +57,15 @@ func getDepartures(agencyID, routeID, stopID, serviceID string, minSec int, base
 			   stop_id    =	$3 AND
 			   service_id =	$4 AND
 
-			   departure_sec    >= $5 AND
-			   departure_sec    >  $6
+			   departure_sec    >= $5
 
-		ORDER BY departure_sec LIMIT $7
+		ORDER BY departure_sec LIMIT $6
 	`
 
 	err = etc.DBConn.Select(&d, q, agencyID, routeID, stopID, serviceID,
-		minSec, minSec+maxSecs, maxDepartures)
+		minSec, maxDepartures)
 
-	log.Println(q, agencyID, routeID, stopID, serviceID, minSec, minSec+maxSecs, maxDepartures)
+	log.Println(q, agencyID, routeID, stopID, serviceID, minSec, maxDepartures)
 
 	if err != nil {
 		log.Println("can't get departures", err)
