@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/julienschmidt/httprouter"
@@ -86,7 +87,7 @@ func getStops(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	stops, err := models.GetStopsByLoc(etc.DBConn, lat, lon, meters, filter)
 	if err != nil {
 		log.Println("can't get stops", err)
-		webErr(w, err)
+		apiErr(w, err)
 		return
 	}
 
@@ -97,7 +98,7 @@ func getStops(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		resp.Results[i].Route, err = models.GetRoute(stop.RouteID)
 		if err != nil {
 			log.Println("can't get route for stop", err)
-			webErr(w, err)
+			apiErr(w, err)
 			return
 		}
 
@@ -112,7 +113,7 @@ func getStops(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	b, err := json.Marshal(resp)
 	if err != nil {
 		log.Println("can't marshal to json", err)
-		webErr(w, err)
+		apiErr(w, err)
 		return
 	}
 
@@ -120,18 +121,21 @@ func getStops(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 }
 
 func getTrip(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	// FIXME: hack
+	agencyID := strings.Replace(p.ByName("agencyID"), "+", " ", -1)
+	tripID := strings.Replace(p.ByName("tripID"), "+", " ", -1)
 
-	trip, err := models.GetTrip(p.ByName("agencyID"), p.ByName("tripID"))
+	trip, err := models.GetTrip(agencyID, tripID)
 	if err != nil {
 		log.Println("can't get trip", err)
-		webErr(w, err)
+		apiErr(w, err)
 		return
 	}
 
 	b, err := json.Marshal(trip)
 	if err != nil {
 		log.Println("can't marshal to json", err)
-		webErr(w, err)
+		apiErr(w, err)
 		return
 	}
 
@@ -151,9 +155,9 @@ func floatOrDie(w http.ResponseWriter, r *http.Request, name string) (f float64,
 	return
 }
 
-// webErr writes an appropriate response to w given the incoming error
+// apiErr writes an appropriate response to w given the incoming error
 // by looking at the errCodes map
-func webErr(w http.ResponseWriter, err error) {
+func apiErr(w http.ResponseWriter, err error) {
 	code, ok := errCodes[err]
 	if !ok {
 		code = http.StatusInternalServerError

@@ -46,7 +46,7 @@ func (t *Trip) Save() error {
 	return err
 }
 
-func GetTrip(agencyID string, tripID string) (t *Trip, err error) {
+func GetTrip(agencyID string, tripID string) (t Trip, err error) {
 	q := `
 		SELECT * 
 		FROM trip 
@@ -54,9 +54,9 @@ func GetTrip(agencyID string, tripID string) (t *Trip, err error) {
 		      trip_id = $2
 	`
 
-	err = etc.DBConn.Select(t, q, agencyID, tripID)
+	err = etc.DBConn.Get(&t, q, agencyID, tripID)
 	if err != nil {
-		log.Println("can't get trip", err)
+		log.Println("can't get trip")
 		return
 	}
 
@@ -70,7 +70,7 @@ func GetTrip(agencyID string, tripID string) (t *Trip, err error) {
 		ORDER BY seq ASC
 	`
 
-	err = etc.DBConn.Select(t.ShapePoints, q, agencyID, t.ShapeID)
+	err = etc.DBConn.Select(&t.ShapePoints, q, agencyID, t.ShapeID)
 	if err != nil {
 		log.Println("can't get shapes", err)
 		return

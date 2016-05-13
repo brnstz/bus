@@ -8,6 +8,7 @@ package bus_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -316,6 +317,47 @@ func TestScheduledBus(t *testing.T) {
 			if d.Time.Before(now) {
 				t.Errorf("expected scheduled time %v would be after or equal to %v but it was not", d.Time, now)
 			}
+		}
+	}
+}
+
+type tripResp struct {
+	ID           string
+	Shape_Points []struct {
+		Lat float64
+		Lon float64
+	}
+}
+
+func TestTrip(t *testing.T) {
+	trip := tripResp{}
+
+	agencyID := "MTA NYCT"
+	tripID := "B20151206SAT_083700_G..N13R"
+
+	u := fmt.Sprintf("%s/api/v2/agencies/%s/trips/%s",
+		serverURL, url.QueryEscape(agencyID), url.QueryEscape(tripID),
+	)
+	log.Println(u)
+
+	err := getJSON(&trip, u)
+	if err != nil {
+		t.Fatal("can't get API response for trip", err)
+	}
+
+	log.Println(len(trip.Shape_Points))
+
+	if len(trip.Shape_Points) != 520 {
+		t.Fatal("expected 520 shape points but got:", len(trip.Shape_Points))
+	}
+
+	for _, shape := range trip.Shape_Points {
+		if shape.Lat < 40 || shape.Lat > 41 {
+			t.Fatal("expected latitiude around 40 but got:", shape.Lat)
+		}
+
+		if shape.Lon > -73 || shape.Lon < -74 {
+			t.Fatal("expected longitude around -73 but got:", shape.Lon)
 		}
 	}
 }
