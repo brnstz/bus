@@ -151,6 +151,8 @@ func (s *Stop) setDepartures(now time.Time, db sqlx.Ext) (err error) {
 				return
 			}
 
+			log.Println("yesterday departures", departures)
+
 			allDepartures = append(allDepartures, departures...)
 		}
 	}()
@@ -177,6 +179,8 @@ func (s *Stop) setDepartures(now time.Time, db sqlx.Ext) (err error) {
 			log.Println("can't get departures", err)
 			return
 		}
+
+		log.Println("today departures", departures)
 
 		allDepartures = append(allDepartures, departures...)
 
