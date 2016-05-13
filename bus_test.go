@@ -33,6 +33,7 @@ var (
 // against.
 func TestMain(m *testing.M) {
 	var err error
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
 	err = envconfig.Process("bus", &conf.DB)
 	if err != nil {
