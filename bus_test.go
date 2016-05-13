@@ -49,6 +49,11 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 
+	time.Local, err = time.LoadLocation("America/New_York")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Load the just subway and Brooklyn bus files
 	conf.Loader.GTFSURLs = []string{
 		"http://web.mta.info/developers/data/nyct/subway/google_transit.zip",
