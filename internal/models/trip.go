@@ -18,8 +18,8 @@ type Trip struct {
 	DirectionID int    `json:"-" db:"-" upsert:"omit"`
 
 	ShapePoints []struct {
-		Lat float64
-		Lon float64
+		Lat float64 `json:"lat"`
+		Lon float64 `json:"lon"`
 	} `json:"shape_points" db:"-" upsert:"omit"`
 }
 
