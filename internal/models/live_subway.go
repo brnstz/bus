@@ -30,7 +30,7 @@ var (
 	}
 )
 
-func GetLiveSubways(route, dir, stop string) (ts timeSlice, err error) {
+func GetLiveSubways(route, dir, stop string) (d Departures, err error) {
 
 	feed, exists := routeToFeed[route]
 	if !exists {
@@ -61,7 +61,9 @@ func GetLiveSubways(route, dir, stop string) (ts timeSlice, err error) {
 		log.Printf("received %d update values for %v => %v", len(updates), route, dir)
 		for _, u := range updates {
 			if u.GetStopId() == stop {
-				ts = append(ts, time.Unix(u.GetDeparture().GetTime(), 0))
+				d = append(d,
+					&Departure{Time: time.Unix(u.GetDeparture().GetTime(), 0)},
+				)
 			}
 		}
 	}
