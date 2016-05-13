@@ -7,16 +7,20 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/julienschmidt/httprouter"
+
 	"github.com/brnstz/bus/internal/conf"
 	"github.com/brnstz/bus/internal/etc"
 	"github.com/brnstz/bus/internal/models"
 )
 
 func NewHandler() http.Handler {
-	mux := http.NewServeMux()
+	mux := httprouter.New()
 
-	mux.HandleFunc("/api/v2/stops", getStops)
-	mux.Handle("/", http.FileServer(http.Dir(conf.API.WebDir)))
+	mux.GET("/api/v2/stops", getStops)
+	mux.GET("/api/v2/trips/:tripID/shapes", getShapes)
+
+	mux.Handler("GET", "/", http.FileServer(http.Dir(conf.API.WebDir)))
 
 	return mux
 }
@@ -59,7 +63,7 @@ func newStopResponse() stopResponse {
 	}
 }
 
-func getStops(w http.ResponseWriter, r *http.Request) {
+func getStops(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	var err error
 
 	lat, err := floatOrDie(w, r, "lat")
@@ -115,4 +119,11 @@ func getStops(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(b)
+}
+
+type shapesResponse struct {
+}
+
+func getShapes(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+
 }
