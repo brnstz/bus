@@ -20,7 +20,7 @@ type Trip struct {
 	ShapePoints []struct {
 		Lat float64
 		Lon float64
-	} `json:"shape_points" db:"-"`
+	} `json:"shape_points" db:"-" upsert:"omit"`
 }
 
 func NewTrip(id, agencyID, serviceID, shapeID, headsign string, direction int) (t *Trip, err error) {
