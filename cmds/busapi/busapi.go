@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/kelseyhightower/envconfig"
 
@@ -21,6 +22,11 @@ func main() {
 	}
 
 	err = envconfig.Process("bus", &conf.API)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	time.Local, err = time.LoadLocation("America/New_York")
 	if err != nil {
 		log.Fatal(err)
 	}

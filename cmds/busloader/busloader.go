@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 
 	"github.com/brnstz/bus/internal/conf"
 	"github.com/brnstz/bus/internal/etc"
@@ -19,6 +20,11 @@ func main() {
 	}
 
 	err = envconfig.Process("bus", &conf.Loader)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	time.Local, err = time.LoadLocation("America/New_York")
 	if err != nil {
 		log.Fatal(err)
 	}
