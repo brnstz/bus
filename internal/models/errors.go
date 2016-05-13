@@ -11,4 +11,8 @@ var (
 	// ErrInvalidRouteType is returned by NewRoute when the route_type
 	// cannot be found
 	ErrInvalidRouteType = errors.New("invalid route_type")
+
+	// ErrNotFound is returned when something can't be found in a
+	// Get call
+	ErrNotFound = errors.New("not found")
 )
