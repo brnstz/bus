@@ -47,6 +47,10 @@ type journey struct {
 	DirectionRef string
 	LineRef      string
 
+	FramedVehicleJourneyRef struct {
+		DatedVehicleJourneyRef string
+	}
+
 	OnwardCalls struct {
 		OnwardCall []Call
 	}
@@ -71,7 +75,7 @@ type siriResp struct {
 	}
 }
 
-func GetCallsByRouteStop(route, dir, stop string) (calls CallSlice, err error) {
+func GetLiveBus(route, dir, stop string) (d Departures, err error) {
 	lineRef := fmt.Sprint("MTA NYCT_", route)
 	stopPointRef := fmt.Sprint("MTA_", stop)
 
@@ -81,6 +85,7 @@ func GetCallsByRouteStop(route, dir, stop string) (calls CallSlice, err error) {
 	q.Set("VehicleMonitoringDetailLevel", "calls")
 	q.Set("LineRef", lineRef)
 	u := fmt.Sprint(vmURL, "?", q.Encode())
+	log.Println(u)
 
 	b, err := etc.RedisCache(u)
 	if err != nil {
@@ -102,8 +107,15 @@ func GetCallsByRouteStop(route, dir, stop string) (calls CallSlice, err error) {
 
 			for _, oc := range act.MonitoredVehicleJourney.OnwardCalls.OnwardCall {
 				if oc.StopPointRef == stopPointRef {
-					log.Println("onward call: ", route, dir, stop, oc.Extensions.Distances.PresentableDistance, oc.ExpectedDepartureTime)
-					calls = append(calls, oc)
+					tripID := act.MonitoredVehicleJourney.FramedVehicleJourneyRef.DatedVehicleJourneyRef
+					// remove "MTA NYCT_" from front of string
+					if len(tripID) > 9 {
+						tripID = tripID[9:]
+					}
+					d = append(d, &Departure{
+						Time:   oc.ExpectedDepartureTime,
+						TripID: tripID,
+					})
 				}
 			}
 

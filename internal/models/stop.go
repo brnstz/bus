@@ -63,7 +63,7 @@ func (s *Stop) appendLive(now time.Time) {
 	}
 
 	if route.Type == Bus {
-		calls, err := GetCallsByRouteStop(
+		departures, err := GetLiveBus(
 			s.RouteID, strconv.Itoa(s.DirectionID),
 			s.ID,
 		)
@@ -72,11 +72,10 @@ func (s *Stop) appendLive(now time.Time) {
 			return
 		}
 
-		sort.Sort(calls)
-		for i := 0; i < len(calls) && i < maxDepartures; i++ {
-			s.Live = append(s.Live, &Departure{
-				Time: calls[i].ExpectedDepartureTime,
-			})
+		sort.Sort(departures)
+
+		for i := 0; i < len(departures) && i < maxDepartures; i++ {
+			s.Live = append(s.Live, departures[i])
 		}
 	} else if route.Type == Subway {
 
