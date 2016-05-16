@@ -37,6 +37,9 @@ function Bus() {
     // markers is stop ids mapped to markers on the map
     this.markers = {};
 
+    // paths is stop ids mapped to L.polyline paths on the map 
+    this.paths = {};
+
     // rows is stop ids mapped to rows in the results table
     this.rows = {};
 }
@@ -136,6 +139,35 @@ Bus.prototype.createRow = function(stop) {
     return row;
 };
 
+// createPath draws the path of this stop's display trip
+Bus.prototype.createPath = function(stop) {
+    var self = this;
+    var latlons = [];
+
+    if (!stop.api.display_trip.shape_points) {
+        return null;
+    }
+
+
+    for (var i = 0; i < stop.api.display_trip.shape_points.length; i++) {
+        var point = stop.api.display_trip.shape_points[i];
+        latlons[i] = L.latLng(point.lat, point.lon);
+    }
+
+    var line = L.polyline(
+        latlons, {
+            color: stop.api.route.route_color,
+            fillColor: stop.api.route.route_color,
+            opacity: stop.bg_opacity,
+            fillOpacity: stop.bg_opacity
+        }
+    );
+
+    console.log(line);
+
+    return line;
+}
+
 // clickHandler highlights the marker and the row for this stop_id
 Bus.prototype.clickHandler = function(stop_id) {
     var self = this;
@@ -145,6 +177,7 @@ Bus.prototype.clickHandler = function(stop_id) {
             var stop = self.stopList[i];
             var marker = self.markers[stop.api.id];
             var row = self.rows[stop.api.id];
+            var path = self.paths[stop.api.id];
 
             if (stop.api.id == stop_id) {
                 $(row).css("opacity", stop.fg_opacity);
@@ -152,6 +185,15 @@ Bus.prototype.clickHandler = function(stop_id) {
                     fillOpacity: stop.fg_opacity,
                 });
                 marker.bringToFront();
+
+                if (path !== null) {
+                    path.setStyle({
+                        opacity: stop.fg_opacity,
+                        fillOpacity: stop.fg_opacity
+                    });
+
+                    path.bringToFront();
+                }
 
                 self.map.setView([stop.api.stop.lat, stop.api.stop.lon]);
 
@@ -186,15 +228,21 @@ Bus.prototype.updateStops = function() {
         var stop = self.stopList[i];
         var row = self.createRow(stop);
         var marker = self.createMarker(stop);
+        var path = self.createPath(stop);
 
         // Put into maps
         self.stops[stop.api.id] = stop;
         self.markers[stop.api.id] = marker;
         self.rows[stop.api.id] = row;
+        self.paths[stop.api.id] = path;
 
         // Add to display
         $(tbody).append(row);
         marker.addTo(self.map);
+        if (path !== null) {
+            console.log("doing it right now");
+            path.addTo(self.map);
+        }
 
         var handler = self.clickHandler(stop.api.id);
         marker.on('click', handler);

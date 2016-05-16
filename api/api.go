@@ -75,7 +75,7 @@ type stopResult struct {
 	} `json:"departures"`
 	Dist float64 `json:"dist"`
 
-	DisplayTrip *models.Trip `json:"trip"`
+	DisplayTrip *models.Trip `json:"display_trip"`
 }
 
 func newStopResponse() stopResponse {
