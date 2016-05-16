@@ -3,17 +3,19 @@ package api
 import (
 	"encoding/json"
 	"errors"
+	"io"
 	"log"
 	"net/http"
+	"os"
+	"path"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/julienschmidt/httprouter"
-
 	"github.com/brnstz/bus/internal/conf"
 	"github.com/brnstz/bus/internal/etc"
 	"github.com/brnstz/bus/internal/models"
+	"github.com/julienschmidt/httprouter"
 )
 
 var (
@@ -24,17 +26,35 @@ var (
 		models.ErrNotFound: http.StatusNotFound,
 		errBadRequest:      http.StatusBadRequest,
 	}
+
+	staticPaths = []string{"js", "css"}
 )
 
 func NewHandler() http.Handler {
 	mux := httprouter.New()
 
+	mux.GET("/", getIndex)
 	mux.GET("/api/v2/stops", getStops)
 	mux.GET("/api/v2/agencies/:agencyID/trips/:tripID", getTrip)
 
-	mux.Handler("GET", "/", http.FileServer(http.Dir(conf.API.WebDir)))
+	for _, v := range staticPaths {
+		endpoint := "/" + v + "/*filepath"
+		dir := http.Dir(path.Join(conf.API.WebDir, v))
+		mux.ServeFiles(endpoint, dir)
+	}
 
 	return mux
+}
+
+func getIndex(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
+	fh, err := os.Open(path.Join(conf.API.WebDir, "index.html"))
+	if err != nil {
+		apiErr(w, err)
+		return
+	}
+
+	io.Copy(w, fh)
+	fh.Close()
 }
 
 // stopResponse is the value returned by getStops
@@ -54,6 +74,8 @@ type stopResult struct {
 		Scheduled []*models.Departure `json:"scheduled"`
 	} `json:"departures"`
 	Dist float64 `json:"dist"`
+
+	DisplayTrip *models.Trip `json:"trip"`
 }
 
 func newStopResponse() stopResponse {
@@ -108,6 +130,24 @@ func getStops(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		resp.Results[i].Departures.Scheduled = stop.Scheduled
 
 		resp.Results[i].ID = resp.Results[i].Route.ID + "_" + resp.Results[i].Stop.ID
+
+		// Get the most relevant trip for DisplayTrip
+		departures := []*models.Departure{}
+		departures = append(departures, stop.Live...)
+		departures = append(departures, stop.Scheduled...)
+
+		for _, v := range departures {
+			t, err := models.GetTrip(resp.Results[i].Stop.AgencyID, v.TripID)
+			if err != nil {
+				log.Println("can't get display trip", err)
+				continue
+			}
+
+			// Get the first one, then stop
+			resp.Results[i].DisplayTrip = &t
+			break
+		}
+
 	}
 
 	b, err := json.Marshal(resp)
