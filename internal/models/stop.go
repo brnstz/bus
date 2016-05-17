@@ -179,8 +179,6 @@ func (s *Stop) setDepartures(now time.Time, db sqlx.Ext) (err error) {
 			return
 		}
 
-		log.Println("today departures", departures)
-
 		allDepartures = append(allDepartures, departures...)
 
 	}()
@@ -201,58 +199,36 @@ func (s *Stop) setDepartures(now time.Time, db sqlx.Ext) (err error) {
 	return
 }
 
-// GetStopsByLoc returns a list of stops within meters of this lat and lon
-func GetStopsByLoc(db sqlx.Ext, lat, lon, meters float64, filter string) (stops []*Stop, err error) {
+//
+func GetStopsByQuery(db sqlx.Ext, sq *StopQuery) (stops []Stop, err error) {
+	now := time.Now()
 
-	stops = []*Stop{}
-	params := []interface{}{lat, lon, lat, lon, meters}
-
-	q := `
-		SELECT * FROM (
-			SELECT
-				DISTINCT ON (stop.route_id, direction_id)
-				stop_id,
-				stop_name,
-				direction_id,
-				headsign,
-				stop.route_id,
-				stop.agency_id,
-				latitude(location) AS lat,
-				longitude(location) AS lon,
-				earth_distance(location, ll_to_earth($1, $2)) AS dist
-			FROM stop INNER JOIN
-			     route ON stop.route_id = route.route_id
-			WHERE earth_box(ll_to_earth($3, $4), $5) @> location
-	`
-
-	if len(filter) > 0 {
-		q = q + ` AND route.route_type = $6 `
-		params = append(params, routeTypeInt[filter])
-	}
-
-	q = q + ` 
-			ORDER BY stop.route_id, direction_id, dist
-		) unique_routes
-
-		ORDER BY dist ASC
-	`
-
-	err = sqlx.Select(db, &stops, q, params...)
+	// Get rows matching the stop query
+	rows, err := sqlx.NamedQuery(db, sq.Query(), sq)
 	if err != nil {
-		log.Println("can't get stop", err)
+		log.Println("can't get stops", err)
 		return
 	}
 
-	now := time.Now()
-	for _, stop := range stops {
+	for rows.Next() {
+		var stop Stop
+
+		err = rows.StructScan(&stop)
+		if err != nil {
+			log.Println("can't scan stop", err)
+			return
+		}
+
 		err = stop.setDepartures(now, db)
 		if err != nil {
 			log.Println("can't set departures", err)
-			return stops, err
+			return
 		}
+
+		stops = append(stops, stop)
 	}
 
-	return stops, err
+	return
 }
 
 func getServiceIDByDay(db sqlx.Ext, routeID, day string, now time.Time) (serviceID string, err error) {

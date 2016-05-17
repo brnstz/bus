@@ -1,9 +1,6 @@
 package models
 
-import (
-	"log"
-	"time"
-)
+import "time"
 
 // This file contains transient types that aren't stored in the db
 
@@ -22,12 +19,10 @@ type Service struct {
 // and nanosecond values set so zero, so that it represents the start
 // of the day
 func baseTime(t time.Time) time.Time {
-	log.Println("before t", t)
 	t = t.Add(-time.Hour * time.Duration(t.Hour()))
 	t = t.Add(-time.Minute * time.Duration(t.Minute()))
 	t = t.Add(-time.Second * time.Duration(t.Second()))
 	t = t.Add(-time.Nanosecond * time.Duration(t.Nanosecond()))
-	log.Println("after t", t)
 
 	return t
 }
