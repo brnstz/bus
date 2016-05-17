@@ -199,7 +199,7 @@ func (s *Stop) setDepartures(now time.Time, db sqlx.Ext) (err error) {
 	return
 }
 
-//
+// GetStopsByQuery returns stops matching this StopQuery
 func GetStopsByQuery(db sqlx.Ext, sq *StopQuery) (stops []Stop, err error) {
 	now := time.Now()
 
