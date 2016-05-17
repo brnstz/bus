@@ -1,5 +1,5 @@
 body {
-	padding-top: 30px;
+	padding-top: 5px;
 }
 
 #map { 
@@ -11,6 +11,18 @@ body {
     font-weight: bold;
 }
 
+#results {
+    padding-top: 5px;
+}
+
 #results tr {
     cursor: pointer;
+}
+
+#geolocate {
+    margin-bottom: 5px;
+}
+
+#refresh {
+    margin-bottom: 5px;
 }

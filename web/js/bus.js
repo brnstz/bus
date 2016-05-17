@@ -25,7 +25,7 @@ function Bus() {
     this.zoom = 16;
 
     // map is our Leaflet JS map object
-    this.map = L.map('map');
+    this.map = null;
 
     // stopList is the list of results in the order returned by the API 
     // (i.e., distance from location)
@@ -46,29 +46,48 @@ function Bus() {
 
 // init is run when the page initially loads
 Bus.prototype.init = function() {
-    this.refresh();
+    var self = this;
+
+    self.map = L.map('map');
+
+    self.map.on("dragend", function() {
+        var ll = self.map.getCenter();
+        self.updatePosition(ll.lat, ll.lng);
+    });
+
+    self.geolocate();
 };
 
 // refresh requests the location from the browser, sets our lat / lon and
 // gets new trips from the API 
-Bus.prototype.refresh = function() {
+Bus.prototype.geolocate = function() {
     var self = this;
 
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(p) {
-            self.updatePosition(p)
+            self.updatePosition(
+                p.coords.latitude,
+                p.coords.longitude
+            );
         });
     }
 };
 
+Bus.prototype.refresh = function() {
+    var self = this;
+
+    // Get the results for this location
+    self.getStops();
+};
+
 // updatePosition takes an HTML5 geolocation position response and 
 // updates our map and trip info
-Bus.prototype.updatePosition = function(position) {
+Bus.prototype.updatePosition = function(lat, lon) {
     var self = this;
 
     // Set our lat and lon based on the coords
-    self.lat = position.coords.latitude;
-    self.lon = position.coords.longitude;
+    self.lat = lat;
+    self.lon = lon;
 
     // Set location and zoom of the map.
     self.map.setView([self.lat, self.lon], self.zoom);
@@ -139,7 +158,7 @@ Bus.prototype.createPath = function(stop) {
     var self = this;
     var latlons = [];
 
-    if (!stop.api.display_trip.shape_points) {
+    if (!(stop.api.display_trip && stop.api.display_trip.shape_points)) {
         return null;
     }
 
@@ -157,8 +176,6 @@ Bus.prototype.createPath = function(stop) {
             fillOpacity: stop.bg_opacity
         }
     );
-
-    console.log(line);
 
     return line;
 }
@@ -235,7 +252,6 @@ Bus.prototype.updateStops = function() {
         $(tbody).append(row);
         marker.addTo(self.map);
         if (path !== null) {
-            console.log("doing it right now");
             path.addTo(self.map);
         }
 

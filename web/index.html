@@ -32,14 +32,17 @@
 
     <body>
         <div class="container" role="main">
+            <button id="geolocate" type="button" class="btn btn-primary" onclick="bus.geolocate();">
+				<span class="glyphicon glyphicon-screenshot"></span>
+			</button>
+
+            <button id="refresh" type="button" class="btn btn-success" onclick="bus.refresh();">
+				<span class="glyphicon glyphicon-refresh"></span>
+            </button>
+
 			<div id="map"></div>
 
-            <p>
-            <button id="refresh" type="button" class="btn-success form-control" onclick="bus.refresh();">Refresh</button>
-            </p>
-
         	<div id="results"></div>
-
         </div>
 
     </body>
