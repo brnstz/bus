@@ -20,6 +20,8 @@ var (
 	days        = []string{"monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"}
 	datefmt     = "20060102"
 	loaderBreak = time.Hour * 24
+
+	logp = 1000
 )
 
 type Loader struct {
@@ -31,10 +33,6 @@ type Loader struct {
 
 	// mapping from stop_id to a slice of trip_ids
 	stopTrips map[string][]string
-
-	// a map of "{stop_id}-{route_id}" to stop objects. Essentially a
-	// list of unique stops by route.
-	uniqueStop map[string]*models.Stop
 
 	// mapping of trip_id to service object
 	tripService map[string]*models.Service
@@ -53,9 +51,6 @@ type Loader struct {
 	// shapeRoute maps shape_id to route_id (for purposes of adding agency_id
 	// to shapes table)
 	shapeRoute map[string]string
-
-	Stops                  []*models.Stop
-	ServiceRouteExceptions []*models.ServiceRouteException
 }
 
 func newLoader(dir string) *Loader {
@@ -64,7 +59,6 @@ func newLoader(dir string) *Loader {
 		trips:        map[string]*models.Trip{},
 		stopTrips:    map[string][]string{},
 		tripRoute:    map[string]string{},
-		uniqueStop:   map[string]*models.Stop{},
 		tripService:  map[string]*models.Service{},
 		serviceRoute: map[string]map[string]bool{},
 		routeAgency:  map[string]string{},
@@ -84,8 +78,6 @@ func newLoader(dir string) *Loader {
 		}
 	}
 
-	l.load()
-
 	return &l
 }
 
@@ -96,14 +88,6 @@ func (l *Loader) load() {
 	l.loadUniqueStop()
 	l.loadCalendars()
 	l.loadShapes()
-
-	l.Stops = make([]*models.Stop, len(l.uniqueStop))
-
-	i := 0
-	for _, v := range l.uniqueStop {
-		l.Stops[i] = v
-		i++
-	}
 }
 
 func getcsv(dir, name string) *csv.Reader {
@@ -142,6 +126,7 @@ func (l *Loader) skipRoute(routeID string) bool {
 }
 
 func (l *Loader) loadRoutes() {
+	var i int
 	f := getcsv(l.dir, "routes.txt")
 
 	header, err := f.Read()
@@ -155,7 +140,7 @@ func (l *Loader) loadRoutes() {
 	routeTextColorIdx := find(header, "route_text_color")
 	routeAgencyIdx := find(header, "agency_id")
 
-	for i := 0; ; i++ {
+	for i = 0; ; i++ {
 		rec, err := f.Read()
 		if err == io.EOF {
 			break
@@ -193,9 +178,13 @@ func (l *Loader) loadRoutes() {
 		l.routeAgency[route] = agencyID
 	}
 
+	log.Printf("loaded %v routes", i)
+
 }
 
 func (l *Loader) loadTrips() {
+	var i int
+
 	f := getcsv(l.dir, "trips.txt")
 
 	header, err := f.Read()
@@ -210,7 +199,7 @@ func (l *Loader) loadTrips() {
 	routeIdx := find(header, "route_id")
 	shapeIdx := find(header, "shape_id")
 
-	for i := 0; ; i++ {
+	for i = 0; ; i++ {
 		rec, err := f.Read()
 		if err == io.EOF {
 			break
@@ -262,11 +251,20 @@ func (l *Loader) loadTrips() {
 
 		l.tripRoute[id] = route
 		l.shapeRoute[shape] = route
+
+		if i%logp == 0 {
+			log.Printf("loaded %v trips", i)
+		}
+
 	}
+
+	log.Printf("loaded %v trips", i)
 
 }
 
 func (l *Loader) loadStopTrips() {
+	var i int
+
 	stopTimes := getcsv(l.dir, "stop_times.txt")
 
 	header, err := stopTimes.Read()
@@ -277,7 +275,7 @@ func (l *Loader) loadStopTrips() {
 	stopIdx := find(header, "stop_id")
 	tripIdx := find(header, "trip_id")
 	timeIdx := find(header, "departure_time")
-	for i := 0; ; i++ {
+	for i = 0; ; i++ {
 		rec, err := stopTimes.Read()
 		if err == io.EOF {
 			break
@@ -309,12 +307,19 @@ func (l *Loader) loadStopTrips() {
 		err = sst.Save()
 		if err != nil {
 			log.Fatalf("%v on line %v of stop_times.txt", err, i)
+		}
 
+		if i%logp == 0 {
+			log.Printf("loaded %v stop times", i)
 		}
 	}
+
+	log.Printf("loaded %v stop times", i)
 }
 
 func (l *Loader) loadUniqueStop() {
+	var i int
+
 	stops := getcsv(l.dir, "stops.txt")
 
 	header, err := stops.Read()
@@ -327,7 +332,7 @@ func (l *Loader) loadUniqueStop() {
 	stopLatIdx := find(header, "stop_lat")
 	stopLonIdx := find(header, "stop_lon")
 
-	for i := 0; ; i++ {
+	for i = 0; ; i++ {
 		rec, err := stops.Read()
 		if err == io.EOF {
 			break
@@ -368,13 +373,25 @@ func (l *Loader) loadUniqueStop() {
 					Headsign:    l.trips[trip].Headsign,
 					AgencyID:    l.routeAgency[l.tripRoute[trip]],
 				}
-				l.uniqueStop[obj.Key()] = &obj
+
+				err = obj.Save()
+				if err != nil {
+					log.Fatalf("%v on line %v of stops.txt", err, i)
+				}
 			}
 		}
+
+		if i%logp == 0 {
+			log.Printf("loaded %v stops", i)
+		}
 	}
+
+	log.Printf("loaded %v stops", i)
 }
 
 func (l *Loader) loadCalendars() {
+	var i int
+
 	cal := getcsv(l.dir, "calendar.txt")
 
 	header, err := cal.Read()
@@ -390,7 +407,7 @@ func (l *Loader) loadCalendars() {
 	startDateIdx := find(header, "start_date")
 	endDateIdx := find(header, "end_date")
 
-	for i := 0; ; i++ {
+	for i = 0; ; i++ {
 		rec, err := cal.Read()
 		if err == io.EOF {
 			break
@@ -433,10 +450,18 @@ func (l *Loader) loadCalendars() {
 				}
 			}
 		}
+
+		if i%logp == 0 {
+			log.Printf("loaded %v calendars", i)
+		}
 	}
+
+	log.Printf("loaded %v calendars", i)
 }
 
 func (l *Loader) loadShapes() {
+	var i int
+
 	shapes := getcsv(l.dir, "shapes.txt")
 
 	header, err := shapes.Read()
@@ -449,7 +474,7 @@ func (l *Loader) loadShapes() {
 	lonIDX := find(header, "shape_pt_lon")
 	seqIDX := find(header, "shape_pt_sequence")
 
-	for i := 0; ; i++ {
+	for i = 0; ; i++ {
 		rec, err := shapes.Read()
 		if err == io.EOF {
 			break
@@ -488,7 +513,13 @@ func (l *Loader) loadShapes() {
 		if err != nil {
 			log.Fatalf("%v on line %v of shapes.txt", err, i)
 		}
+
+		if i%logp == 0 {
+			log.Printf("loaded %v shapes", i)
+		}
 	}
+
+	log.Printf("loaded %v shapes", i)
 }
 
 // LoadOnce loads the files in conf.Loader.GTFSURLs, possibly filtering by the
@@ -496,6 +527,7 @@ func (l *Loader) loadShapes() {
 // it loads all data in the specified URLs.
 func LoadOnce() {
 	for _, url := range conf.Loader.GTFSURLs {
+		log.Printf("starting %v", url)
 
 		// FIXME: do this in Go, need to make it integrated with loader
 		dir, err := ioutil.TempDir(conf.Loader.TmpDir, "")
