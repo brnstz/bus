@@ -1,19 +1,25 @@
 // Stop is a single instance of a stop
 function Stop(api) {
+    console.log("ugh", api.route.route_id);
+
+    var self = this;
+
     // api is the object returned by the API. We leave this as read-only
     // and add any other info we want as a sibling data piece.
-    this.api = api;
+    self.api = api;
 
-    this.bg_opacity = 0.5;
-    this.fg_opacity = 1.0;
-    this.radius = 20;
+    self.route_id = api.route.route_id;
+
+    self.bg_opacity = 0.5;
+    self.fg_opacity = 1.0;
+    self.radius = 20;
 
     // live is true if we have live departures
-    this.live = this.isLive();
+    self.live = self.isLive();
 
     // departures is the text of the departures we want to display 
     // in the table
-    this.departures = this.createDepartures();
+    self.departures = self.createDepartures();
 }
 
 // isLive returns true if we have live departures, false if we are using

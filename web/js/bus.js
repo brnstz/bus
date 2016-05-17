@@ -109,9 +109,15 @@ Bus.prototype.parseStops = function(data) {
 
     // Create a stop object for each result and save to our list
     for (var i = 0; i < data.results.length; i++) {
-        var s = new Stop(data.results[i]);
-        self.stopList[i] = s;
+        (function() {
+            var s = new Stop(data.results[i]);
+            console.log(s);
+            console.log(data.results[i]);
+            self.stopList[i] = s;
+        }());
     }
+
+    self.updateStops();
 };
 
 // createMarker creates the map marker for this stop
@@ -130,7 +136,7 @@ Bus.prototype.createMarker = function(stop) {
 };
 
 // createRow creates a results row for this stop
-Bus.prototype.createRow = function(stop) {
+Bus.prototype.createRow = function(stop, i) {
     var cellCSS = {
         "color": stop.api.route.route_text_color,
         "background-color": stop.api.route.route_color,
@@ -138,11 +144,12 @@ Bus.prototype.createRow = function(stop) {
     };
 
     // Create our row object
-    var row = $("<tr>").css(cellCSS);
+    var row = $("<tr>");
+    $(row).css(cellCSS);
 
     // Create and append the cell containing the route identifier
     // with colored background
-    $(row).append($("<td>").text(stop.api.stop.route_id));
+    $(row).append($("<td>").text(stop.route_id))
 
     var headsign = $('<span class="headsign">' + stop.api.stop.headsign + '</span>');
     $(row).append($("<td>").append(headsign));
@@ -238,7 +245,7 @@ Bus.prototype.updateStops = function() {
     for (var i = 0; i < self.stopList.length; i++) {
         // create the stop row and markers
         var stop = self.stopList[i];
-        var row = self.createRow(stop);
+        var row = self.createRow(stop, i);
         var marker = self.createMarker(stop);
         var path = self.createPath(stop);
 
@@ -280,7 +287,6 @@ Bus.prototype.getStops = function() {
         dataType: "json",
         success: function(data) {
             self.parseStops(data);
-            self.updateStops();
         },
 
         error: function(xhr, stat, err) {
