@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	_ "net/http/pprof"
+
 	"github.com/kelseyhightower/envconfig"
 
 	"github.com/brnstz/bus/api"
@@ -34,6 +36,10 @@ func main() {
 	etc.DBConn = etc.MustDB()
 
 	handler := api.NewHandler()
+
+	go func() {
+		http.ListenAndServe("localhost:6060", nil)
+	}()
 
 	log.Fatal(http.ListenAndServe(conf.API.Addr, handler))
 }

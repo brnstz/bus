@@ -54,16 +54,11 @@ type Loader struct {
 	// to shapes table)
 	shapeRoute map[string]string
 
-	Routes                 []*models.Route
-	Trips                  []*models.Trip
-	Shapes                 []*models.Shape
 	Stops                  []*models.Stop
-	ScheduledStopTimes     []*models.ScheduledStopTime
-	ServiceRouteDays       []*models.ServiceRouteDay
 	ServiceRouteExceptions []*models.ServiceRouteException
 }
 
-func NewLoader(dir string) *Loader {
+func newLoader(dir string) *Loader {
 	l := Loader{
 		dir:          dir,
 		trips:        map[string]*models.Trip{},
@@ -89,12 +84,12 @@ func NewLoader(dir string) *Loader {
 		}
 	}
 
-	l.init()
+	l.load()
 
 	return &l
 }
 
-func (l *Loader) init() {
+func (l *Loader) load() {
 	l.loadRoutes()
 	l.loadTrips()
 	l.loadStopTrips()
@@ -190,7 +185,10 @@ func (l *Loader) loadRoutes() {
 			log.Fatalf("%v on line %v of routes.txt", err, i)
 		}
 
-		l.Routes = append(l.Routes, r)
+		err = r.Save()
+		if err != nil {
+			log.Fatalf("%v on line %v of routes.txt", err, i)
+		}
 
 		l.routeAgency[route] = agencyID
 	}
@@ -257,7 +255,10 @@ func (l *Loader) loadTrips() {
 		}
 		l.serviceRoute[service][route] = true
 
-		l.Trips = append(l.Trips, trip)
+		err = trip.Save()
+		if err != nil {
+			log.Fatalf("%v on line %v of trips.txt", err, i)
+		}
 
 		l.tripRoute[id] = route
 		l.shapeRoute[shape] = route
@@ -302,11 +303,14 @@ func (l *Loader) loadStopTrips() {
 			service.RouteID, stop, service.ID, timeStr, agencyID, trip,
 		)
 		if err != nil {
-			log.Fatal("can't create sst", rec, err)
+			log.Fatalf("%v on line %v of stop_times.txt", err, i)
 		}
 
-		l.ScheduledStopTimes = append(l.ScheduledStopTimes, sst)
+		err = sst.Save()
+		if err != nil {
+			log.Fatalf("%v on line %v of stop_times.txt", err, i)
 
+		}
 	}
 }
 
@@ -423,7 +427,10 @@ func (l *Loader) loadCalendars() {
 					EndDate:   endDate,
 				}
 
-				l.ServiceRouteDays = append(l.ServiceRouteDays, &srd)
+				err = srd.Save()
+				if err != nil {
+					log.Fatalf("%v on line %v of calendar.txt with %v", err, i, srd)
+				}
 			}
 		}
 	}
@@ -477,75 +484,9 @@ func (l *Loader) loadShapes() {
 		shape, err := models.NewShape(
 			id, agency, int(seq), lat, lon,
 		)
-
-		l.Shapes = append(l.Shapes, shape)
-	}
-}
-
-func doOne(dir string) {
-	var err error
-
-	l := NewLoader(dir)
-
-	for _, r := range l.Routes {
-		err = r.Save()
+		err = shape.Save()
 		if err != nil {
-			log.Fatalf("cannot save route: %v", err)
-		}
-	}
-
-	for i, s := range l.ServiceRouteDays {
-		err = s.Save()
-		if err != nil {
-			log.Fatalf("cannot save service route day: %v", err)
-		}
-
-		if i%100 == 0 && i > 0 {
-			log.Printf("loaded %v service route days", i)
-		}
-	}
-
-	for i, s := range l.Stops {
-		err = s.Save()
-		if err != nil {
-			log.Fatalf("cannot save stop: %v", err)
-		}
-
-		if i%100 == 0 && i > 0 {
-			log.Printf("loaded %v stops", i)
-		}
-	}
-
-	for i, sst := range l.ScheduledStopTimes {
-		err = sst.Save()
-		if err != nil {
-			log.Fatalf("cannot save scheduled stop time: %v", err)
-		}
-
-		if i%100000 == 0 && i > 0 {
-			log.Printf("loaded %v stop times", i)
-		}
-	}
-
-	for i, t := range l.Trips {
-		err = t.Save()
-		if err != nil {
-			log.Fatalf("cannot save trip: %v", err)
-		}
-
-		if i%100 == 0 && i > 0 {
-			log.Printf("loaded %v trips", i)
-		}
-	}
-
-	for i, s := range l.Shapes {
-		err = s.Save()
-		if err != nil {
-			log.Fatalf("cannot save shape: %v", err)
-		}
-
-		if i%100 == 0 && i > 0 {
-			log.Printf("loaded %v shapes", i)
+			log.Fatalf("%v on line %v of shapes.txt", err, i)
 		}
 	}
 }
@@ -578,7 +519,8 @@ func LoadOnce() {
 			defer os.RemoveAll(dir)
 
 			t1 := time.Now()
-			doOne(dir)
+			l := newLoader(dir)
+			l.load()
 			t2 := time.Now()
 
 			log.Printf("took %v for %v", t2.Sub(t1), url)

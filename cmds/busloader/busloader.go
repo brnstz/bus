@@ -2,7 +2,10 @@ package main
 
 import (
 	"log"
+	"net/http"
 	"time"
+
+	_ "net/http/pprof"
 
 	"github.com/brnstz/bus/internal/conf"
 	"github.com/brnstz/bus/internal/etc"
@@ -13,6 +16,10 @@ import (
 func main() {
 	var err error
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+
+	go func() {
+		http.ListenAndServe("localhost:6060", nil)
+	}()
 
 	err = envconfig.Process("bus", &conf.DB)
 	if err != nil {
