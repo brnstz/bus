@@ -25,7 +25,7 @@ function Bus() {
     this.zoom = 16;
 
     // map is our Leaflet JS map object
-    this.map = null;
+    this.map = L.map('map');
 
     // stopList is the list of results in the order returned by the API 
     // (i.e., distance from location)
@@ -69,11 +69,6 @@ Bus.prototype.updatePosition = function(position) {
     // Set our lat and lon based on the coords
     self.lat = position.coords.latitude;
     self.lon = position.coords.longitude;
-
-    // If we don't have a map, create one.
-    if (self.map == null) {
-        self.map = L.map('map');
-    }
 
     // Set location and zoom of the map.
     self.map.setView([self.lat, self.lon], self.zoom);
