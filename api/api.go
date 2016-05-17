@@ -106,7 +106,14 @@ func getStops(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 	meters := etc.MileToMeter(miles)
 
-	stops, err := models.GetStopsByLoc(etc.DBConn, lat, lon, meters, filter)
+	sq, err := models.NewStopQueryDist(lat, lon, meters, filter)
+	if err != nil {
+		log.Println("can't create stop query", err)
+		apiErr(w, err)
+		return
+	}
+
+	stops, err := models.GetStopsByQuery(etc.DBConn, sq)
 	if err != nil {
 		log.Println("can't get stops", err)
 		apiErr(w, err)
@@ -124,7 +131,7 @@ func getStops(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 			return
 		}
 
-		resp.Results[i].Stop = stop
+		resp.Results[i].Stop = &stop
 		resp.Results[i].Dist = stop.Dist
 		resp.Results[i].Departures.Live = stop.Live
 		resp.Results[i].Departures.Scheduled = stop.Scheduled

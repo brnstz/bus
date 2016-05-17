@@ -65,8 +65,6 @@ func getDepartures(agencyID, routeID, stopID, serviceID string, minSec int, base
 	err = etc.DBConn.Select(&d, q, agencyID, routeID, stopID, serviceID,
 		minSec, maxDepartures)
 
-	log.Println(q, agencyID, routeID, stopID, serviceID, minSec, maxDepartures)
-
 	if err != nil {
 		log.Println("can't get departures", err)
 		return
@@ -79,8 +77,6 @@ func getDepartures(agencyID, routeID, stopID, serviceID string, minSec int, base
 			log.Println("can't init departure", err)
 			return
 		}
-
-		log.Println(departure)
 	}
 
 	return
