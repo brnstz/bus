@@ -67,6 +67,8 @@ func TestMain(m *testing.M) {
 		"G", "L", "B62", "B43", "B32",
 	}
 
+	conf.API.WebDir = "web/"
+
 	// Get a db connection
 	etc.DBConn = etc.MustDB()
 
