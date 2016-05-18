@@ -35,6 +35,10 @@ func main() {
 
 	etc.DBConn = etc.MustDB()
 
+	if conf.API.BuildTimestamp == 0 {
+		conf.API.BuildTimestamp = time.Now().Unix()
+	}
+
 	handler := api.NewHandler()
 
 	go func() {

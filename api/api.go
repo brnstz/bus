@@ -3,10 +3,9 @@ package api
 import (
 	"encoding/json"
 	"errors"
-	"io"
+	"html/template"
 	"log"
 	"net/http"
-	"os"
 	"path"
 	"strconv"
 	"strings"
@@ -28,15 +27,30 @@ var (
 	}
 
 	staticPaths = []string{"js", "css"}
+
+	indexTemplate *template.Template
 )
 
 func NewHandler() http.Handler {
+	var err error
+
+	// Create our mux
 	mux := httprouter.New()
 
+	// Create index template
+	indexTemplate, err = template.ParseFiles(
+		path.Join(conf.API.WebDir, "index.html"),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Set up index and dynamic endpoints
 	mux.GET("/", getIndex)
 	mux.GET("/api/v2/stops", getStops)
 	mux.GET("/api/v2/agencies/:agencyID/trips/:tripID", getTrip)
 
+	// Create static endpoints
 	for _, v := range staticPaths {
 		endpoint := "/" + v + "/*filepath"
 		dir := http.Dir(path.Join(conf.API.WebDir, v))
@@ -47,18 +61,13 @@ func NewHandler() http.Handler {
 }
 
 func getIndex(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
-	fh, err := os.Open(path.Join(conf.API.WebDir, "index.html"))
-	if err != nil {
-		apiErr(w, err)
-		return
-	}
-
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Header().Set("Pragma", "no-cache")
 	w.Header().Set("Expires", "0")
 
-	io.Copy(w, fh)
-	fh.Close()
+	indexTemplate.Execute(w, map[string]interface{}{
+		"BuildTimestamp": conf.API.BuildTimestamp,
+	})
 }
 
 // stopResponse is the value returned by getStops
