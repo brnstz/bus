@@ -197,6 +197,16 @@ Bus.prototype.clickHandler = function(stop_id) {
             var path = self.paths[stop.api.id];
 
             if (stop.api.id == stop_id) {
+                if (path !== null) {
+                    path.setStyle({
+                        opacity: stop.map_fg_opacity,
+                        fillOpacity: stop.map_fg_opacity
+                    });
+
+                    path.bringToFront();
+                }
+
+
                 // If it's the current stop, set fg opacity and bring to
                 // front
                 $(row).css("opacity", stop.table_fg_opacity);
@@ -206,14 +216,6 @@ Bus.prototype.clickHandler = function(stop_id) {
                 });
                 marker.bringToFront();
 
-                if (path !== null) {
-                    path.setStyle({
-                        opacity: stop.map_fg_opacity,
-                        fillOpacity: stop.map_fg_opacity
-                    });
-
-                    path.bringToFront();
-                }
 
                 self.map.setView([stop.api.stop.lat, stop.api.stop.lon]);
 
