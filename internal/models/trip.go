@@ -46,7 +46,10 @@ func (t *Trip) Save() error {
 	return err
 }
 
+// GetTrip returns the trip for this agency and trip ID
 func GetTrip(agencyID string, tripID string) (t Trip, err error) {
+
+	// Get the trip
 	q := `
 		SELECT * 
 		FROM trip 
@@ -60,6 +63,7 @@ func GetTrip(agencyID string, tripID string) (t Trip, err error) {
 		return
 	}
 
+	// Try to get the shapes specific to this trip
 	q = `
 		SELECT 
 			latitude(location) AS lat,
