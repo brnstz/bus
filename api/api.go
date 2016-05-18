@@ -53,6 +53,10 @@ func getIndex(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
 		return
 	}
 
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	w.Header().Set("Pragma", "no-cache")
+	w.Header().Set("Expires", "0")
+
 	io.Copy(w, fh)
 	fh.Close()
 }
