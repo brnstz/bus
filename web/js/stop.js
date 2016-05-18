@@ -1,14 +1,10 @@
 // Stop is a single instance of a stop
 function Stop(api) {
-    console.log("ugh", api.route.route_id);
-
     var self = this;
 
     // api is the object returned by the API. We leave this as read-only
     // and add any other info we want as a sibling data piece.
     self.api = api;
-
-    self.route_id = api.route.route_id;
 
     self.bg_opacity = 0.5;
     self.fg_opacity = 1.0;
