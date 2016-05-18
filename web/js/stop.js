@@ -6,9 +6,15 @@ function Stop(api) {
     // and add any other info we want as a sibling data piece.
     self.api = api;
 
-    self.bg_opacity = 0.5;
-    self.fg_opacity = 1.0;
-    self.radius = 20;
+    self.map_bg_opacity = 0.2;
+    self.map_fg_opacity = 1.0;
+
+    self.table_bg_opacity = 0.5;
+    self.table_fg_opacity = 1.0;
+
+    self.radius = 10;
+
+    self.stop_fill_color = '#ffffff';
 
     // live is true if we have live departures
     self.live = self.isLive();
