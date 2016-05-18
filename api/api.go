@@ -27,23 +27,11 @@ var (
 	}
 
 	staticPaths = []string{"js", "css"}
-
-	indexTemplate *template.Template
 )
 
 func NewHandler() http.Handler {
-	var err error
-
 	// Create our mux
 	mux := httprouter.New()
-
-	// Create index template
-	indexTemplate, err = template.ParseFiles(
-		path.Join(conf.API.WebDir, "index.html"),
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	// Set up index and dynamic endpoints
 	mux.GET("/", getIndex)
@@ -61,6 +49,14 @@ func NewHandler() http.Handler {
 }
 
 func getIndex(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
+	// Create index template
+	indexTemplate, err := template.ParseFiles(
+		path.Join(conf.API.WebDir, "index.html"),
+	)
+	if err != nil {
+		apiErr(w, err)
+	}
+
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Header().Set("Pragma", "no-cache")
 	w.Header().Set("Expires", "0")
