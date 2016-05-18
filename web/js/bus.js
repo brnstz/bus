@@ -27,6 +27,9 @@ function Bus() {
     // map is our Leaflet JS map object
     this.map = null;
 
+    // here is our marker for current location
+    this.here = null;
+
     // stopList is the list of results in the order returned by the API 
     // (i.e., distance from location)
     this.stopList = [];
@@ -49,11 +52,14 @@ Bus.prototype.init = function() {
     var self = this;
 
     self.map = L.map('map');
+    self.marker = L.marker([0, 0]);
 
     self.map.on("dragend", function() {
         var ll = self.map.getCenter();
         self.updatePosition(ll.lat, ll.lng);
     });
+
+    self.marker.addTo(self.map);
 
     self.geolocate();
 };
@@ -65,6 +71,7 @@ Bus.prototype.geolocate = function() {
 
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(p) {
+            self.marker.setLatLng([p.coords.latitude, p.coords.longitude]);
             self.updatePosition(
                 p.coords.latitude,
                 p.coords.longitude
