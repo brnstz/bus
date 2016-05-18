@@ -25,6 +25,9 @@
     - name: setcap to bind lower ports as non-root
       command: setcap cap_net_bind_service=+ep "{{ busapi_bin_path }}"
 
+    - name: set build timestamp
+      set_fact: build_timestamp="{{ ansible_date_time.epoch }}"
+
     - name: Install busapi upstart config
       template: src=templates/busapi_upstart.conf.j2 dest="{{ busapi_conf_path }}" owner=root group=root mode=644
 

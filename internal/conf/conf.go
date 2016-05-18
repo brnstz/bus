@@ -59,6 +59,11 @@ type APISpec struct {
 	// Default: ../../web
 	// Environment variable: $BUS_WEB_DIR
 	WebDir string `envconfig:"web_dir" default:"../../web"`
+
+	// BuildTimestamp is the UNIX timestamp when static assets were last built.
+	// Default: 0 (API will use current timestamp)
+	// Environment variable: $BUS_BUILD_TIMESTAMP
+	BuildTimestamp int64 `envconfig:"build_timestamp"`
 }
 
 // LoaderSpec is our config spec used by busloader
