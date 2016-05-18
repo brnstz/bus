@@ -225,7 +225,6 @@ func GetStopsByQuery(db sqlx.Ext, sq *StopQuery) (stops []Stop, err error) {
 			return
 		}
 
-		log.Println("hello stop", stop.RouteID, stop.Headsign)
 		stops = append(stops, stop)
 	}
 
