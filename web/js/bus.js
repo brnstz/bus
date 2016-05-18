@@ -111,8 +111,6 @@ Bus.prototype.parseStops = function(data) {
     for (var i = 0; i < data.results.length; i++) {
         (function() {
             var s = new Stop(data.results[i]);
-            console.log(s);
-            console.log(data.results[i]);
             self.stopList[i] = s;
         }());
     }
@@ -149,7 +147,7 @@ Bus.prototype.createRow = function(stop, i) {
 
     // Create and append the cell containing the route identifier
     // with colored background
-    $(row).append($("<td>").text(stop.route_id))
+    $(row).append($("<td>").text(stop.api.route.route_id))
 
     var headsign = $('<span class="headsign">' + stop.api.stop.headsign + '</span>');
     $(row).append($("<td>").append(headsign));
