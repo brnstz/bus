@@ -126,9 +126,9 @@ Bus.prototype.createMarker = function(stop) {
         [stop.api.stop.lat, stop.api.stop.lon],
         stop.radius, {
             color: stop.api.route.route_color,
-            fillColor: stop.api.route.route_color,
-            opacity: 0.0,
-            fillOpacity: stop.bg_opacity
+            fillColor: stop.stop_fill_color,
+            opacity: stop.map_bg_opacity,
+            fillOpacity: stop.map_bg_opacity
         }
     );
 };
@@ -138,7 +138,7 @@ Bus.prototype.createRow = function(stop, i) {
     var cellCSS = {
         "color": stop.api.route.route_text_color,
         "background-color": stop.api.route.route_color,
-        "opacity": stop.bg_opacity
+        "opacity": stop.table_bg_opacity
     };
 
     // Create our row object
@@ -177,8 +177,8 @@ Bus.prototype.createPath = function(stop) {
         latlons, {
             color: stop.api.route.route_color,
             fillColor: stop.api.route.route_color,
-            opacity: stop.bg_opacity,
-            fillOpacity: stop.bg_opacity
+            opacity: stop.map_bg_opacity,
+            fillOpacity: stop.map_bg_opacity
         }
     );
 
@@ -197,16 +197,19 @@ Bus.prototype.clickHandler = function(stop_id) {
             var path = self.paths[stop.api.id];
 
             if (stop.api.id == stop_id) {
-                $(row).css("opacity", stop.fg_opacity);
+                // If it's the current stop, set fg opacity and bring to
+                // front
+                $(row).css("opacity", stop.table_fg_opacity);
                 marker.setStyle({
-                    fillOpacity: stop.fg_opacity,
+                    fillOpacity: stop.map_fg_opacity,
+                    opacity: stop.map_fg_opacity
                 });
                 marker.bringToFront();
 
                 if (path !== null) {
                     path.setStyle({
-                        opacity: stop.fg_opacity,
-                        fillOpacity: stop.fg_opacity
+                        opacity: stop.map_fg_opacity,
+                        fillOpacity: stop.map_fg_opacity
                     });
 
                     path.bringToFront();
@@ -214,12 +217,25 @@ Bus.prototype.clickHandler = function(stop_id) {
 
                 self.map.setView([stop.api.stop.lat, stop.api.stop.lon]);
 
+
             } else {
-                $(row).css("opacity", stop.bg_opacity);
+                // All other stops, set to bg opacity and bring to 
+                // background
+                $(row).css("opacity", stop.table_bg_opacity);
                 marker.setStyle({
-                    fillOpacity: stop.bg_opacity
+                    fillOpacity: stop.map_bg_opacity,
+                    opacity: stop.map_bg_opacity
                 });
                 marker.bringToBack();
+
+                if (path !== null) {
+                    path.setStyle({
+                        opacity: stop.map_bg_opacity,
+                        fillOpacity: stop.map_bg_opacity
+                    });
+
+                    path.bringToBack();
+                }
             }
         }
     };
