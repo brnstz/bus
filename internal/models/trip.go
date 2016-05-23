@@ -47,7 +47,7 @@ func (t *Trip) Save() error {
 }
 
 // GetTrip returns the trip for this agency and trip ID
-func GetTrip(agencyID string, tripID string) (t Trip, err error) {
+func GetTrip(agencyID, routeID, tripID string) (t Trip, err error) {
 
 	// Get the trip
 	q := `
@@ -79,6 +79,21 @@ func GetTrip(agencyID string, tripID string) (t Trip, err error) {
 		log.Println("can't get shapes", err)
 		return
 	}
+
+	/*
+		FIXME
+			// If we got the shapes, then stop
+			if err == nil {
+				return
+			}
+
+			now := time.Now()
+
+			// Otherwise, we need to try getting by route id
+			todayName := strings.ToLower(now.Format("Monday"))
+
+			serviceID, err := getServiceIDByDay(etc.DBConn, routeID, todayName, now)
+	*/
 
 	return
 }
