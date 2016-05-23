@@ -9,6 +9,7 @@ import (
 
 type Trip struct {
 	AgencyID string `json:"agency_id" db:"agency_id" upsert:"key"`
+	RouteID  string `json:"route_id" db:"route_id" upsert:"key"`
 	ID       string `json:"trip_id" db:"trip_id" upsert:"key"`
 
 	ServiceID string `json:"service_id" db:"service_id"`
@@ -23,10 +24,11 @@ type Trip struct {
 	} `json:"shape_points" db:"-" upsert:"omit"`
 }
 
-func NewTrip(id, agencyID, serviceID, shapeID, headsign string, direction int) (t *Trip, err error) {
+func NewTrip(id, routeID, agencyID, serviceID, shapeID, headsign string, direction int) (t *Trip, err error) {
 	t = &Trip{
 		ID:          id,
 		AgencyID:    agencyID,
+		RouteID:     routeID,
 		ServiceID:   serviceID,
 		ShapeID:     shapeID,
 		Headsign:    headsign,
@@ -54,10 +56,11 @@ func GetTrip(agencyID, routeID, tripID string) (t Trip, err error) {
 		SELECT * 
 		FROM trip 
 		WHERE agency_id	= $1 AND
-		      trip_id = $2
+		      trip_id = $2 AND 
+			  route_id = $3
 	`
 
-	err = etc.DBConn.Get(&t, q, agencyID, tripID)
+	err = etc.DBConn.Get(&t, q, agencyID, tripID, routeID)
 	if err != nil {
 		log.Println("can't get trip")
 		return

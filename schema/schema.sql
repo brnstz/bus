@@ -61,11 +61,12 @@ CREATE TABLE service_route_day (
 
 CREATE TABLE trip (
     agency_id   TEXT NOT NULL,
+    route_id    TEXT NOT NULL,
     trip_id     TEXT NOT NULL,
     service_id  TEXT NOT NULL,
     shape_id    TEXT NOT NULL,
 
-    UNIQUE(agency_id, trip_id)
+    UNIQUE(agency_id, route_id, trip_id)
 );
 
 CREATE TABLE shape (

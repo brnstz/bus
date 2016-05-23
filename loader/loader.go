@@ -224,7 +224,7 @@ func (l *Loader) loadTrips() {
 		}
 
 		trip, err := models.NewTrip(
-			id, agency, service, shape, rec[headIdx], direction,
+			id, route, agency, service, shape, rec[headIdx], direction,
 		)
 		if err != nil {
 			log.Fatalf("%v on line %v of trips.txt", err, i)
