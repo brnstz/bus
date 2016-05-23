@@ -48,6 +48,27 @@ func (t *Trip) Save() error {
 	return err
 }
 
+func (t *Trip) addShapes(agencyID, shapeID string) (err error) {
+	// Try to get the shapes specific to this trip
+	q := `
+		SELECT 
+			latitude(location) AS lat,
+			longitude(location) AS lon
+		FROM shape
+		WHERE agency_id = $1 AND
+		      shape_id  = $2
+		ORDER BY seq ASC
+	`
+
+	err = etc.DBConn.Select(&t.ShapePoints, q, agencyID, shapeID)
+	if err != nil {
+		log.Println("can't get shapes", err)
+		return
+	}
+
+	return
+}
+
 // GetTrip returns the trip for this agency and trip ID
 func GetTrip(agencyID, routeID, tripID string) (t Trip, err error) {
 
@@ -62,41 +83,46 @@ func GetTrip(agencyID, routeID, tripID string) (t Trip, err error) {
 
 	err = etc.DBConn.Get(&t, q, agencyID, tripID, routeID)
 	if err != nil {
-		log.Println("can't get trip")
+		log.Println("can't get trip", err)
 		return
 	}
 
-	// Try to get the shapes specific to this trip
-	q = `
-		SELECT 
-			latitude(location) AS lat,
-			longitude(location) AS lon
-		FROM shape
-		WHERE agency_id = $1 AND
-		      shape_id  = $2
-		ORDER BY seq ASC
-	`
-
-	err = etc.DBConn.Select(&t.ShapePoints, q, agencyID, t.ShapeID)
+	err = t.addShapes(agencyID, t.ShapeID)
 	if err != nil {
 		log.Println("can't get shapes", err)
 		return
 	}
 
-	/*
-		FIXME
-			// If we got the shapes, then stop
-			if err == nil {
-				return
-			}
+	if len(t.ShapePoints) > 0 {
+		return
+	}
 
-			now := time.Now()
+	log.Println("no shape, trying to get generic shape", err)
 
-			// Otherwise, we need to try getting by route id
-			todayName := strings.ToLower(now.Format("Monday"))
+	var dummy int
+	var shapeID string
 
-			serviceID, err := getServiceIDByDay(etc.DBConn, routeID, todayName, now)
-	*/
+	// Get the most "popular" route
+	q = `
+		SELECT count(*) AS cnt, shape_id
+		FROM trip
+		WHERE route_id = $1 AND char_length(shape_id) > 0
+		GROUP BY shape_id
+		ORDER BY cnt DESC
+		LIMIT 1
+	`
+	row := etc.DBConn.QueryRowx(q, routeID)
+	err = row.Scan(&dummy, &shapeID)
+	if err != nil {
+		log.Println("can't get shape_id", err)
+		return
+	}
+
+	err = t.addShapes(agencyID, shapeID)
+	if err != nil {
+		log.Println("can't get shape", err)
+		return
+	}
 
 	return
 }
