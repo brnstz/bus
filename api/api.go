@@ -36,7 +36,7 @@ func NewHandler() http.Handler {
 	// Set up index and dynamic endpoints
 	mux.GET("/", getIndex)
 	mux.GET("/api/v2/stops", getStops)
-	mux.GET("/api/v2/agencies/:agencyID/trips/:tripID", getTrip)
+	mux.GET("/api/v2/agencies/:agencyID/routes/:routeID/trips/:tripID", getTrip)
 
 	// Create static endpoints
 	for _, v := range staticPaths {
@@ -153,7 +153,11 @@ func getStops(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		departures = append(departures, stop.Scheduled...)
 
 		for _, v := range departures {
-			t, err := models.GetTrip(resp.Results[i].Stop.AgencyID, v.TripID)
+			t, err := models.GetTrip(
+				resp.Results[i].Stop.AgencyID,
+				resp.Results[i].Stop.RouteID,
+				v.TripID,
+			)
 			if err != nil {
 				log.Println("can't get display trip", err)
 				continue
@@ -179,9 +183,10 @@ func getStops(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 func getTrip(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	// FIXME: hack
 	agencyID := strings.Replace(p.ByName("agencyID"), "+", " ", -1)
+	routeID := strings.Replace(p.ByName("routeID"), "+", " ", -1)
 	tripID := strings.Replace(p.ByName("tripID"), "+", " ", -1)
 
-	trip, err := models.GetTrip(agencyID, tripID)
+	trip, err := models.GetTrip(agencyID, routeID, tripID)
 	if err != nil {
 		log.Println("can't get trip", err)
 		apiErr(w, err)

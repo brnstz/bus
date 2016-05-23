@@ -336,9 +336,11 @@ func TestTrip(t *testing.T) {
 
 	agencyID := "MTA NYCT"
 	tripID := "B20151206SAT_083700_G..N13R"
+	routeID := "G"
 
-	u := fmt.Sprintf("%s/api/v2/agencies/%s/trips/%s",
-		serverURL, url.QueryEscape(agencyID), url.QueryEscape(tripID),
+	u := fmt.Sprintf("%s/api/v2/agencies/%s/routes/%s/trips/%s",
+		serverURL, url.QueryEscape(agencyID), url.QueryEscape(routeID),
+		url.QueryEscape(tripID),
 	)
 	log.Println(u)
 
