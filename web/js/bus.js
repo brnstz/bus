@@ -40,7 +40,7 @@ function Bus() {
     // markers is stop ids mapped to markers on the map
     this.markers = {};
 
-    // paths is stop ids mapped to L.polyline paths on the map 
+    // paths is route_ids mapped to L.polyline paths on the map 
     this.paths = {};
 
     // rows is stop ids mapped to rows in the results table
@@ -132,10 +132,10 @@ Bus.prototype.createMarker = function(stop) {
     return L.circle(
         [stop.api.stop.lat, stop.api.stop.lon],
         stop.radius, {
-            color: stop.api.route.route_color,
+            color: stop.path_color,
             fillColor: stop.stop_fill_color,
-            opacity: stop.map_bg_opacity,
-            fillOpacity: stop.map_bg_opacity
+            opacity: stop.map_fg_opacity,
+            fillOpacity: stop.map_fg_opacity
         }
     );
 };
@@ -170,11 +170,21 @@ Bus.prototype.createPath = function(stop) {
     var self = this;
     var latlons = [];
 
+    // If there is a cached version, return that
+    var cached;
+    if (stop.api.display_path) {
+        cached = self.paths[stop.api.display_trip.route_id];
+        if (cached) {
+            return cached;
+        }
+    }
+
+    // If there is no response, then return null
     if (!(stop.api.display_trip && stop.api.display_trip.shape_points)) {
         return null;
     }
 
-
+    // Otherwise go through each point and create path
     for (var i = 0; i < stop.api.display_trip.shape_points.length; i++) {
         var point = stop.api.display_trip.shape_points[i];
         latlons[i] = L.latLng(point.lat, point.lon);
@@ -182,10 +192,10 @@ Bus.prototype.createPath = function(stop) {
 
     var line = L.polyline(
         latlons, {
-            color: stop.api.route.route_color,
+            color: stop.path_color,
             fillColor: stop.api.route.route_color,
-            opacity: stop.map_bg_opacity,
-            fillOpacity: stop.map_bg_opacity
+            opacity: stop.map_fg_opacity,
+            fillOpacity: stop.map_fg_opacity
         }
     );
 
@@ -201,11 +211,16 @@ Bus.prototype.clickHandler = function(stop_id) {
             var stop = self.stopList[i];
             var marker = self.markers[stop.api.id];
             var row = self.rows[stop.api.id];
-            var path = self.paths[stop.api.id];
+            var path;
+            if (stop.api.display_trip) {
+                path = self.paths[stop.api.display_trip.route_id];
+            }
 
             if (stop.api.id == stop_id) {
                 if (path !== null) {
                     path.setStyle({
+                        color: stop.api.route.route_color,
+                        fillColor: stop.api.route.route_color,
                         opacity: stop.map_fg_opacity,
                         fillOpacity: stop.map_fg_opacity
                     });
@@ -218,6 +233,7 @@ Bus.prototype.clickHandler = function(stop_id) {
                 // front
                 $(row).css("opacity", stop.table_fg_opacity);
                 marker.setStyle({
+                    color: stop.api.route.route_color,
                     fillOpacity: stop.map_fg_opacity,
                     opacity: stop.map_fg_opacity
                 });
@@ -232,6 +248,7 @@ Bus.prototype.clickHandler = function(stop_id) {
                 // background
                 $(row).css("opacity", stop.table_bg_opacity);
                 marker.setStyle({
+                    color: stop.path_color,
                     fillOpacity: stop.map_bg_opacity,
                     opacity: stop.map_bg_opacity
                 });
@@ -239,6 +256,7 @@ Bus.prototype.clickHandler = function(stop_id) {
 
                 if (path !== null) {
                     path.setStyle({
+                        color: stop.path_color,
                         opacity: stop.map_bg_opacity,
                         fillOpacity: stop.map_bg_opacity
                     });
@@ -276,7 +294,9 @@ Bus.prototype.updateStops = function() {
         self.stops[stop.api.id] = stop;
         self.markers[stop.api.id] = marker;
         self.rows[stop.api.id] = row;
-        self.paths[stop.api.id] = path;
+        if (stop.api.display_trip) {
+            self.paths[stop.api.display_trip.route_id] = path;
+        }
 
         // Add to display
         $(tbody).append(row);

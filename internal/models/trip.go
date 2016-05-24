@@ -83,38 +83,54 @@ func GetTrip(agencyID, routeID, tripID string) (t Trip, err error) {
 
 	err = etc.DBConn.Get(&t, q, agencyID, tripID, routeID)
 	if err != nil {
-		log.Println("can't get trip", err)
+		log.Println("can't get trip", q, agencyID, tripID, routeID, err)
 		return
+	} else {
+
+		err = t.addShapes(agencyID, t.ShapeID)
+		if err != nil {
+			log.Println("can't get shapes", err)
+			return
+		}
+
+		if len(t.ShapePoints) > 0 {
+			return
+		}
 	}
 
-	err = t.addShapes(agencyID, t.ShapeID)
-	if err != nil {
-		log.Println("can't get shapes", err)
-		return
-	}
-
-	if len(t.ShapePoints) > 0 {
-		return
-	}
-
-	log.Println("no shape, trying to get generic shape", err)
+	log.Println("no shape, trying to get generic shape/trip", err)
 
 	var dummy int
 	var shapeID string
 
 	// Get the most "popular" route
 	q = `
-		SELECT count(*) AS cnt, shape_id
+		SELECT count(*) AS cnt, shape_id, trip_id
 		FROM trip
 		WHERE route_id = $1 AND char_length(shape_id) > 0
-		GROUP BY shape_id
+		GROUP BY shape_id, trip_id
 		ORDER BY cnt DESC
 		LIMIT 1
 	`
 	row := etc.DBConn.QueryRowx(q, routeID)
-	err = row.Scan(&dummy, &shapeID)
+	err = row.Scan(&dummy, &shapeID, &tripID)
 	if err != nil {
 		log.Println("can't get shape_id", err)
+		return
+	}
+
+	// Get the trip
+	q = `
+		SELECT * 
+		FROM trip 
+		WHERE agency_id	= $1 AND
+		      trip_id = $2 AND 
+			  route_id = $3
+	`
+
+	err = etc.DBConn.Get(&t, q, agencyID, tripID, routeID)
+	if err != nil {
+		log.Println("can't get trip", q, agencyID, tripID, routeID, err)
 		return
 	}
 

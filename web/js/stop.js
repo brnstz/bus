@@ -6,7 +6,9 @@ function Stop(api) {
     // and add any other info we want as a sibling data piece.
     self.api = api;
 
+    /*
     self.map_bg_opacity = 0.2;
+    */
     self.map_fg_opacity = 1.0;
 
     self.table_bg_opacity = 0.5;
@@ -15,6 +17,9 @@ function Stop(api) {
     self.radius = 10;
 
     self.stop_fill_color = '#ffffff';
+
+    // path color is the greyed out color 
+    self.path_color = '#d3d3d3';
 
     // live is true if we have live departures
     self.live = self.isLive();
