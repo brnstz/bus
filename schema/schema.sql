@@ -60,11 +60,13 @@ CREATE TABLE service_route_day (
 );
 
 CREATE TABLE trip (
-    agency_id   TEXT NOT NULL,
-    route_id    TEXT NOT NULL,
-    trip_id     TEXT NOT NULL,
-    service_id  TEXT NOT NULL,
-    shape_id    TEXT NOT NULL,
+    agency_id    TEXT NOT NULL,
+    route_id     TEXT NOT NULL,
+    trip_id      TEXT NOT NULL,
+    service_id   TEXT NOT NULL,
+    shape_id     TEXT NOT NULL,
+    headsign     TEXT NOT NULL,
+    direction_id INT NOT NULL,
 
     UNIQUE(agency_id, route_id, trip_id)
 );

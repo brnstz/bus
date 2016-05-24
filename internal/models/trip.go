@@ -15,8 +15,8 @@ type Trip struct {
 	ServiceID string `json:"service_id" db:"service_id"`
 	ShapeID   string `json:"shape_id" db:"shape_id"`
 
-	Headsign    string `json:"-" db:"-" upsert:"omit"`
-	DirectionID int    `json:"-" db:"-" upsert:"omit"`
+	Headsign    string `json:"headsign" db:"headsign"`
+	DirectionID int    `json:"direction_id" db:"direction_id"`
 
 	ShapePoints []struct {
 		Lat float64 `json:"lat"`
