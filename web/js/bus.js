@@ -40,7 +40,7 @@ function Bus() {
     // markers is stop ids mapped to markers on the map
     this.markers = {};
 
-    // paths is route_ids mapped to L.polyline paths on the map 
+    // paths is route_ids+direction_ids mapped to L.polyline paths on the map 
     this.paths = {};
 
     // rows is stop ids mapped to rows in the results table
@@ -74,7 +74,8 @@ Bus.prototype.geolocate = function() {
             self.marker.setLatLng([p.coords.latitude, p.coords.longitude]);
             self.updatePosition(
                 p.coords.latitude,
-                p.coords.longitude
+                p.coords.longitude,
+                self.zoom
             );
         });
     }
@@ -89,7 +90,7 @@ Bus.prototype.refresh = function() {
 
 // updatePosition takes an HTML5 geolocation position response and 
 // updates our map and trip info
-Bus.prototype.updatePosition = function(lat, lon) {
+Bus.prototype.updatePosition = function(lat, lon, zoom) {
     var self = this;
 
     // Set our lat and lon based on the coords
@@ -97,7 +98,7 @@ Bus.prototype.updatePosition = function(lat, lon) {
     self.lon = lon;
 
     // Set location and zoom of the map.
-    self.map.setView([self.lat, self.lon], self.zoom);
+    self.map.setView([self.lat, self.lon], zoom);
 
     // Add our tiles
     L.tileLayer(self.tileURL, self.tileOptions).addTo(self.map);
@@ -171,13 +172,7 @@ Bus.prototype.createPath = function(stop) {
     var latlons = [];
 
     // If there is a cached version, return that
-    var cached;
-    if (stop.api.display_path) {
-        cached = self.paths[stop.api.display_trip.route_id];
-        if (cached) {
-            return cached;
-        }
-    }
+    var cached = self.paths[stop.api.stop.route_id + stop.api.stop.direction_id];
 
     // If there is no response, then return null
     if (!(stop.api.display_trip && stop.api.display_trip.shape_points)) {
@@ -211,10 +206,7 @@ Bus.prototype.clickHandler = function(stop_id) {
             var stop = self.stopList[i];
             var marker = self.markers[stop.api.id];
             var row = self.rows[stop.api.id];
-            var path;
-            if (stop.api.display_trip) {
-                path = self.paths[stop.api.display_trip.route_id];
-            }
+            var path = self.paths[stop.api.stop.route_id + stop.api.stop.direction_id];
 
             if (stop.api.id == stop_id) {
                 if (path !== null) {
@@ -294,9 +286,7 @@ Bus.prototype.updateStops = function() {
         self.stops[stop.api.id] = stop;
         self.markers[stop.api.id] = marker;
         self.rows[stop.api.id] = row;
-        if (stop.api.display_trip) {
-            self.paths[stop.api.display_trip.route_id] = path;
-        }
+        self.paths[stop.api.stop.route_id + stop.api.stop.direction_id] = path;
 
         // Add to display
         $(tbody).append(row);
