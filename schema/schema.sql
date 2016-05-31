@@ -97,7 +97,7 @@ CREATE TABLE scheduled_stop_time (
     trip_id        TEXT NOT NULL,
     departure_sec  INT  NOT NULL,
     
-    UNIQUE(agency_id, route_id, stop_id, service_id, trip_id);
+    UNIQUE(agency_id, route_id, stop_id, service_id, trip_id)
 );
 -- CREATE INDEX idx_sst ON scheduled_stop_time (route_id, stop_id, service_id, departure_sec);
 -- select route_id, service_id, max(start_day) from service_route_day where route_id = 'G' and day = 'monday' group by route_id, service_id;
