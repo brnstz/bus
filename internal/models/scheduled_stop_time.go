@@ -8,13 +8,13 @@ import (
 )
 
 type ScheduledStopTime struct {
-	AgencyID     string `db:"agency_id" upsert:"key"`
-	RouteID      string `db:"route_id" upsert:"key"`
-	StopID       string `db:"stop_id" upsert:"key"`
-	ServiceID    string `db:"service_id" upsert:"key"`
-	DepartureSec int    `db:"departure_sec" upsert:"key"`
+	AgencyID  string `db:"agency_id" upsert:"key"`
+	RouteID   string `db:"route_id" upsert:"key"`
+	StopID    string `db:"stop_id" upsert:"key"`
+	ServiceID string `db:"service_id" upsert:"key"`
+	TripID    string `db:"trip_id" upsert:"key"`
 
-	TripID string `db:"trip_id"`
+	DepartureSec int `db:"departure_sec"`
 }
 
 func NewScheduledStopTime(routeID, stopID, serviceID, timeStr, agencyID, tripID string) (sst *ScheduledStopTime, err error) {
