@@ -134,7 +134,7 @@ func getStops(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	resp.Results = make([]stopResult, len(stops))
 
 	for i, stop := range stops {
-		resp.Results[i].Route, err = models.GetRoute(stop.RouteID)
+		resp.Results[i].Route, err = models.GetRoute(stop.AgencyID, stop.RouteID)
 		if err != nil {
 			log.Println("can't get route for stop", err)
 			apiErr(w, err)

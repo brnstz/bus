@@ -113,11 +113,14 @@ func NewRoute(id string, rtype int, color, textColor, agencyID string) (r *Route
 }
 
 // GetRoute returns a Route with the given ID
-func GetRoute(id string) (r *Route, err error) {
+func GetRoute(agencyID, routeID string) (r *Route, err error) {
 	var ok bool
 
 	r = &Route{}
-	err = sqlx.Get(etc.DBConn, r, `SELECT * FROM route WHERE route_id = $1`, id)
+	err = sqlx.Get(etc.DBConn, r,
+		`SELECT * FROM route WHERE agency_id = $1 AND route_id = $2`,
+		agencyID, routeID,
+	)
 	if err != nil {
 		return
 	}
