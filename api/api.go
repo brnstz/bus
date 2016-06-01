@@ -36,7 +36,7 @@ func NewHandler() http.Handler {
 	// Set up index and dynamic endpoints
 	mux.GET("/", getIndex)
 	mux.GET("/api/v3/stops", getStops)
-	//mux.GET("/api/v3/routes", getRoutes)
+	mux.GET("/api/v3/routes", getRoutes)
 	mux.GET("/api/v3/agencies/:agencyID/routes/:routeID/trips/:tripID", getTrip)
 
 	// Create static endpoints
@@ -202,6 +202,63 @@ func getTrip(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	}
 
 	w.Write(b)
+}
+
+func getRoutes(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	var err error
+
+	lat, err := floatOrDie(w, r, "lat")
+	if err != nil {
+		return
+	}
+
+	lon, err := floatOrDie(w, r, "lon")
+	if err != nil {
+		return
+	}
+
+	miles, err := floatOrDie(w, r, "miles")
+	if err != nil {
+		return
+	}
+
+	filter := r.FormValue("filter")
+
+	meters := etc.MileToMeter(miles)
+
+	sq, err := models.NewStopQueryDist(lat, lon, meters, filter)
+	if err != nil {
+		log.Println("can't create stop query", err)
+		apiErr(w, err)
+		return
+	}
+
+	stops, err := models.GetStopsByQuery(etc.DBConn, sq)
+	if err != nil {
+		log.Println("can't get stops", err)
+		apiErr(w, err)
+		return
+	}
+
+	routes := []*models.Route{}
+
+	// assumes agency_id + route_id is unique across agencies
+	// ok for now until we build a routequery
+	distinctRoutes := map[string]bool{}
+
+	for _, v := range stops {
+		if !distinctRoutes[v.AgencyID+v.RouteID] {
+			route, err := models.GetRoute(v.AgencyID, v.RouteID)
+			if err != nil {
+				log.Println("can't get route", err)
+				apiErr(w, err)
+				return
+			}
+			routes = append(routes, route)
+		}
+
+		distinctRoutes[v.AgencyID+v.RouteID] = true
+	}
 }
 
 func floatOrDie(w http.ResponseWriter, r *http.Request, name string) (f float64, err error) {
