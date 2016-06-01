@@ -56,7 +56,7 @@ func (s *Stop) Save() error {
 // appendLive calls either the bus time API or the subway datamine API
 // to add live info to our stop info.
 func (s *Stop) appendLive(now time.Time) {
-	route, err := GetRoute(s.RouteID)
+	route, err := GetRoute(s.AgencyID, s.RouteID)
 	if err != nil {
 		log.Println("can't load route", err)
 		return
