@@ -50,32 +50,30 @@ type StopQuery struct {
 	Dist float64 `db:"dist"`
 
 	// filter on this specific RouteType if specified
-	RouteType int `db:"route_type"`
+	RouteType string `db:"-"`
+
+	RouteTypeInt int `db:"route_type"`
+
+	// append departures to returned stops
+	Departures bool
 
 	routeFilter bool
 }
 
-// NewStopQueryDist returns a StopQuery that searches a distance from
-// a midpoint. If routeType is an empty strings, stops for all route stops
-// will be returned.
-func NewStopQueryDist(midLat, midLon, dist float64, routeType string) (*StopQuery, error) {
+// initialize checks that a StopQuery has sane values and any private
+// variables are initialized
+func (sq *StopQuery) Initialize() error {
 
-	sq := &StopQuery{
-		MidLat: midLat,
-		MidLon: midLon,
-		Dist:   dist,
-	}
-
-	if len(routeType) > 0 {
+	if len(sq.RouteType) > 0 {
 		var ok bool
 		sq.routeFilter = true
-		sq.RouteType, ok = routeTypeInt[routeType]
+		sq.RouteTypeInt, ok = routeTypeInt[sq.RouteType]
 		if !ok {
-			return nil, ErrInvalidRouteType
+			return ErrInvalidRouteType
 		}
 	}
 
-	return sq, nil
+	return nil
 }
 
 // Query returns the SQL for this StopQuery

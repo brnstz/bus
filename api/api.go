@@ -116,9 +116,16 @@ func getStops(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 	meters := etc.MileToMeter(miles)
 
-	sq, err := models.NewStopQueryDist(lat, lon, meters, filter)
+	sq := models.StopQuery{
+		MidLat:     lat,
+		MidLon:     lon,
+		Dist:       meters,
+		RouteType:  filter,
+		Departures: true,
+	}
+	err = sq.Initialize()
 	if err != nil {
-		log.Println("can't create stop query", err)
+		log.Println("can't init stop query", err)
 		apiErr(w, err)
 		return
 	}
@@ -217,18 +224,22 @@ func getRoutes(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 
-	miles, err := floatOrDie(w, r, "miles")
-	if err != nil {
-		return
-	}
-
 	filter := r.FormValue("filter")
 
-	meters := etc.MileToMeter(miles)
+	// Get all routes within a 20 mile radius
+	meters := etc.MileToMeter(20)
 
-	sq, err := models.NewStopQueryDist(lat, lon, meters, filter)
+	sq := models.StopQuery{
+		MidLat:     lat,
+		MidLon:     lon,
+		Dist:       meters,
+		RouteType:  filter,
+		Departures: false,
+	}
+
+	err = sq.Initialize()
 	if err != nil {
-		log.Println("can't create stop query", err)
+		log.Println("can't initialize stop query", err)
 		apiErr(w, err)
 		return
 	}
