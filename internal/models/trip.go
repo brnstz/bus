@@ -70,8 +70,6 @@ func (t *Trip) addShapes(agencyID, shapeID string) (err error) {
 }
 
 func GetAnyTrip(agencyID, routeID string) (t Trip, err error) {
-	log.Println("get any trip", agencyID, routeID)
-
 	var dummy int
 	var shapeID string
 	var tripID string
@@ -118,7 +116,6 @@ func GetAnyTrip(agencyID, routeID string) (t Trip, err error) {
 
 // GetTrip returns the trip for this agency and trip ID
 func GetTrip(agencyID, routeID, tripID string) (t Trip, err error) {
-	log.Println("get trip", agencyID, routeID, tripID)
 
 	// Get the trip
 	q := `
@@ -131,7 +128,7 @@ func GetTrip(agencyID, routeID, tripID string) (t Trip, err error) {
 
 	err = etc.DBConn.Get(&t, q, agencyID, tripID, routeID)
 	if err != nil {
-		log.Println("can't get trip", q, agencyID, tripID, routeID, err)
+		//log.Println("can't get trip", q, agencyID, tripID, routeID, err)
 		return
 	} else {
 

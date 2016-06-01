@@ -87,7 +87,7 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-// stopResponse is the response to /api/v2/stops
+// stopResponse is the response to /api/v3/stops
 type stopResponse struct {
 	Results []struct {
 		Route struct {
@@ -160,7 +160,7 @@ func TestScheduledSubway(t *testing.T) {
 	params.Set("miles", "0.1")
 	params.Set("filter", "subway")
 
-	err = getJSON(&resp, serverURL+"/api/v2/stops?"+params.Encode())
+	err = getJSON(&resp, serverURL+"/api/v3/stops?"+params.Encode())
 	if err != nil {
 		t.Fatal("can't get API response for G train test", err)
 	}
@@ -208,7 +208,7 @@ func TestLiveSubway(t *testing.T) {
 	params.Set("lon", "-73.956872")
 	params.Set("miles", "0.01")
 
-	err = getJSON(&resp, serverURL+"/api/v2/stops?"+params.Encode())
+	err = getJSON(&resp, serverURL+"/api/v3/stops?"+params.Encode())
 	if err != nil {
 		t.Fatal("can't get API response for L train test", err)
 	}
@@ -252,7 +252,7 @@ func TestLiveBus(t *testing.T) {
 	params.Set("lon", "-73.9515471")
 	params.Set("miles", "0.1")
 
-	err = getJSON(&resp, serverURL+"/api/v2/stops?"+params.Encode())
+	err = getJSON(&resp, serverURL+"/api/v3/stops?"+params.Encode())
 	if err != nil {
 		t.Fatal("can't get API response for B62, B32 bus test", err)
 	}
@@ -299,7 +299,7 @@ func TestScheduledBus(t *testing.T) {
 	params.Set("lon", "-73.9563212")
 	params.Set("miles", "0.1")
 
-	err = getJSON(&resp, serverURL+"/api/v2/stops?"+params.Encode())
+	err = getJSON(&resp, serverURL+"/api/v3/stops?"+params.Encode())
 	if err != nil {
 		t.Fatal("can't get API response for B43 bus test", err)
 	}
@@ -338,7 +338,7 @@ func TestTrip(t *testing.T) {
 	tripID := "B20151206SAT_083700_G..N13R"
 	routeID := "G"
 
-	u := fmt.Sprintf("%s/api/v2/agencies/%s/routes/%s/trips/%s",
+	u := fmt.Sprintf("%s/api/v3/agencies/%s/routes/%s/trips/%s",
 		serverURL, url.QueryEscape(agencyID), url.QueryEscape(routeID),
 		url.QueryEscape(tripID),
 	)
@@ -362,6 +362,80 @@ func TestTrip(t *testing.T) {
 
 		if shape.Lon > -73 || shape.Lon < -74 {
 			t.Fatal("expected longitude around -73 but got:", shape.Lon)
+		}
+	}
+}
+
+type routeResp struct {
+	Updated_At time.Time
+	Routes     []struct {
+		Route_ID    string
+		Route_Color string
+		Shapes      []struct {
+			Points []struct {
+				Lat float64
+				Lon float64
+			}
+		}
+	}
+}
+
+func TestRoutes(t *testing.T) {
+	rr := routeResp{}
+
+	params := url.Values{}
+
+	params.Set("lat", "40.7373215")
+	params.Set("lon", "-73.9563212")
+
+	u := fmt.Sprintf("%s/api/v3/routes?%s", serverURL, params.Encode())
+
+	err := getJSON(&rr, u)
+	if err != nil {
+		t.Fatal("can't get API response for routes", err)
+	}
+
+	if len(rr.Routes) < 5 {
+		t.Fatalf("expected at least 5 routes but got %v", len(rr.Routes))
+	}
+
+	for _, route := range rr.Routes {
+		var expColor string
+		var skip bool
+
+		switch route.Route_ID {
+		case "G":
+			expColor = "#6CBE45"
+		case "L":
+			expColor = "#A7A9AC"
+		case "B62":
+			expColor = "#00AEEF"
+		case "B43":
+			expColor = "#EE352E"
+		case "B32":
+			expColor = "#006CB7"
+		default:
+			skip = true
+		}
+
+		if skip {
+			continue
+		}
+
+		// Expect two directions of shapes 0 and 1 direction_id
+		if len(route.Shapes) != 2 {
+			t.Fatalf("expected 2 shapes but got %v", len(route.Shapes))
+		}
+
+		// Expect at least 10 points in each shape
+		for _, shape := range route.Shapes {
+			if len(shape.Points) < 10 {
+				t.Fatalf("expected at least 10 points but got %v", len(shape.Points))
+			}
+		}
+
+		if expColor != route.Route_Color {
+			t.Fatalf("expected %v color but got %v", expColor, route.Route_Color)
 		}
 	}
 }
