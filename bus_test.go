@@ -371,8 +371,8 @@ type routeResp struct {
 	Routes     []struct {
 		Route_ID    string
 		Route_Color string
-		Shapes      []struct {
-			Points []struct {
+		Paths       []struct {
+			Shapes []struct {
 				Lat float64
 				Lon float64
 			}
@@ -423,14 +423,14 @@ func TestRoutes(t *testing.T) {
 		}
 
 		// Expect two directions of shapes 0 and 1 direction_id
-		if len(route.Shapes) != 2 {
-			t.Fatalf("expected 2 shapes but got %v", len(route.Shapes))
+		if len(route.Paths) != 2 {
+			t.Fatalf("expected 2 shapes but got %v", len(route.Paths))
 		}
 
-		// Expect at least 10 points in each shape
-		for _, shape := range route.Shapes {
-			if len(shape.Points) < 10 {
-				t.Fatalf("expected at least 10 points but got %v", len(shape.Points))
+		// Expect at least 10 points in each path
+		for _, path := range route.Paths {
+			if len(path.Shapes) < 10 {
+				t.Fatalf("expected at least 10 points but got %v", len(path.Shapes))
 			}
 		}
 
