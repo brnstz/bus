@@ -141,7 +141,7 @@ func getStops(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	resp.Results = make([]stopResult, len(stops))
 
 	for i, stop := range stops {
-		resp.Results[i].Route, err = models.GetRoute(stop.AgencyID, stop.RouteID)
+		resp.Results[i].Route, err = models.GetRoute(stop.AgencyID, stop.RouteID, false)
 		if err != nil {
 			log.Println("can't get route for stop", err)
 			apiErr(w, err)
@@ -211,6 +211,10 @@ func getTrip(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	w.Write(b)
 }
 
+type routesResp struct {
+	Routes []*models.Route
+}
+
 func getRoutes(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	var err error
 
@@ -259,7 +263,7 @@ func getRoutes(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 	for _, v := range stops {
 		if !distinctRoutes[v.AgencyID+v.RouteID] {
-			route, err := models.GetRoute(v.AgencyID, v.RouteID)
+			route, err := models.GetRoute(v.AgencyID, v.RouteID, true)
 			if err != nil {
 				log.Println("can't get route", err)
 				apiErr(w, err)
@@ -270,6 +274,19 @@ func getRoutes(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 		distinctRoutes[v.AgencyID+v.RouteID] = true
 	}
+
+	rr := routesResp{
+		Routes: routes,
+	}
+
+	b, err := json.Marshal(rr)
+	if err != nil {
+		log.Println("can't marshal to json", err)
+		apiErr(w, err)
+		return
+	}
+
+	w.Write(b)
 }
 
 func floatOrDie(w http.ResponseWriter, r *http.Request, name string) (f float64, err error) {

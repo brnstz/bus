@@ -1,7 +1,9 @@
 package models
 
 import (
+	"log"
 	"strings"
+	"time"
 
 	"github.com/brnstz/bus/internal/etc"
 	"github.com/brnstz/upsert"
@@ -56,6 +58,10 @@ type Route struct {
 	TypeName  string `json:"route_type_name" db:"-" upsert:"omit"`
 	Color     string `json:"route_color" db:"route_color"`
 	TextColor string `json:"route_text_color" db:"route_text_color"`
+
+	Paths []struct {
+		Shapes []*Shape
+	}
 }
 
 // Table returns the table name for the Route struct, implementing the
@@ -113,7 +119,7 @@ func NewRoute(id string, rtype int, color, textColor, agencyID string) (r *Route
 }
 
 // GetRoute returns a Route with the given ID
-func GetRoute(agencyID, routeID string) (r *Route, err error) {
+func GetRoute(agencyID, routeID string, appendInfo bool) (r *Route, err error) {
 	var ok bool
 
 	r = &Route{}
@@ -133,7 +139,38 @@ func GetRoute(agencyID, routeID string) (r *Route, err error) {
 		return
 	}
 
+	if appendInfo {
+		r.appendShapes()
+	}
+
 	return
+}
+
+func (r *Route) appendShapes() {
+	shapes := []*Shape{}
+
+	for i := 0; i < 2; i++ {
+		var shape Shape
+		t1 := time.Now()
+
+		q := `
+			SELECT DISTINCT(location), seq 
+			FROM shape 
+			INNER JOIN trip ON shape.shape_id = trip.shape_id 
+			WHERE route_id = $1 and direction_id = $2 
+			ORDER BY SEQ
+		`
+
+		err := etc.DBConn.Get(&shape, q, r.ID, i)
+		t2 := time.Now()
+		log.Println("did it", t2.Sub(t1), r.ID, i)
+		if err != nil {
+			log.Println("can't get shape", err)
+			continue
+		}
+
+		shapes = append(shapes, &shape)
+	}
 }
 
 // Save saves a route to the database
