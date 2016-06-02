@@ -99,11 +99,3 @@ CREATE TABLE scheduled_stop_time (
     
     UNIQUE(agency_id, route_id, stop_id, service_id, trip_id)
 );
--- CREATE INDEX idx_sst ON scheduled_stop_time (route_id, stop_id, service_id, departure_sec);
--- select route_id, service_id, max(start_day) from service_route_day where route_id = 'G' and day = 'monday' group by route_id, service_id;
-
---  select route_id, service_id, max(start_date) from service_route_day where route_id = 'G' and day = 'monday' and end_date > current_timestamp and start_date < current_timestamp group by route_id, service_id;
-
--- select * from scheduled_stop_time where route_id = 'G' and stop_id = 'G29N' and service_id = 'B20141207WKD' and departure_sec > 77400 order by departure_sec limit 3;
-
--- select scheduled_stop_time.*, stop.* from scheduled_stop_time inner join stop on scheduled_stop_time.stop_id = stop.stop_id where scheduled_stop_time.route_id = 'G' and scheduled_stop_time.stop_id = 'G29N' and service_id = 'B20141207WKD' and departure_sec > 77400 order by departure_sec limit 3;
