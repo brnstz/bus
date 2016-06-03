@@ -36,9 +36,9 @@ func NewHandler() http.Handler {
 
 	// Set up index and dynamic endpoints
 	mux.GET("/", getIndex)
-	mux.GET("/api/v3/stops", getStops)
-	mux.GET("/api/v3/routes", getRoutes)
-	mux.GET("/api/v3/agencies/:agencyID/routes/:routeID/trips/:tripID", getTrip)
+	mux.GET("/api/stops", getStops)
+	mux.GET("/api/routes", getRoutes)
+	mux.GET("/api/agencies/:agencyID/routes/:routeID/trips/:tripID", getTrip)
 
 	// Create static endpoints
 	for _, v := range staticPaths {

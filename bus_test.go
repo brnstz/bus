@@ -87,7 +87,7 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-// stopResponse is the response to /api/v3/stops
+// stopResponse is the response to /api/stops
 type stopResponse struct {
 	Results []struct {
 		Route struct {
@@ -160,7 +160,7 @@ func TestScheduledSubway(t *testing.T) {
 	params.Set("miles", "0.1")
 	params.Set("filter", "subway")
 
-	err = getJSON(&resp, serverURL+"/api/v3/stops?"+params.Encode())
+	err = getJSON(&resp, serverURL+"/api/stops?"+params.Encode())
 	if err != nil {
 		t.Fatal("can't get API response for G train test", err)
 	}
@@ -208,7 +208,7 @@ func TestLiveSubway(t *testing.T) {
 	params.Set("lon", "-73.956872")
 	params.Set("miles", "0.01")
 
-	err = getJSON(&resp, serverURL+"/api/v3/stops?"+params.Encode())
+	err = getJSON(&resp, serverURL+"/api/stops?"+params.Encode())
 	if err != nil {
 		t.Fatal("can't get API response for L train test", err)
 	}
@@ -252,7 +252,7 @@ func TestLiveBus(t *testing.T) {
 	params.Set("lon", "-73.9515471")
 	params.Set("miles", "0.1")
 
-	err = getJSON(&resp, serverURL+"/api/v3/stops?"+params.Encode())
+	err = getJSON(&resp, serverURL+"/api/stops?"+params.Encode())
 	if err != nil {
 		t.Fatal("can't get API response for B62, B32 bus test", err)
 	}
@@ -299,7 +299,7 @@ func TestScheduledBus(t *testing.T) {
 	params.Set("lon", "-73.9563212")
 	params.Set("miles", "0.1")
 
-	err = getJSON(&resp, serverURL+"/api/v3/stops?"+params.Encode())
+	err = getJSON(&resp, serverURL+"/api/stops?"+params.Encode())
 	if err != nil {
 		t.Fatal("can't get API response for B43 bus test", err)
 	}
@@ -338,7 +338,7 @@ func TestTrip(t *testing.T) {
 	tripID := "B20151206SAT_083700_G..N13R"
 	routeID := "G"
 
-	u := fmt.Sprintf("%s/api/v3/agencies/%s/routes/%s/trips/%s",
+	u := fmt.Sprintf("%s/api/agencies/%s/routes/%s/trips/%s",
 		serverURL, url.QueryEscape(agencyID), url.QueryEscape(routeID),
 		url.QueryEscape(tripID),
 	)
@@ -389,7 +389,7 @@ func TestRoutes(t *testing.T) {
 	params.Set("lat", "40.7373215")
 	params.Set("lon", "-73.9563212")
 
-	u := fmt.Sprintf("%s/api/v3/routes?%s", serverURL, params.Encode())
+	u := fmt.Sprintf("%s/api/routes?%s", serverURL, params.Encode())
 
 	err := getJSON(&rr, u)
 	if err != nil {
