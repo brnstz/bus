@@ -22,8 +22,9 @@ var (
 
 	// errCodes is a mapping from known errors to HTTP status codes
 	errCodes = map[error]int{
-		models.ErrNotFound: http.StatusNotFound,
-		errBadRequest:      http.StatusBadRequest,
+		models.ErrNotFound:         http.StatusNotFound,
+		models.ErrInvalidRouteType: http.StatusBadRequest,
+		errBadRequest:              http.StatusBadRequest,
 	}
 
 	staticPaths = []string{"js", "css"}

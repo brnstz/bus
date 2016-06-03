@@ -1,21 +1,28 @@
 package models
 
 import (
+	"log"
+
 	"github.com/brnstz/upsert"
 	"github.com/jmoiron/sqlx"
 )
 
 // RouteShape is a one-to-many mapping between routes and shapes.
-// The loader should identify the minimally
+// The loader should identify which shapes represent the typical / full
+// route and create/save these objects
 type RouteShape struct {
 	AgencyID    string `db:"agency_id" upsert:"key"`
 	RouteID     string `db:"route_id" upsert:"key"`
 	Headsign    string `db:"headsign" upsert:"key"`
 	DirectionID int    `db:"direction_id" upsert:"key"`
 	ShapeID     string `db:"shape_id"`
-	Count       int    `db:"count" upsert:"omit"`
+
+	Count  int      `db:"count" upsert:"omit"`
+	Shapes []*Shape `db:"-" upsert:"omit"`
 }
 
+// Table returns the name of the RouteShape table, implementing the
+// upsert.Upserter interface
 func (rs *RouteShape) Table() string {
 	return "route_shape"
 }
@@ -25,8 +32,12 @@ func (rs *RouteShape) Table() string {
 // to rebuild the data
 func DeleteRouteShapes(db sqlx.Ext) error {
 	_, err := db.Exec(`DELETE FROM route_shape`)
+	if err != nil {
+		log.Println("can't delete route_shape", err)
+		return err
+	}
 
-	return err
+	return nil
 }
 
 // GetRouteShapes returns distinct shapes for every route ordered by
@@ -53,6 +64,38 @@ func GetRouteShapes(db sqlx.Ext) ([]*RouteShape, error) {
 	`
 
 	err := sqlx.Select(db, &rs, q)
+	if err != nil {
+		log.Println("can't get route shapes", err)
+		return rs, err
+	}
+
+	return rs, nil
+}
+
+// GetSavedRouteShapes returns
+func GetSavedRouteShapes(db sqlx.Ext, agencyID, routeID string) ([]*RouteShape, error) {
+	rs := []*RouteShape{}
+
+	q := `
+		SELECT *
+		FROM route_shape
+		WHERE agency_id = $1 AND
+		      route_id  = $2
+	`
+
+	err := sqlx.Select(db, &rs, q, agencyID, routeID)
+	if err != nil {
+		log.Println("can't get saved route shapes", err)
+		return rs, err
+	}
+
+	for _, shape := range rs {
+		shape.Shapes, err = GetShapes(db, agencyID, shape.ShapeID)
+		if err != nil {
+			log.Println("can't get shapes", err)
+			return rs, err
+		}
+	}
 
 	return rs, err
 }

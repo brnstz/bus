@@ -15,6 +15,4 @@ var (
 	// ErrNotFound is returned when something can't be found in a
 	// Get call
 	ErrNotFound = errors.New("not found")
-
-	ErrInvalidStopQuery = errors.New("invalid stop query")
 )

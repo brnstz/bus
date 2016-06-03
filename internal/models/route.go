@@ -1,6 +1,7 @@
 package models
 
 import (
+	"log"
 	"strings"
 
 	"github.com/brnstz/bus/internal/etc"
@@ -57,9 +58,7 @@ type Route struct {
 	Color     string `json:"route_color" db:"route_color"`
 	TextColor string `json:"route_text_color" db:"route_text_color"`
 
-	Paths []struct {
-		Shapes []*Shape
-	} `upsert:"omit"`
+	RouteShapes []*RouteShape `json:"route_shapes" upsert:"omit"`
 }
 
 // Table returns the table name for the Route struct, implementing the
@@ -138,7 +137,13 @@ func GetRoute(agencyID, routeID string, appendInfo bool) (r *Route, err error) {
 	}
 
 	if appendInfo {
-		//	r.appendShapes()
+		r.RouteShapes, err = GetSavedRouteShapes(
+			etc.DBConn, r.AgencyID, r.ID,
+		)
+		if err != nil {
+			log.Println("can't append info", err)
+			return
+		}
 	}
 
 	return
