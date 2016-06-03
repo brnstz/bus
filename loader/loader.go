@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/brnstz/bus/internal/conf"
+	"github.com/brnstz/bus/internal/etc"
 	"github.com/brnstz/bus/internal/models"
 )
 
@@ -23,6 +24,13 @@ var (
 
 	logp = 1000
 )
+
+// rskey is the unique key for a route_shape
+type rskey struct {
+	routeID     string
+	directionID int
+	headsign    string
+}
 
 type Loader struct {
 	// the dir from which we load google transit files
@@ -51,6 +59,13 @@ type Loader struct {
 	// shapeRoute maps shape_id to route_id (for purposes of adding agency_id
 	// to shapes table)
 	shapeRoute map[string]string
+
+	// routeShapeCount keeps a running tab of the biggest shape for this
+	// route/dir/headsign combo
+	/*
+		routeShapeCount map[rskey]int
+		routeShapeID map[rskey]
+	*/
 }
 
 func newLoader(dir string) *Loader {
@@ -88,6 +103,8 @@ func (l *Loader) load() {
 	l.loadUniqueStop()
 	l.loadCalendars()
 	l.loadShapes()
+
+	l.updateRouteShapes()
 }
 
 func getcsv(dir, name string) *csv.Reader {
@@ -520,6 +537,42 @@ func (l *Loader) loadShapes() {
 	}
 
 	log.Printf("loaded %v shapes", i)
+}
+
+// updateRouteShapes updates the route_shape table by identifying
+// the "biggest" shapes typical for a route
+func (l *Loader) updateRouteShapes() {
+	var err error
+
+	tx, err := etc.DBConn.Beginx()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer func() {
+		if err == nil {
+			tx.Commit()
+		} else {
+			tx.Rollback()
+		}
+	}()
+
+	// delete existing routes within a transaction (won't take effect
+	// unless committed)
+	err = models.DeleteRouteShapes(tx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Get shapes ordered from smallest to largest
+	routeShapes, err := models.GetRouteShapes(tx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, rs := range routeShapes {
+		// upsert each route so we end up with the most common
+		rs.Save(tx)
+	}
 }
 
 // LoadOnce loads the files in conf.Loader.GTFSURLs, possibly filtering by the

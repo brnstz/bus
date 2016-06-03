@@ -99,3 +99,15 @@ CREATE TABLE scheduled_stop_time (
     
     UNIQUE(agency_id, route_id, stop_id, service_id, trip_id)
 );
+
+-- route_shape contains all shape_ids for a route. This should be the
+-- "biggest" shape for each route_id + trip.headsign combination. 
+CREATE TABLE route_shape (
+    agency_id       TEXT NOT NULL,
+    route_id        TEXT NOT NULL,
+    direction_id    INT NOT NULL,
+    headsign        TEXT NOT NULL,
+    shape_id        TEXT NOT NULL,
+
+    UNIQUE(agency_id, route_id, direction_id, headsign)
+);
