@@ -369,12 +369,13 @@ func TestTrip(t *testing.T) {
 type routeResp struct {
 	Updated_At time.Time
 	Routes     []struct {
-		Route_ID    string
-		Route_Color string
-		Paths       []struct {
+		Route_ID     string
+		Route_Color  string
+		Route_Shapes []struct {
 			Shapes []struct {
 				Lat float64
 				Lon float64
+				Seq int
 			}
 		}
 	}
@@ -422,15 +423,15 @@ func TestRoutes(t *testing.T) {
 			continue
 		}
 
-		// Expect two directions of shapes 0 and 1 direction_id
-		if len(route.Paths) != 2 {
-			t.Fatalf("expected 2 shapes but got %v", len(route.Paths))
+		// Expect at least 1 shape
+		if len(route.Route_Shapes) < 1 {
+			t.Fatalf("at least 1 shapes but got %v", len(route.Route_Shapes))
 		}
 
-		// Expect at least 10 points in each path
-		for _, path := range route.Paths {
-			if len(path.Shapes) < 10 {
-				t.Fatalf("expected at least 10 points but got %v", len(path.Shapes))
+		// Expect at least 10 points in each route_shape
+		for _, rs := range route.Route_Shapes {
+			if len(rs.Shapes) < 10 {
+				t.Fatalf("expected at least 10 points but got %v", len(rs.Shapes))
 			}
 		}
 
