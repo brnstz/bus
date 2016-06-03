@@ -1,7 +1,9 @@
 package models
 
+import "strings"
+
 const (
-	sqBegin = `
+	sqBeginDistinct = `
 		SELECT * FROM (
 			SELECT
 				DISTINCT ON (stop.route_id, direction_id)
@@ -17,16 +19,42 @@ const (
 					AS dist
 				FROM stop  INNER JOIN 
 					route ON stop.route_id = route.route_id
-				WHERE 
-					earth_box(ll_to_earth(:mid_lat, :mid_lon), :dist) @> 
-						location
 	`
+	sqBegin = `
+		SELECT
+			stop_id,
+			stop_name,
+			direction_id,
+			headsign,
+			stop.route_id,
+			stop.agency_id,
+			latitude(location) AS lat,
+			longitude(location) AS lon,
+			earth_distance(location, ll_to_earth(:mid_lat, :mid_lon)) 
+				AS dist
+			FROM stop  INNER JOIN 
+				route ON stop.route_id = route.route_id
+	`
+
+	sqLocationFilter = `
+		earth_box(ll_to_earth(:mid_lat, :mid_lon), :dist) @> location
+	`
+
 	sqRouteFilter = ` 
-					AND route.route_type = :route_type
+		route.route_type = :route_type
 	`
-	sqEnd = ` 
-				ORDER BY stop.route_id, direction_id, dist 
-			) unique_routes ORDER BY dist ASC
+
+	sqRouteIDFilter = `
+		route.route_id = :route_id
+	`
+
+	sqAgencyIDFilter = `
+		route.agency_id = :agency_id
+	`
+
+	sqEndDistinct = ` 
+		ORDER BY stop.route_id, direction_id, dist 
+	    ) unique_routes ORDER BY dist ASC
 	`
 )
 
@@ -57,6 +85,11 @@ type StopQuery struct {
 	// append departures to returned stops
 	Departures bool
 
+	Distinct bool
+
+	RouteID  string `db:"route_id"`
+	AgencyID string `db:"agency_id"`
+
 	routeFilter bool
 }
 
@@ -78,13 +111,32 @@ func (sq *StopQuery) Initialize() error {
 
 // Query returns the SQL for this StopQuery
 func (sq *StopQuery) Query() string {
-	var query string
+	var where []string
+	var whereClause string
 
 	if sq.routeFilter {
-		query = sqBegin + sqRouteFilter + sqEnd
-	} else {
-		query = sqBegin + sqEnd
+		where = append(where, sqRouteFilter)
 	}
 
-	return query
+	if len(sq.RouteID) > 0 {
+		where = append(where, sqRouteIDFilter)
+	}
+
+	if len(sq.AgencyID) > 0 {
+		where = append(where, sqAgencyIDFilter)
+	}
+
+	if !(sq.MidLat == 0.0 && sq.MidLon == 0.0 && sq.Dist == 0.0) {
+		where = append(where, sqLocationFilter)
+	}
+
+	if len(where) > 0 {
+		whereClause = ` WHERE ` + strings.Join(where, ` AND `)
+	}
+
+	if sq.Distinct {
+		return sqBeginDistinct + whereClause + sqEndDistinct
+	} else {
+		return sqBegin + whereClause
+	}
 }

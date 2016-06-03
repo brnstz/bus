@@ -59,6 +59,7 @@ type Route struct {
 	TextColor string `json:"route_text_color" db:"route_text_color"`
 
 	RouteShapes []*RouteShape `json:"route_shapes" upsert:"omit"`
+	Stops       []*Stop       `json:"stops" upsert:"omit"`
 }
 
 // Table returns the table name for the Route struct, implementing the
@@ -141,18 +142,32 @@ func GetRoute(agencyID, routeID string, appendInfo bool) (r *Route, err error) {
 			etc.DBConn, r.AgencyID, r.ID,
 		)
 		if err != nil {
-			log.Println("can't append info", err)
+			log.Println("can't append shapes", err)
 			return
 		}
+
+		sq := StopQuery{
+			RouteID:    routeID,
+			AgencyID:   agencyID,
+			Departures: false,
+			Distinct:   false,
+		}
+
+		err = sq.Initialize()
+		if err != nil {
+			log.Println("can't initialize stop query", err)
+			return
+		}
+		r.Stops, err = GetStopsByQuery(etc.DBConn, sq)
+		if err != nil {
+			log.Println("can't get stops", err)
+			return
+		}
+
 	}
 
 	return
 }
-
-/*
-func (r *Route) appendShapes() {
-}
-*/
 
 // Save saves a route to the database
 func (r *Route) Save() error {
