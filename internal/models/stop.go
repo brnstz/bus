@@ -200,13 +200,13 @@ func (s *Stop) setDepartures(now time.Time, db sqlx.Ext) (err error) {
 }
 
 // GetStopsByQuery returns stops matching this StopQuery
-func GetStopsByQuery(db sqlx.Ext, sq StopQuery) (stops []Stop, err error) {
+func GetStopsByQuery(db sqlx.Ext, sq StopQuery) (stops []*Stop, err error) {
 	now := time.Now()
 
 	// Get rows matching the stop query
 	rows, err := sqlx.NamedQuery(db, sq.Query(), sq)
 	if err != nil {
-		log.Println("can't get stops", err)
+		log.Println("can't get stops", sq.Query(), err)
 		return
 	}
 
@@ -227,7 +227,7 @@ func GetStopsByQuery(db sqlx.Ext, sq StopQuery) (stops []Stop, err error) {
 			}
 		}
 
-		stops = append(stops, stop)
+		stops = append(stops, &stop)
 	}
 
 	return

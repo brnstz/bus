@@ -79,7 +79,7 @@ type stopResult struct {
 	// "{route_id}_{stop_id}"
 	ID         string        `json:"id"`
 	Route      *models.Route `json:"route"`
-	Stop       models.Stop   `json:"stop"`
+	Stop       *models.Stop  `json:"stop"`
 	Departures struct {
 		Live      []*models.Departure `json:"live"`
 		Scheduled []*models.Departure `json:"scheduled"`
@@ -123,6 +123,7 @@ func getStops(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		Dist:       meters,
 		RouteType:  filter,
 		Departures: true,
+		Distinct:   true,
 	}
 	err = sq.Initialize()
 	if err != nil {
@@ -240,6 +241,7 @@ func getRoutes(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		Dist:       meters,
 		RouteType:  filter,
 		Departures: false,
+		Distinct:   true,
 	}
 
 	err = sq.Initialize()
