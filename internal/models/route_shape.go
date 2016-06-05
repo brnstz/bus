@@ -11,14 +11,14 @@ import (
 // The loader should identify which shapes represent the typical / full
 // route and create/save these objects
 type RouteShape struct {
-	AgencyID    string `db:"agency_id" upsert:"key"`
-	RouteID     string `db:"route_id" upsert:"key"`
-	Headsign    string `db:"headsign" upsert:"key"`
-	DirectionID int    `db:"direction_id" upsert:"key"`
-	ShapeID     string `db:"shape_id"`
+	AgencyID    string `json:"agency_id" db:"agency_id" upsert:"key"`
+	RouteID     string `json:"route_id" db:"route_id" upsert:"key"`
+	Headsign    string `json:"headsign" db:"headsign" upsert:"key"`
+	DirectionID int    `json:"direction_id" db:"direction_id" upsert:"key"`
+	ShapeID     string `json:"shape_id" db:"shape_id"`
 
-	Count  int      `db:"count" upsert:"omit"`
-	Shapes []*Shape `db:"-" upsert:"omit"`
+	Count  int      `json:"-" db:"count" upsert:"omit"`
+	Shapes []*Shape `json:"shapes" db:"-" upsert:"omit"`
 }
 
 // Table returns the name of the RouteShape table, implementing the
