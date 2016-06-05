@@ -375,7 +375,7 @@ func TestRoutesByDistance(t *testing.T) {
 
 	params.Set("lat", "40.7373215")
 	params.Set("lon", "-73.9563212")
-	params.Set("miles", "0.5")
+	params.Set("miles", "1")
 
 	u := fmt.Sprintf("%s/api/routes?%s", serverURL, params.Encode())
 
