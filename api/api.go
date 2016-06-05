@@ -9,7 +9,6 @@ import (
 	"path"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/brnstz/bus/internal/conf"
 	"github.com/brnstz/bus/internal/etc"
@@ -70,29 +69,7 @@ func getIndex(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
 
 // stopResponse is the value returned by getStops
 type stopResponse struct {
-	UpdatedAt time.Time    `json:"updated_at"`
-	Results   []stopResult `json:"results"`
-}
-
-type stopResult struct {
-	// ID is a unique ID for this result. For now it is
-	// "{route_id}_{stop_id}"
-	ID         string        `json:"id"`
-	Route      *models.Route `json:"route"`
-	Stop       *models.Stop  `json:"stop"`
-	Departures struct {
-		Live      []*models.Departure `json:"live"`
-		Scheduled []*models.Departure `json:"scheduled"`
-	} `json:"departures"`
-	Dist float64 `json:"dist"`
-
-	DisplayTrip *models.Trip `json:"display_trip"`
-}
-
-func newStopResponse() stopResponse {
-	return stopResponse{
-		UpdatedAt: time.Now().UTC(),
-	}
+	Stops []*models.Stop `json:"stops"`
 }
 
 func getStops(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -139,45 +116,8 @@ func getStops(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 
-	resp := newStopResponse()
-	resp.Results = make([]stopResult, len(stops))
-
-	for i, stop := range stops {
-		resp.Results[i].Route, err = models.GetRoute(stop.AgencyID, stop.RouteID, false)
-		if err != nil {
-			log.Println("can't get route for stop", err)
-			apiErr(w, err)
-			return
-		}
-
-		resp.Results[i].Stop = stop
-		resp.Results[i].Dist = stop.Dist
-		resp.Results[i].Departures.Live = stop.Live
-		resp.Results[i].Departures.Scheduled = stop.Scheduled
-
-		resp.Results[i].ID = resp.Results[i].Route.ID + "_" + resp.Results[i].Stop.ID
-
-		// Get the most relevant trip for DisplayTrip
-		departures := []*models.Departure{}
-		departures = append(departures, stop.Live...)
-		departures = append(departures, stop.Scheduled...)
-
-		for _, v := range departures {
-			t, err := models.GetTrip(
-				resp.Results[i].Stop.AgencyID,
-				resp.Results[i].Stop.RouteID,
-				v.TripID,
-			)
-			if err != nil {
-				log.Println("can't get display trip", err)
-				continue
-			}
-
-			// Get the first one, then stop
-			resp.Results[i].DisplayTrip = &t
-			break
-		}
-
+	resp := stopResponse{
+		Stops: stops,
 	}
 
 	b, err := json.Marshal(resp)
@@ -214,7 +154,7 @@ func getTrip(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 }
 
 type routesResp struct {
-	Routes []*models.Route
+	Routes []*models.Route `json:"routes"`
 }
 
 func getRoutes(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {

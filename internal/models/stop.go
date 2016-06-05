@@ -33,12 +33,9 @@ type Stop struct {
 	// a single field.
 	Location interface{} `json:"-" db:"location" upsert_value:"ll_to_earth(:lat, :lon)"`
 
-	// Dist, Scheduled, and Live fields that are only filled in
-	// when returning a response from an API request. Do not directly
-	// display them in JSON since
-	Dist      float64      `json:"-" db:"dist" upsert:"omit"`
-	Scheduled []*Departure `json:"-" db:"-" upsert:"omit"`
-	Live      []*Departure `json:"-" db:"-" upsert:"omit"`
+	Dist      float64      `json:"dist" db:"dist" upsert:"omit"`
+	Scheduled []*Departure `json:"scheduled" db:"-" upsert:"omit"`
+	Live      []*Departure `json:"live" db:"-" upsert:"omit"`
 }
 
 // Table implements the upsert.Upserter interface, returning the table
@@ -149,8 +146,6 @@ func (s *Stop) setDepartures(now time.Time, db sqlx.Ext) (err error) {
 				log.Println("can't get departures", err)
 				return
 			}
-
-			log.Println("yesterday departures", departures)
 
 			allDepartures = append(allDepartures, departures...)
 		}

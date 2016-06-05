@@ -89,33 +89,20 @@ func TestMain(m *testing.M) {
 
 // stopResponse is the response to /api/stops
 type stopResponse struct {
-	Results []struct {
-		Route struct {
-			Route_ID         string
-			Route_Type       int
-			Route_Type_Name  string
-			Route_Color      string
-			Route_Text_Color string
+	Stops []struct {
+		Lat          float64
+		Lon          float64
+		Stop_ID      string
+		Stop_Name    string
+		Route_ID     string
+		Headsign     string
+		Direction_ID int
+		Live         []struct {
+			Time time.Time
 		}
 
-		Stop struct {
-			Lat          float64
-			Lon          float64
-			Stop_ID      string
-			Stop_Name    string
-			Route_ID     string
-			Headsign     string
-			Direction_ID int
-		}
-
-		Departures struct {
-			Live []struct {
-				Time time.Time
-			}
-
-			Scheduled []struct {
-				Time time.Time
-			}
+		Scheduled []struct {
+			Time time.Time
 		}
 		Dist float64
 	}
@@ -165,28 +152,28 @@ func TestScheduledSubway(t *testing.T) {
 		t.Fatal("can't get API response for G train test", err)
 	}
 
-	if len(resp.Results) != 2 {
-		t.Fatalf("expected %v results but got %v", 2, len(resp.Results))
+	if len(resp.Stops) != 2 {
+		t.Fatalf("expected %v results but got %v", 2, len(resp.Stops))
 	}
 
 	// Check each result
-	for _, v := range resp.Results {
-		if v.Stop.Stop_Name != expectedStop {
-			t.Errorf("expected %v stop_name but got %v", expectedStop, v.Stop.Stop_Name)
+	for _, v := range resp.Stops {
+		if v.Stop_Name != expectedStop {
+			t.Errorf("expected %v stop_name but got %v", expectedStop, v.Stop_Name)
 		}
 
-		if v.Route.Route_ID != expectedRoute {
-			t.Errorf("expected %v route_id but got %v", expectedRoute, v.Route.Route_ID)
+		if v.Route_ID != expectedRoute {
+			t.Errorf("expected %v route_id but got %v", expectedRoute, v.Route_ID)
 		}
 
-		if len(v.Departures.Scheduled) < 1 {
+		if len(v.Scheduled) < 1 {
 			t.Errorf("expected at least one scheduled departure but got none in %#v", v)
 		}
 
 		// Check that scheduled times are in the future
-		for _, d := range v.Departures.Scheduled {
+		for _, d := range v.Live {
 			if d.Time.Before(now) {
-				t.Errorf("expected scheduled time %v would be after or equal to %v but it was not", v.Departures.Scheduled, now)
+				t.Errorf("expected scheduled time %v would be after or equal to %v but it was not", v.Scheduled, now)
 			}
 		}
 	}
@@ -213,26 +200,26 @@ func TestLiveSubway(t *testing.T) {
 		t.Fatal("can't get API response for L train test", err)
 	}
 
-	if len(resp.Results) != 2 {
-		t.Fatalf("expected %v results but got %v", 2, len(resp.Results))
+	if len(resp.Stops) != 2 {
+		t.Fatalf("expected %v results but got %v", 2, len(resp.Stops))
 	}
 
 	// Check each result
-	for _, v := range resp.Results {
-		if v.Stop.Stop_Name != expectedStop {
-			t.Errorf("expected %v stop_name but got %v", expectedStop, v.Stop.Stop_Name)
+	for _, v := range resp.Stops {
+		if v.Stop_Name != expectedStop {
+			t.Errorf("expected %v stop_name but got %v", expectedStop, v.Stop_Name)
 		}
 
-		if v.Route.Route_ID != expectedRoute {
-			t.Errorf("expected %v route_id but got %v", expectedRoute, v.Route.Route_ID)
+		if v.Route_ID != expectedRoute {
+			t.Errorf("expected %v route_id but got %v", expectedRoute, v.Route_ID)
 		}
 
-		if len(v.Departures.Live) < 1 {
+		if len(v.Live) < 1 {
 			t.Errorf("expected at least one live departure but got none in %#v", v)
 		}
 
 		// Check that live times are in the future
-		for _, d := range v.Departures.Live {
+		for _, d := range v.Live {
 			if d.Time.Before(now) {
 				t.Errorf("expected live time %v would be after or equal to %v but it was not", d.Time, now)
 			}
@@ -258,12 +245,12 @@ func TestLiveBus(t *testing.T) {
 	}
 
 	// We should get results for both B62 and B32
-	if len(resp.Results) != 4 {
-		t.Fatalf("expected %v results but got %v", 4, len(resp.Results))
+	if len(resp.Stops) != 4 {
+		t.Fatalf("expected %v results but got %v", 4, len(resp.Stops))
 	}
 
 	// Check each result
-	for _, v := range resp.Results {
+	for _, v := range resp.Stops {
 
 		// FIXME: some bus routes won't always have live departures, may need to
 		// pick different bus or make this a warning
@@ -274,7 +261,7 @@ func TestLiveBus(t *testing.T) {
 		*/
 
 		// Check that
-		for _, d := range v.Departures.Live {
+		for _, d := range v.Live {
 			if d.Time.IsZero() {
 				t.Errorf("empty time identified in live departure in %#v", v)
 			}
@@ -305,17 +292,17 @@ func TestScheduledBus(t *testing.T) {
 	}
 
 	// Check each result
-	for _, v := range resp.Results {
-		if v.Stop.Stop_Name != expectedStop {
-			t.Errorf("expected %v stop_name but got %v", expectedStop, v.Stop.Stop_Name)
+	for _, v := range resp.Stops {
+		if v.Stop_Name != expectedStop {
+			t.Errorf("expected %v stop_name but got %v", expectedStop, v.Stop_Name)
 		}
 
-		if v.Route.Route_ID != expectedRoute {
-			t.Errorf("expected %v route_id but got %v", expectedRoute, v.Route.Route_ID)
+		if v.Route_ID != expectedRoute {
+			t.Errorf("expected %v route_id but got %v", expectedRoute, v.Route_ID)
 		}
 
 		// Check that scheduled times are in the future
-		for _, d := range v.Departures.Scheduled {
+		for _, d := range v.Scheduled {
 			if d.Time.Before(now) {
 				t.Errorf("expected scheduled time %v would be after or equal to %v but it was not", d.Time, now)
 			}
@@ -388,6 +375,7 @@ func TestRoutes(t *testing.T) {
 
 	params.Set("lat", "40.7373215")
 	params.Set("lon", "-73.9563212")
+	params.Set("miles", "0.5")
 
 	u := fmt.Sprintf("%s/api/routes?%s", serverURL, params.Encode())
 
