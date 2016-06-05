@@ -368,7 +368,7 @@ type routeResp struct {
 	}
 }
 
-func TestRoutes(t *testing.T) {
+func TestRoutesByDistance(t *testing.T) {
 	rr := routeResp{}
 
 	params := url.Values{}
@@ -403,6 +403,66 @@ func TestRoutes(t *testing.T) {
 			expColor = "#EE352E"
 		case "B32":
 			expColor = "#006CB7"
+		default:
+			skip = true
+		}
+
+		if skip {
+			continue
+		}
+
+		// Expect at least 1 shape
+		if len(route.Route_Shapes) < 1 {
+			t.Fatalf("at least 1 shapes but got %v", len(route.Route_Shapes))
+		}
+
+		// Expect at least 10 points in each route_shape
+		for _, rs := range route.Route_Shapes {
+			if len(rs.Shapes) < 10 {
+				t.Fatalf("expected at least 10 points but got %v", len(rs.Shapes))
+			}
+		}
+
+		if expColor != route.Route_Color {
+			t.Fatalf("expected %v color but got %v", expColor, route.Route_Color)
+		}
+	}
+}
+
+func TestRoutesByID(t *testing.T) {
+	rr := routeResp{}
+
+	params := url.Values{}
+
+	params.Add("agency_id", "MTA NYCT")
+	params.Add("agency_id", "MTA NYCT")
+	params.Add("agency_id", "MTA NYCT")
+	params.Add("route_id", "G")
+	params.Add("route_id", "L")
+	params.Add("route_id", "B43")
+
+	u := fmt.Sprintf("%s/api/routes?%s", serverURL, params.Encode())
+
+	err := getJSON(&rr, u)
+	if err != nil {
+		t.Fatal("can't get API response for routes", err)
+	}
+
+	if len(rr.Routes) != 3 {
+		t.Fatalf("expected at 3 routes but got %v", len(rr.Routes))
+	}
+
+	for _, route := range rr.Routes {
+		var expColor string
+		var skip bool
+
+		switch route.Route_ID {
+		case "G":
+			expColor = "#6CBE45"
+		case "L":
+			expColor = "#A7A9AC"
+		case "B43":
+			expColor = "#EE352E"
 		default:
 			skip = true
 		}
