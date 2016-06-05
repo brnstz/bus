@@ -311,7 +311,7 @@ Bus.prototype.updateStops = function() {
 Bus.prototype.getStops = function() {
     var self = this;
 
-    var url = '/api/v2/stops?lat=' + this.lat +
+    var url = '/api/stops?lat=' + this.lat +
         '&lon=' + this.lon +
         '&filter=' + this.filter +
         '&miles=' + this.miles;

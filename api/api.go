@@ -230,10 +230,14 @@ func getRoutes(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 
+	miles, err := floatOrDie(w, r, "miles")
+	if err != nil {
+		return
+	}
+
 	filter := r.FormValue("filter")
 
-	// Get all routes within a 20 mile radius
-	meters := etc.MileToMeter(20)
+	meters := etc.MileToMeter(miles)
 
 	sq := models.StopQuery{
 		MidLat:     lat,
