@@ -159,58 +159,25 @@ type routesResp struct {
 
 func getRoutes(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	var err error
-
-	lat, err := floatOrDie(w, r, "lat")
+	err = r.ParseForm()
 	if err != nil {
 		return
 	}
-
-	lon, err := floatOrDie(w, r, "lon")
-	if err != nil {
-		return
-	}
-
-	miles, err := floatOrDie(w, r, "miles")
-	if err != nil {
-		return
-	}
-
-	filter := r.FormValue("filter")
-
-	meters := etc.MileToMeter(miles)
-
-	sq := models.StopQuery{
-		MidLat:     lat,
-		MidLon:     lon,
-		Dist:       meters,
-		RouteType:  filter,
-		Departures: false,
-		Distinct:   true,
-	}
-
-	err = sq.Initialize()
-	if err != nil {
-		log.Println("can't initialize stop query", err)
-		apiErr(w, err)
-		return
-	}
-
-	stops, err := models.GetStopsByQuery(etc.DBConn, sq)
-	if err != nil {
-		log.Println("can't get stops", err)
-		apiErr(w, err)
-		return
-	}
-
 	routes := []*models.Route{}
 
-	// assumes agency_id + route_id is unique across agencies
-	// ok for now until we build a routequery
-	distinctRoutes := map[string]bool{}
+	agencyIDs := r.Form["agency_id"]
+	routeIDs := r.Form["route_id"]
 
-	for _, v := range stops {
-		if !distinctRoutes[v.AgencyID+v.RouteID] {
-			route, err := models.GetRoute(v.AgencyID, v.RouteID, true)
+	if len(agencyIDs) > 0 && len(routeIDs) > 0 {
+		// If agency_id and route_ids are passed, then assume
+		// that's how we're querying
+		if len(agencyIDs) != len(routeIDs) {
+			err = errBadRequest
+			return
+		}
+
+		for i := 0; i < len(routeIDs); i++ {
+			route, err := models.GetRoute(agencyIDs[i], routeIDs[i], true)
 			if err != nil {
 				log.Println("can't get route", err)
 				apiErr(w, err)
@@ -219,7 +186,68 @@ func getRoutes(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 			routes = append(routes, route)
 		}
 
-		distinctRoutes[v.AgencyID+v.RouteID] = true
+	} else {
+		// Otherwise they are querying by lat/lon
+
+		lat, err := floatOrDie(w, r, "lat")
+		if err != nil {
+			return
+		}
+
+		lon, err := floatOrDie(w, r, "lon")
+		if err != nil {
+			return
+		}
+
+		miles, err := floatOrDie(w, r, "miles")
+		if err != nil {
+			return
+		}
+
+		filter := r.FormValue("filter")
+
+		meters := etc.MileToMeter(miles)
+
+		sq := models.StopQuery{
+			MidLat:     lat,
+			MidLon:     lon,
+			Dist:       meters,
+			RouteType:  filter,
+			Departures: false,
+			Distinct:   true,
+		}
+
+		err = sq.Initialize()
+		if err != nil {
+			log.Println("can't initialize stop query", err)
+			apiErr(w, err)
+			return
+		}
+
+		stops, err := models.GetStopsByQuery(etc.DBConn, sq)
+		if err != nil {
+			log.Println("can't get stops", err)
+			apiErr(w, err)
+			return
+		}
+
+		// assumes agency_id + route_id is unique across agencies
+		// ok for now until we build a routequery
+		distinctRoutes := map[string]bool{}
+
+		for _, v := range stops {
+			if !distinctRoutes[v.AgencyID+v.RouteID] {
+				route, err := models.GetRoute(v.AgencyID, v.RouteID, true)
+				if err != nil {
+					log.Println("can't get route", err)
+					apiErr(w, err)
+					return
+				}
+				routes = append(routes, route)
+			}
+
+			distinctRoutes[v.AgencyID+v.RouteID] = true
+		}
 	}
 
 	rr := routesResp{
