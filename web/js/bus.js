@@ -252,23 +252,44 @@ Bus.prototype.getStops = function() {
 Bus.prototype.getRoutes = function() {
     var self = this;
     var params = [];
+    var uniq = {};
 
+    // Iterate through stops in the response and get info on
+    // any routes we don't have
     for (var i = 0; i < self.stopList.length; i++) {
         var stop = self.stopList[i];
+        var uniq_id = stop.api.agency_id + "|" + stop.api.route_id;
+
+        // Ignore routes already found in this call
+        if (uniq[uniq_id]) {
+            continue;
+        }
+
+        // Ignore routes we already pulled
+        if (self.routes[uniq_id]) {
+            continue;
+        }
+
         params.push('agency_id=' + encodeURIComponent(stop.api.agency_id));
         params.push('route_id=' + encodeURIComponent(stop.api.route_id));
     }
-    var url = '/api/routes?' + params.join("&");
 
-    $.ajax(url, {
-        dataType: "json",
-        success: function(data) {
-            self.parseRoutes(data);
-        },
+    if (params.length > 0) {
+        // Only make the call when there are any routes to add
+        var url = '/api/routes?' + params.join("&");
+        $.ajax(url, {
+            dataType: "json",
+            success: function(data) {
+                self.parseRoutes(data);
+            },
 
-        error: function(xhr, stat, err) {
-            console.log("error in request");
-            console.log(xhr, stat, err);
-        }
-    });
+            error: function(xhr, stat, err) {
+                console.log("error in request");
+                console.log(xhr, stat, err);
+            }
+        });
+    } else {
+        // Otherwise we just need to update the stops
+        self.updateStops();
+    }
 };
