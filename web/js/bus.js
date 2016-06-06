@@ -169,8 +169,8 @@ Bus.prototype.clickHandler = function(stop) {
     return function(e) {
         var route = self.routes[stop.api.agency_id + "|" + stop.api.route_id];
         var row = self.rows[stop.api.id];
-        var markers = route.markers;
-        var lines = route.lines;
+        var markers = route.markers[stop.api.direction_id];
+        var lines = route.lines[stop.api.direction_id];
 
         self.map.setView([stop.api.lat, stop.api.lon]);
 
@@ -179,6 +179,7 @@ Bus.prototype.clickHandler = function(stop) {
             markers[key].bringToFront();
         }
 
+        console.log(lines);
         for (var i = 0; i < lines.length; i++) {
             lines[i].addTo(self.map);
             lines[i].bringToFront();
