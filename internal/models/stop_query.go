@@ -54,7 +54,7 @@ const (
 
 	sqEndDistinct = ` 
 		ORDER BY stop.route_id, direction_id, dist 
-	    ) unique_routes ORDER BY dist ASC
+	    ) unique_routes ORDER BY dist ASC LIMIT 10
 	`
 )
 
