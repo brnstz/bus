@@ -104,5 +104,15 @@ Route.prototype.createLines = function() {
         lines[dir] = dir_lines;
     }
 
+    // Weird case, if there are no lines for a certain direction, then copy
+    // from the other direction
+
+    if (lines[0].length < 1) {
+        lines[0] = lines[1];
+    }
+    if (lines[1].length < 1) {
+        lines[1] = lines[0];
+    }
+
     return lines;
 }

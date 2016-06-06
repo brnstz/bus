@@ -41,6 +41,12 @@ function Bus() {
 
     // rows is stop ids mapped to rows in the results table
     self.rows = {};
+
+    // current_stop is current stop that is clicked
+    self.current_stop = null;
+
+    // layer is the current layer on the map
+    self.layer = null;
 }
 
 // init is run when the page initially loads
@@ -162,28 +168,57 @@ Bus.prototype.createRow = function(stop, i) {
     return row;
 };
 
+// clear removes the current route from map
+Bus.prototype.clear = function() {
+    var self = this;
+
+    // Nothing to do
+    if (self.layer == null || self.map == null) {
+        return
+    }
+
+    self.layer.clearLayers();
+};
+
 // clickHandler highlights the marker and the row for this stop_id
 Bus.prototype.clickHandler = function(stop) {
     var self = this;
 
     return function(e) {
+
+        // If it's the current stop, then just recenter
+        if (self.current_stop && self.current_stop.id == stop.id) {
+            self.map.setView([stop.api.lat, stop.api.lon]);
+            return;
+        }
+
         var route = self.routes[stop.api.agency_id + "|" + stop.api.route_id];
         var row = self.rows[stop.api.id];
         var markers = route.markers[stop.api.direction_id];
         var lines = route.lines[stop.api.direction_id];
 
+        // First clear the map of any existing routes
+        self.clear();
+
+        // Then recenter and draw
         self.map.setView([stop.api.lat, stop.api.lon]);
 
-        for (var key in markers) {
-            markers[key].addTo(self.map);
-            markers[key].bringToFront();
+        var vals = [];
+
+        // Draw lines 
+        for (var i = 0; i < lines.length; i++) {
+            vals.push(lines[i]);
         }
 
-        console.log(lines);
-        for (var i = 0; i < lines.length; i++) {
-            lines[i].addTo(self.map);
-            lines[i].bringToFront();
+        // Draw marker stops
+        for (var key in markers) {
+            vals.push(markers[key]);
         }
+
+        self.layer = L.layerGroup(vals);
+        self.layer.addTo(self.map);
+
+        self.current_stop = stop;
     };
 }
 
