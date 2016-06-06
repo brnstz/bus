@@ -6,14 +6,12 @@ function Stop(api) {
     // and add any other info we want as a sibling data piece.
     self.api = api;
 
+    self.id = self.api.agency_id + "|" + self.api.route_id + "|" + self.api.stop_id;
+
     self.map_fg_opacity = 1.0;
 
     self.table_bg_opacity = 0.5;
     self.table_fg_opacity = 1.0;
-
-    self.radius = 10;
-
-    self.stop_fill_color = '#ffffff';
 
     // live is true if we have live departures
     self.live = self.isLive();
@@ -29,8 +27,8 @@ Stop.prototype.isLive = function() {
     var self = this;
     var live = false;
 
-    if (self.api.departures.live != null &&
-        self.api.departures.live.length > 0) {
+    if (self.api.live != null &&
+        self.api.live.length > 0) {
         live = true;
     }
 
@@ -69,9 +67,9 @@ Stop.prototype.createDepartures = function() {
     var text = "";
 
     if (self.live) {
-        departures = self.api.departures.live;
+        departures = self.api.live;
     } else {
-        departures = self.api.departures.scheduled;
+        departures = self.api.scheduled;
     }
 
     if (departures != null) {
