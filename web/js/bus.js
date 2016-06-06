@@ -113,11 +113,8 @@ Bus.prototype.parseStops = function(data) {
 
     // Create a stop object for each result and save to our list
     for (var i = 0; i < data.stops.length; i++) {
-        // FIXME: is this IIFE necessary?
-        (function() {
-            var s = new Stop(data.stops[i]);
-            self.stopList[i] = s;
-        }());
+        var s = new Stop(data.stops[i]);
+        self.stopList[i] = s;
     }
 
     // After we parseStops we need to get any missing routes
