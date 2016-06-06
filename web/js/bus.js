@@ -3,48 +3,44 @@
 var bus = new Bus();
 
 function Bus() {
+    var self = this;
+
     // lat, lon is the center of our request. We send this to the Bus API
     // and also use it to draw the map. We can get this value from the
     // HTML5 location API.
-    this.lat = 0;
-    this.lon = 0;
+    self.lat = 0;
+    self.lon = 0;
 
     // miles and filter are options sent to the Bus API
-    this.miles = 0.5;
-    this.filter = '';
+    self.miles = 0.5;
+    self.filter = '';
 
     // tileURL is passed to Leaflet JS for drawing the map
-    this.tileURL = 'https://stamen-tiles.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png';
+    self.tileURL = 'https://stamen-tiles.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png';
 
     // tileOptions is passed to Leatlef JS for drawing the map
-    this.tileOptions = {
+    self.tileOptions = {
         MaxZoom: 20
     };
 
     // zoom is the initial zoom value when drawing the Leaflet map
-    this.zoom = 16;
+    self.zoom = 16;
 
     // map is our Leaflet JS map object
-    this.map = null;
+    self.map = null;
 
     // here is our marker for current location
-    this.here = null;
+    self.here = null;
 
     // stopList is the list of results in the order returned by the API 
     // (i.e., distance from location)
-    this.stopList = [];
+    self.stopList = [];
 
-    // stops is stop ids mapped to stop objects
-    this.stops = {};
-
-    // markers is stop ids mapped to markers on the map
-    this.markers = {};
-
-    // paths is route_ids+direction_ids mapped to L.polyline paths on the map 
-    this.paths = {};
+    // routes is a mapping from route_id to route object
+    self.routes = {};
 
     // rows is stop ids mapped to rows in the results table
-    this.rows = {};
+    self.rows = {};
 }
 
 // init is run when the page initially loads
@@ -116,36 +112,39 @@ Bus.prototype.parseStops = function(data) {
     self.stopList = [];
 
     // Create a stop object for each result and save to our list
-    for (var i = 0; i < data.results.length; i++) {
+    for (var i = 0; i < data.stops.length; i++) {
+        // FIXME: is this IIFE necessary?
         (function() {
-            var s = new Stop(data.results[i]);
+            var s = new Stop(data.stops[i]);
             self.stopList[i] = s;
         }());
     }
 
-    self.updateStops();
+    // After we parseStops we need to get any missing routes
+    self.getRoutes();
 };
 
-// createMarker creates the map marker for this stop
-Bus.prototype.createMarker = function(stop) {
+Bus.prototype.parseRoutes = function(data) {
     var self = this;
 
-    return L.circle(
-        [stop.api.stop.lat, stop.api.stop.lon],
-        stop.radius, {
-            color: stop.path_color,
-            fillColor: stop.stop_fill_color,
-            opacity: stop.map_fg_opacity,
-            fillOpacity: stop.map_fg_opacity
-        }
-    );
+    for (var i = 0; i < data.routes.length; i++) {
+        var r = new Route(data.routes[i]);
+        self.routes[r.id] = r;
+    };
+
+    // After we parseRoutes, it's time to updateStops
+    self.updateStops();
 };
 
 // createRow creates a results row for this stop
 Bus.prototype.createRow = function(stop, i) {
+    var self = this;
+
+    var route = self.routes[stop.api.agency_id + "|" + stop.api.route_id];
+
     var cellCSS = {
-        "color": stop.api.route.route_text_color,
-        "background-color": stop.api.route.route_color,
+        "color": route.api.route_text_color,
+        "background-color": route.api.route_color,
         "opacity": stop.table_bg_opacity
     };
 
@@ -155,9 +154,9 @@ Bus.prototype.createRow = function(stop, i) {
 
     // Create and append the cell containing the route identifier
     // with colored background
-    $(row).append($("<td>").text(stop.api.route.route_id))
+    $(row).append($("<td>").text(stop.api.route_id))
 
-    var headsign = $('<span class="headsign">' + stop.api.stop.headsign + '</span>');
+    var headsign = $('<span class="headsign">' + stop.api.headsign + '</span>');
     $(row).append($("<td>").append(headsign));
 
     // Create and append cell with text of departure times
@@ -166,108 +165,36 @@ Bus.prototype.createRow = function(stop, i) {
     return row;
 };
 
-// createPath draws the path of this stop's display trip
-Bus.prototype.createPath = function(stop) {
-    var self = this;
-    var latlons = [];
-
-    // If there is a cached version, return that
-    var cached = self.paths[stop.api.stop.route_id + stop.api.stop.direction_id];
-
-    // If there is no response, then return null
-    if (!(stop.api.display_trip && stop.api.display_trip.shape_points)) {
-        return null;
-    }
-
-    // Otherwise go through each point and create path
-    for (var i = 0; i < stop.api.display_trip.shape_points.length; i++) {
-        var point = stop.api.display_trip.shape_points[i];
-        latlons[i] = L.latLng(point.lat, point.lon);
-    }
-
-    var line = L.polyline(
-        latlons, {
-            color: stop.path_color,
-            fillColor: stop.api.route.route_color,
-            opacity: stop.map_fg_opacity,
-            fillOpacity: stop.map_fg_opacity
-        }
-    );
-
-    return line;
-}
-
 // clickHandler highlights the marker and the row for this stop_id
-Bus.prototype.clickHandler = function(stop_id) {
+Bus.prototype.clickHandler = function(stop) {
     var self = this;
 
     return function(e) {
-        for (var i = 0; i < self.stopList.length; i++) {
-            var stop = self.stopList[i];
-            var marker = self.markers[stop.api.id];
-            var row = self.rows[stop.api.id];
-            var path = self.paths[stop.api.stop.route_id + stop.api.stop.direction_id];
+        var route = self.routes[stop.api.agency_id + "|" + stop.api.route_id];
+        var row = self.rows[stop.api.id];
+        var markers = route.markers;
+        var lines = route.lines;
 
-            if (stop.api.id == stop_id) {
-                if (path !== null) {
-                    path.setStyle({
-                        color: stop.api.route.route_color,
-                        fillColor: stop.api.route.route_color,
-                        opacity: stop.map_fg_opacity,
-                        fillOpacity: stop.map_fg_opacity
-                    });
+        self.map.setView([stop.api.lat, stop.api.lon]);
 
-                    path.bringToFront();
-                }
+        for (var key in markers) {
+            markers[key].addTo(self.map);
+            markers[key].bringToFront();
+        }
 
-
-                // If it's the current stop, set fg opacity and bring to
-                // front
-                $(row).css("opacity", stop.table_fg_opacity);
-                marker.setStyle({
-                    color: stop.api.route.route_color,
-                    fillOpacity: stop.map_fg_opacity,
-                    opacity: stop.map_fg_opacity
-                });
-                marker.bringToFront();
-
-
-                self.map.setView([stop.api.stop.lat, stop.api.stop.lon]);
-
-
-            } else {
-                // All other stops, set to bg opacity and bring to 
-                // background
-                $(row).css("opacity", stop.table_bg_opacity);
-                marker.setStyle({
-                    color: stop.path_color,
-                    fillOpacity: stop.map_bg_opacity,
-                    opacity: stop.map_bg_opacity
-                });
-                marker.bringToBack();
-
-                if (path !== null) {
-                    path.setStyle({
-                        color: stop.path_color,
-                        opacity: stop.map_bg_opacity,
-                        fillOpacity: stop.map_bg_opacity
-                    });
-
-                    path.bringToBack();
-                }
-            }
+        for (var i = 0; i < lines.length; i++) {
+            lines[i].addTo(self.map);
+            lines[i].bringToFront();
         }
     };
-};
+}
 
 // updateStops runs any manipulation necessary after parsing stops
 // into stopList
 Bus.prototype.updateStops = function() {
     var self = this;
 
-    // Reset maps
-    self.stops = {};
-    self.markers = {};
+    // Reset rows
     self.rows = {};
 
     // Create new table
@@ -279,24 +206,14 @@ Bus.prototype.updateStops = function() {
         // create the stop row and markers
         var stop = self.stopList[i];
         var row = self.createRow(stop, i);
-        var marker = self.createMarker(stop);
-        var path = self.createPath(stop);
 
-        // Put into maps
-        self.stops[stop.api.id] = stop;
-        self.markers[stop.api.id] = marker;
-        self.rows[stop.api.id] = row;
-        self.paths[stop.api.stop.route_id + stop.api.stop.direction_id] = path;
+        // Put into row
+        self.rows[stop.id] = row;
 
-        // Add to display
+        // Add to row display
         $(tbody).append(row);
-        marker.addTo(self.map);
-        if (path !== null) {
-            path.addTo(self.map);
-        }
 
-        var handler = self.clickHandler(stop.api.id);
-        marker.on('click', handler);
+        var handler = self.clickHandler(stop);
         $(row).click(handler);
     }
 
@@ -311,15 +228,42 @@ Bus.prototype.updateStops = function() {
 Bus.prototype.getStops = function() {
     var self = this;
 
-    var url = '/api/stops?lat=' + this.lat +
-        '&lon=' + this.lon +
-        '&filter=' + this.filter +
-        '&miles=' + this.miles;
+    var url = '/api/stops' +
+        '?lat=' + encodeURIComponent(this.lat) +
+        '&lon=' + encodeURIComponent(this.lon) +
+        '&filter=' + encodeURIComponent(this.filter) +
+        '&miles=' + encodeURIComponent(this.miles);
 
     $.ajax(url, {
         dataType: "json",
         success: function(data) {
             self.parseStops(data);
+        },
+
+        error: function(xhr, stat, err) {
+            console.log("error in request");
+            console.log(xhr, stat, err);
+        }
+    });
+};
+
+// getRoutes calls the routes API for any routes 
+// we don't yet have
+Bus.prototype.getRoutes = function() {
+    var self = this;
+    var params = [];
+
+    for (var i = 0; i < self.stopList.length; i++) {
+        var stop = self.stopList[i];
+        params.push('agency_id=' + encodeURIComponent(stop.api.agency_id));
+        params.push('route_id=' + encodeURIComponent(stop.api.route_id));
+    }
+    var url = '/api/routes?' + params.join("&");
+
+    $.ajax(url, {
+        dataType: "json",
+        success: function(data) {
+            self.parseRoutes(data);
         },
 
         error: function(xhr, stat, err) {
