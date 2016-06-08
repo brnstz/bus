@@ -14,19 +14,27 @@ type ScheduledStopTime struct {
 	ServiceID string `db:"service_id" upsert:"key"`
 	TripID    string `db:"trip_id" upsert:"key"`
 
+	ArrivalSec   int `db:"arrival_sec"`
 	DepartureSec int `db:"departure_sec"`
+
+	StopSequence int    `db:"stop_sequence"`
+	StopHeadsign string `db:"stop_headsign"`
 }
 
-func NewScheduledStopTime(routeID, stopID, serviceID, timeStr, agencyID, tripID string) (sst *ScheduledStopTime, err error) {
-	dsec := etc.TimeStrToSecs(timeStr)
+func NewScheduledStopTime(routeID, stopID, serviceID, arrivalStr, depatureStr, agencyID, tripID, headsign string, sequence int) (sst *ScheduledStopTime, err error) {
+	asec := etc.TimeStrToSecs(arrivalStr)
+	dsec := etc.TimeStrToSecs(depatureStr)
 
 	sst = &ScheduledStopTime{
 		RouteID:      routeID,
 		StopID:       stopID,
 		ServiceID:    serviceID,
+		ArrivalSec:   asec,
 		DepartureSec: dsec,
 		AgencyID:     agencyID,
 		TripID:       tripID,
+		StopSequence: sequence,
+		StopHeadsign: headsign,
 	}
 
 	return
