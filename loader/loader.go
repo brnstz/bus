@@ -293,7 +293,6 @@ func (l *Loader) loadStopTrips() {
 	tripIdx := find(header, "trip_id")
 	arrivalIdx := find(header, "arrival_time")
 	depatureIdx := find(header, "departure_time")
-	headsignIdx := find(header, "stop_headsign")
 	sequenceIdx := find(header, "stop_sequence")
 	for i = 0; ; i++ {
 		rec, err := stopTimes.Read()
@@ -310,7 +309,6 @@ func (l *Loader) loadStopTrips() {
 		arrivalStr := rec[arrivalIdx]
 		departureStr := rec[depatureIdx]
 		agencyID := l.routeAgency[l.tripRoute[trip]]
-		headsign := rec[headsignIdx]
 		sequenceStr := rec[sequenceIdx]
 		sequence, err := strconv.Atoi(sequenceStr)
 		if err != nil {
@@ -326,7 +324,7 @@ func (l *Loader) loadStopTrips() {
 
 		sst, err := models.NewScheduledStopTime(
 			service.RouteID, stop, service.ID, arrivalStr, departureStr,
-			agencyID, trip, headsign, sequence,
+			agencyID, trip, sequence,
 		)
 		if err != nil {
 			log.Fatalf("%v on line %v of stop_times.txt", err, i)
