@@ -95,7 +95,11 @@ CREATE TABLE scheduled_stop_time (
     stop_id        TEXT NOT NULL,
     service_id     TEXT NOT NULL,
     trip_id        TEXT NOT NULL,
+    arrival_sec    INT  NOT NULL,
     departure_sec  INT  NOT NULL,
+    stop_sequence  INT  NOT NULL,
+    stop_headsign  TEXT NOT NULL,
+
     
     UNIQUE(agency_id, route_id, stop_id, service_id, trip_id)
 );
