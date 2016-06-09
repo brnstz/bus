@@ -86,7 +86,6 @@ func addRevCopies(rs []*RouteShape, from, to int) []*RouteShape {
 		// add opposite points
 		size := len(oldShape.Shapes)
 		for i := 0; i < size; i++ {
-			log.Println(i, size, size-i)
 			shape.Shapes[i] = oldShape.Shapes[size-i-1]
 		}
 
