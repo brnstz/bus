@@ -72,7 +72,8 @@ func GetRouteShapes(db sqlx.Ext) ([]*RouteShape, error) {
 	return rs, nil
 }
 
-// GetSavedRouteShapes returns
+// GetSavedRouteShapes returns all shapes for this combination of
+// agencyID and routeID
 func GetSavedRouteShapes(db sqlx.Ext, agencyID, routeID string) ([]*RouteShape, error) {
 	rs := []*RouteShape{}
 

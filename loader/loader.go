@@ -105,6 +105,7 @@ func (l *Loader) load() {
 	l.loadShapes()
 
 	l.updateRouteShapes()
+	l.updateRouteTrips()
 }
 
 func getcsv(dir, name string) *csv.Reader {
@@ -580,7 +581,45 @@ func (l *Loader) updateRouteShapes() {
 
 	for _, rs := range routeShapes {
 		// upsert each route so we end up with the most common
-		rs.Save(tx)
+		err = rs.Save(tx)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+}
+
+// updateRouteTrips updates the route_trip table by identifying
+// the "biggest" trips for a route
+func (l *Loader) updateRouteTrips() {
+	var err error
+
+	tx, err := etc.DBConn.Beginx()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer func() {
+		if err == nil {
+			tx.Commit()
+		} else {
+			tx.Rollback()
+		}
+	}()
+
+	err = models.DeleteRouteTrips(tx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	trips, err := models.GetRouteTrips(tx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, trip := range trips {
+		err = trip.Save(tx)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
