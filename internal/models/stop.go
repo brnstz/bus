@@ -33,6 +33,11 @@ type Stop struct {
 	// a single field.
 	Location interface{} `json:"-" db:"location" upsert_value:"ll_to_earth(:lat, :lon)"`
 
+	// StopSequence is the order in which this stop occurs in a typical
+	// route trip, for comparisons with other stops matching the
+	// same agency / route / stop / direction / headsign
+	StopSequence int `json:"stop_sequence" db:"stop_sequence"`
+
 	Dist      float64      `json:"dist" db:"dist" upsert:"omit"`
 	Scheduled []*Departure `json:"scheduled" db:"-" upsert:"omit"`
 	Live      []*Departure `json:"live" db:"-" upsert:"omit"`
