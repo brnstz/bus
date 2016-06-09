@@ -194,8 +194,8 @@ Bus.prototype.clickHandler = function(stop) {
 
         var route = self.routes[stop.api.agency_id + "|" + stop.api.route_id];
         var row = self.rows[stop.api.id];
-        var markers = route.markers[stop.api.direction_id];
-        var lines = route.lines[stop.api.direction_id];
+        var markers = route.createMarkers(stop.api);
+        var lines = route.createLines(stop.api);
 
         // First clear the map of any existing routes
         self.clear();
