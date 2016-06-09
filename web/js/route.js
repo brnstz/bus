@@ -11,108 +11,116 @@ function Route(api) {
     self.stop_radius = 10;
     self.stop_fill_color = '#ffffff';
 
-    // markers maps direction id to a map of stop ids mapping to circles. eg:
-    // {
-    //      0: { "L08N": L.circle(), "L06N": L.circle()},
-    //      1: { "L08S": L.circle(), "L06S": L.circle()}
-    //  }
-    self.markers = self.createMarkers();
-
-
-    // lines maps direction id to a list of L.polyline objects
-    // {
-    //      0: [L.poyline()...],
-    //      1: [L.polyline()...],
-    // }
-    self.lines = self.createLines();
+    // before/after opacity is the opacity of stops before/after
+    // us in the stop sequence
+    self.before_opacity = 0.5;
+    self.after_opacity = 1.0;
 }
 
-// createMarkers creates L.circle makers for each stop on the route
-Route.prototype.createMarkers = function() {
+// createMarkers returns a list of L.circle values for this route
+// given we are at curstop
+Route.prototype.createMarkers = function(curstop) {
     var self = this;
-    var markers = {}
+    var markers = [];
 
-    for (var dir = 0; dir <= 1; dir++) {
-        var dir_markers = {}
-        for (var i = 0; i < self.api.stops.length; i++) {
-            var stop = self.api.stops[i];
-            if (stop.direction_id != dir) {
-                continue;
-            }
+    for (var i = 0; i < self.api.stops.length; i++) {
+        var stop = self.api.stops[i];
 
-            var circle = L.circle([stop.lat, stop.lon],
-                self.stop_radius, {
-                    color: self.api.route_color,
-                    fillColor: self.stop_fill_color,
-                    opacity: 1.0
-                }
-            );
-
-            dir_markers[stop.stop_id] = circle;
+        // Ignore stops that aren't going our direction
+        if (stop.direction_id != curstop.direction_id) {
+            continue;
         }
 
-        markers[dir] = dir_markers;
+        var opacity = 0.0;
+        if (stop.stop_sequence < curstop.stop_sequence) {
+            opacity = self.before_opacity;
+        } else {
+            opacity = self.after_opacity;
+        }
+
+        var circle = L.circle([stop.lat, stop.lon],
+            self.stop_radius, {
+                color: self.api.route_color,
+                fillColor: self.stop_fill_color,
+                opacity: opacity
+            }
+        );
+
+        markers.push(circle);
     }
 
     return markers;
 };
 
-// createLines creates L.polyline() objects for each shape of the route 
-Route.prototype.createLines = function() {
+
+// createLines returns a list of L.polyline values for this route
+// given we are at curstop
+Route.prototype.createLines = function(curstop) {
     var self = this;
     var lines = [];
 
-    // Go through each direction
-    for (var dir = 0; dir <= 1; dir++) {
-        // Create a list of dir lines
-        var dir_lines = [];
 
-        // Go through each route shape
-        for (var i = 0; i < self.api.route_shapes.length; i++) {
+    // Go through each route shape
+    for (var i = 0; i < self.api.route_shapes.length; i++) {
 
-            // If this shape isn't the current direction, skip it for
-            // now
-            if (self.api.route_shapes[i].direction_id != dir) {
-                continue;
+        // If this shape is not our direction, then skip it
+        if (self.api.route_shapes[i].direction_id != curstop.direction_id) {
+            continue;
+        }
+
+        // Get the shap in a local var
+        var shape = self.api.route_shapes[i];
+
+        // Create a list of before and after latlons (different drawing 
+        // style before and after our stop)
+        var before_latlons = [];
+        var after_latlons = [];
+
+        // Assume we're before our stop until hearing otherwise
+        var before = true;
+
+        // Create a point for each latlon
+        for (var j = 0; j < shape.shapes.length; j++) {
+            var point = shape.shapes[j];
+
+            // If the point matches our current stop, then we're
+            // transitioning from before to after (FIXME: will these
+            // always be exactly the same point?)
+            if (before && (point.lat == curstop.lat) && (point.lon = curstop.lon)) {
+                before = false;
             }
 
-            // Get the shape and init a list of latlons
-            var shape = self.api.route_shapes[i];
-            var latlons = [];
-
-            // Create a point for each latlon
-            for (var j = 0; j < shape.shapes.length; j++) {
-                var point = shape.shapes[j];
-                latlons[j] = L.latLng(point.lat, point.lon);
+            if (before) {
+                before_latlons.push(L.latLng(point.lat, point.lon));
+            } else {
+                after_latlons.push(L.latLng(point.lat, point.lon));
             }
+        }
 
-            // Create a polyline with the latlons
-            var line = L.polyline(
-                latlons, {
-                    color: self.api.route_color,
-                    fillColor: self.api.route_color,
-                    opacity: 1.0,
-                    fillOpacity: 1.0
-                }
-            );
+        // Create a polyline with the latlons
+        var before_line = L.polyline(
+            before_latlons, {
+                color: self.api.route_color,
+                fillColor: self.api.route_color,
+                opacity: self.before_opacity,
+                fillOpacity: self.before_opacity
+            }
+        );
 
-            // Append this line to current direction
-            dir_lines.push(line);
-        };
+        // Create a polyline with the latlons
+        var after_line = L.polyline(
+            after_latlons, {
+                color: self.api.route_color,
+                fillColor: self.api.route_color,
+                opacity: self.before_opacity,
+                fillOpacity: self.before_opacity
+            }
+        );
 
-        // Set this direction's lines
-        lines[dir] = dir_lines;
-    }
+        lines.push(before_line);
+        lines.push(after_line);
 
-    // Weird case, if there are no lines for a certain direction, then copy
-    // from the other direction
-
-    if (lines[0].length < 1) {
-        lines[0] = lines[1];
-    }
-    if (lines[1].length < 1) {
-        lines[1] = lines[0];
-    }
+    };
 
     return lines;
 }
