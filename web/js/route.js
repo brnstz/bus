@@ -8,12 +8,12 @@ function Route(api) {
 
     self.id = self.api.agency_id + "|" + self.api.route_id;
 
-    self.stop_radius = 10;
-    self.stop_fill_color = '#ffffff';
+    self.stop_radius = 15;
+    self.outline_color = '#000000';
 
     // before/after opacity is the opacity of stops before/after
     // us in the stop sequence
-    self.before_opacity = 0.5;
+    self.before_opacity = 0.4;
     self.after_opacity = 1.0;
 }
 
@@ -31,18 +31,25 @@ Route.prototype.createMarkers = function(curstop) {
             continue;
         }
 
-        var opacity = 0.0;
+        // by default, fill with white
+        var fill_color = '#ffffff'
+        if (stop.stop_id == curstop.stop_id) {
+            fill_color = '#000000';
+        }
+
+
+        // ignore stops before our stop
         if (stop.stop_sequence < curstop.stop_sequence) {
-            opacity = self.before_opacity;
-        } else {
-            opacity = self.after_opacity;
+            continue;
         }
 
         var circle = L.circle([stop.lat, stop.lon],
             self.stop_radius, {
+                width: 1,
                 color: self.api.route_color,
-                fillColor: self.stop_fill_color,
-                opacity: opacity
+                fillColor: fill_color,
+                opacity: self.after_opacity,
+                fillOpacity: self.after_opacity
             }
         );
 
@@ -83,16 +90,19 @@ Route.prototype.createLines = function(curstop) {
         for (var j = 0; j < shape.shapes.length; j++) {
             var point = shape.shapes[j];
 
+            if (before) {
+                before_latlons.push(L.latLng(point.lat, point.lon));
+            } else {
+                after_latlons.push(L.latLng(point.lat, point.lon));
+            }
+
             // If the point matches our current stop, then we're
             // transitioning from before to after (FIXME: will these
             // always be exactly the same point?)
             if (before && (point.lat == curstop.lat) && (point.lon = curstop.lon)) {
                 before = false;
-            }
-
-            if (before) {
-                before_latlons.push(L.latLng(point.lat, point.lon));
-            } else {
+                // When switching from before to after, always
+                // add the last point
                 after_latlons.push(L.latLng(point.lat, point.lon));
             }
         }
@@ -112,8 +122,8 @@ Route.prototype.createLines = function(curstop) {
             after_latlons, {
                 color: self.api.route_color,
                 fillColor: self.api.route_color,
-                opacity: self.before_opacity,
-                fillOpacity: self.before_opacity
+                opacity: self.after_opacity,
+                fillOpacity: self.after_opacity
             }
         );
 
