@@ -72,6 +72,30 @@ func GetRouteShapes(db sqlx.Ext) ([]*RouteShape, error) {
 	return rs, nil
 }
 
+func addRevCopies(rs []*RouteShape, from, to int) []*RouteShape {
+	newShapes := []*RouteShape{}
+
+	// copy all shapes into reverse version
+	for _, oldShape := range rs {
+		// make a copy of the shape
+		shape := *oldShape
+
+		// set opposite direction
+		shape.DirectionID = to
+
+		// add opposite points
+		size := len(oldShape.Shapes)
+		for i := 0; i < size; i++ {
+			log.Println(i, size, size-i)
+			shape.Shapes[i] = oldShape.Shapes[size-i-1]
+		}
+
+		newShapes = append(newShapes, &shape)
+	}
+
+	return newShapes
+}
+
 // GetSavedRouteShapes returns all shapes for this combination of
 // agencyID and routeID
 func GetSavedRouteShapes(db sqlx.Ext, agencyID, routeID string) ([]*RouteShape, error) {
@@ -90,12 +114,29 @@ func GetSavedRouteShapes(db sqlx.Ext, agencyID, routeID string) ([]*RouteShape, 
 		return rs, err
 	}
 
+	// found01 ensures we find both direction_id 0 and direction_id 1
+	// (the values 0 and 1 are part of the spec, not a special case)
+	found01 := map[int]bool{}
+
 	for _, shape := range rs {
+		found01[shape.DirectionID] = true
 		shape.Shapes, err = GetShapes(db, agencyID, shape.ShapeID)
 		if err != nil {
 			log.Println("can't get shapes", err)
 			return rs, err
 		}
+	}
+
+	// If we can't find either, then there's nothing else we can do
+	if !found01[0] && !found01[1] {
+		return rs, err
+	}
+
+	// If we can't find 0, then copy a reverse version of 1
+	if !found01[0] {
+		rs = append(rs, addRevCopies(rs, 1, 0)...)
+	} else if !found01[1] {
+		rs = append(rs, addRevCopies(rs, 0, 1)...)
 	}
 
 	return rs, err
