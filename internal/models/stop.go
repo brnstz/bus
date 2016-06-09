@@ -36,7 +36,7 @@ type Stop struct {
 	// StopSequence is the order in which this stop occurs in a typical
 	// route trip, for comparisons with other stops matching the
 	// same agency / route / stop / direction / headsign
-	StopSequence int `json:"stop_sequence" db:"stop_sequence"`
+	StopSequence int `json:"stop_sequence" db:"stop_sequence" upsert:"omit"`
 
 	Dist      float64      `json:"dist" db:"dist" upsert:"omit"`
 	Scheduled []*Departure `json:"scheduled" db:"-" upsert:"omit"`
