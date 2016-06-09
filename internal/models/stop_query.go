@@ -7,33 +7,45 @@ const (
 		SELECT * FROM (
 			SELECT
 				DISTINCT ON (stop.route_id, direction_id)
-				stop_id,
-				stop_name,
-				direction_id,
-				headsign,
+				stop.stop_id,
+				stop.stop_name,
+				stop.direction_id,
+				stop.headsign,
 				stop.route_id,
 				stop.agency_id,
 				latitude(location) AS lat,
 				longitude(location) AS lon,
 				earth_distance(location, ll_to_earth(:mid_lat, :mid_lon)) 
-					AS dist
-				FROM stop  INNER JOIN 
-					route ON stop.route_id = route.route_id
+					AS dist,
+				sst.stop_sequence 
 	`
 	sqBegin = `
 		SELECT
-			stop_id,
-			stop_name,
-			direction_id,
-			headsign,
+			stop.stop_id,
+			stop.stop_name,
+			stop.direction_id,
+			stop.headsign,
 			stop.route_id,
 			stop.agency_id,
 			latitude(location) AS lat,
 			longitude(location) AS lon,
 			earth_distance(location, ll_to_earth(:mid_lat, :mid_lon)) 
-				AS dist
-			FROM stop  INNER JOIN 
-				route ON stop.route_id = route.route_id
+				AS dist,
+			sst.stop_sequence
+	`
+
+	sqFrom = `
+		FROM stop  
+		INNER JOIN route ON stop.agency_id = route.agency_id AND
+							stop.route_id  = route.route_id
+		INNER JOIN route_trip ON route_trip.agency_id = stop.agency_id AND
+		            			 route_trip.route_id  = stop.route_id
+		INNER JOIN scheduled_stop_time sst ON
+								sst.agency_id = stop.agency_id     AND
+								sst.route_id  = stop.route_id      AND
+		            			sst.trip_id   = route_trip.trip_id AND
+								sst.stop_id   = stop.stop_id  
+
 	`
 
 	sqLocationFilter = `
@@ -135,8 +147,8 @@ func (sq *StopQuery) Query() string {
 	}
 
 	if sq.Distinct {
-		return sqBeginDistinct + whereClause + sqEndDistinct
+		return sqBeginDistinct + sqFrom + whereClause + sqEndDistinct
 	} else {
-		return sqBegin + whereClause
+		return sqBegin + sqFrom + whereClause
 	}
 }
