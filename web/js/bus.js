@@ -12,7 +12,6 @@ function Bus() {
     self.lon = 0;
 
     // miles and filter are options sent to the Bus API
-    self.miles = 0.5;
     self.filter = '';
 
     // tileURL is passed to Leaflet JS for drawing the map
@@ -25,6 +24,8 @@ function Bus() {
 
     // zoom is the initial zoom value when drawing the Leaflet map
     self.zoom = 16;
+
+    self.meters = 1000;
 
     // map is our Leaflet JS map object
     self.map = null;
@@ -126,6 +127,12 @@ Bus.prototype.updatePosition = function(lat, lon, zoom) {
     // Set location and zoom of the map.
     self.map.setView([self.lat, self.lon], zoom);
 
+    var bounds = self.map.getBounds();
+    var nw = bounds.getNorthWest();
+    var distance = util.measure(self.lat, self.lon, nw.lat, nw.lng);
+
+    self.meters = distance;
+
     // Get the results for this location
     self.getStops();
 };
@@ -224,9 +231,6 @@ Bus.prototype.clickHandler = function(stop) {
         // First clear the map of any existing routes
         self.clear();
 
-        // Then recenter and draw
-        self.map.setView([stop.api.lat, stop.api.lon]);
-
         var vals = [];
 
         // Draw lines 
@@ -294,11 +298,13 @@ Bus.prototype.updateStops = function() {
 Bus.prototype.getStops = function() {
     var self = this;
 
+    console.log("how many meters?", self.meters);
+
     var url = '/api/stops' +
-        '?lat=' + encodeURIComponent(this.lat) +
-        '&lon=' + encodeURIComponent(this.lon) +
-        '&filter=' + encodeURIComponent(this.filter) +
-        '&miles=' + encodeURIComponent(this.miles);
+        '?lat=' + encodeURIComponent(self.lat) +
+        '&lon=' + encodeURIComponent(self.lon) +
+        '&filter=' + encodeURIComponent(self.filter) +
+        '&meters=' + encodeURIComponent(self.meters);
 
     $.ajax(url, {
         dataType: "json",
