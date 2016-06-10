@@ -298,8 +298,6 @@ Bus.prototype.updateStops = function() {
 Bus.prototype.getStops = function() {
     var self = this;
 
-    console.log("how many meters?", self.meters);
-
     var url = '/api/stops' +
         '?lat=' + encodeURIComponent(self.lat) +
         '&lon=' + encodeURIComponent(self.lon) +
