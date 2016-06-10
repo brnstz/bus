@@ -15,6 +15,10 @@ function Route(api) {
     // us in the stop sequence
     self.before_opacity = 0.4;
     self.after_opacity = 1.0;
+
+    // stop_line_dist is the number of meters we assume
+    // a stop can be from the polyline to say that it hit the stop
+    self.stop_line_dist = 10;
 }
 
 // createMarkers returns a list of L.circle values for this route
@@ -97,9 +101,10 @@ Route.prototype.createLines = function(curstop) {
             }
 
             // If the point matches our current stop, then we're
-            // transitioning from before to after (FIXME: will these
-            // always be exactly the same point?)
-            if (before && (point.lat == curstop.lat) && (point.lon = curstop.lon)) {
+            // transitioning from before to after.
+            var difference = self.measure(point.lat, point.lon, curstop.lat, curstop.lon);
+            if (before && (difference < self.stop_line_dist)) {
+
                 before = false;
                 // When switching from before to after, always
                 // add the last point
@@ -133,4 +138,20 @@ Route.prototype.createLines = function(curstop) {
     };
 
     return lines;
+}
+
+// measure returns the distance in meters between two lat / lon points
+// stolen from: 
+// http://stackoverflow.com/questions/639695/how-to-convert-latitude-or-longitude-to-meters
+Route.prototype.measure = function(lat1, lon1, lat2, lon2) {
+    var R = 6378.137;
+    var dLat = (lat2 - lat1) * Math.PI / 180;
+    var dLon = (lon2 - lon1) * Math.PI / 180;
+    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    var d = R * c;
+
+    return d * 1000;
 }
