@@ -29,9 +29,6 @@ function Bus() {
     // map is our Leaflet JS map object
     self.map = null;
 
-    // here is our marker for current location
-    self.here = null;
-
     // stopList is the list of results in the order returned by the API 
     // (i.e., distance from location)
     self.stopList = [];
@@ -57,10 +54,15 @@ Bus.prototype.init = function() {
     var self = this;
 
     self.map = L.map('map');
+
+    // Add our tiles
+    L.tileLayer(self.tileURL, self.tileOptions).addTo(self.map);
+
+    // Create "you are here" marker
     self.marker = L.marker([0, 0]);
 
-    self.map.on("dragend", function() {
-        self.dragend();
+    self.map.on("moveend", function() {
+        self.moveend();
     });
 
     self.marker.addTo(self.map);
@@ -68,17 +70,10 @@ Bus.prototype.init = function() {
     self.geolocate();
 };
 
-Bus.prototype.dragend = function() {
+// movend gets the current center of the maps and gets new data 
+// based on the location
+Bus.prototype.moveend = function() {
     var self = this;
-
-    // Only process one update at a time.
-    if (self.updating) {
-        return;
-    }
-
-    // This must be done with self.updating = false somewhere
-    // after self.updatePosition is called
-    self.updating = true;
 
     var ll = self.map.getCenter();
     self.updatePosition(ll.lat, ll.lng);
@@ -91,7 +86,10 @@ Bus.prototype.geolocate = function() {
 
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(p) {
+            // Set location of "you are here"
             self.marker.setLatLng([p.coords.latitude, p.coords.longitude]);
+
+            // update our position with current geolocation
             self.updatePosition(
                 p.coords.latitude,
                 p.coords.longitude,
@@ -113,15 +111,20 @@ Bus.prototype.refresh = function() {
 Bus.prototype.updatePosition = function(lat, lon, zoom) {
     var self = this;
 
+    // Don't update more than once at a time
+    if (self.updating) {
+        return;
+    }
+
+    // This is set to false in self.updateStops()
+    self.updating = true;
+
     // Set our lat and lon based on the coords
     self.lat = lat;
     self.lon = lon;
 
     // Set location and zoom of the map.
     self.map.setView([self.lat, self.lon], zoom);
-
-    // Add our tiles
-    L.tileLayer(self.tileURL, self.tileOptions).addTo(self.map);
 
     // Get the results for this location
     self.getStops();
@@ -277,6 +280,13 @@ Bus.prototype.updateStops = function() {
     $(results).append(table);
 
     self.updating = false;
+
+    // If we rejected a move, our position might be off. Trigger
+    // another update.
+    var ll = self.map.getCenter();
+    if (!(self.lat == ll.lat && self.lon == ll.lng)) {
+        self.updatePosition(ll.lat, ll.lng);
+    }
 };
 
 // getStops calls the stops API with our current state and updates
