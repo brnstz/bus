@@ -47,6 +47,9 @@ function Bus() {
 
     // layer is the current layer on the map
     self.layer = null;
+
+    // true while updating
+    self.updating = false;
 }
 
 // init is run when the page initially loads
@@ -57,13 +60,28 @@ Bus.prototype.init = function() {
     self.marker = L.marker([0, 0]);
 
     self.map.on("dragend", function() {
-        var ll = self.map.getCenter();
-        self.updatePosition(ll.lat, ll.lng);
+        self.dragend();
     });
 
     self.marker.addTo(self.map);
 
     self.geolocate();
+};
+
+Bus.prototype.dragend = function() {
+    var self = this;
+
+    // Only process one update at a time.
+    if (self.updating) {
+        return;
+    }
+
+    // This must be done with self.updating = false somewhere
+    // after self.updatePosition is called
+    self.updating = true;
+
+    var ll = self.map.getCenter();
+    self.updatePosition(ll.lat, ll.lng);
 };
 
 // refresh requests the location from the browser, sets our lat / lon and
@@ -144,6 +162,9 @@ Bus.prototype.createRow = function(stop, i) {
     var self = this;
 
     var route = self.routes[stop.api.agency_id + "|" + stop.api.route_id];
+    if (!route) {
+        console.log(stop.api.agency_id + "|" + stop.api.route_id);
+    }
 
     var cellCSS = {
         "color": route.api.route_text_color,
@@ -254,6 +275,8 @@ Bus.prototype.updateStops = function() {
     $(table).append(tbody);
     $(results).empty();
     $(results).append(table);
+
+    self.updating = false;
 };
 
 // getStops calls the stops API with our current state and updates
@@ -276,6 +299,7 @@ Bus.prototype.getStops = function() {
         error: function(xhr, stat, err) {
             console.log("error in request");
             console.log(xhr, stat, err);
+            self.updateStops();
         }
     });
 };
@@ -319,6 +343,7 @@ Bus.prototype.getRoutes = function() {
             error: function(xhr, stat, err) {
                 console.log("error in request");
                 console.log(xhr, stat, err);
+                self.updateStops();
             }
         });
     } else {
