@@ -17,9 +17,6 @@ import (
 )
 
 const (
-	// metersInMile is a constant for converting between meters and miles
-	metersInMile = 1609.344
-
 	// redisTTL is how many seconds we cache things in redis
 	redisTTL = 30
 
@@ -32,16 +29,6 @@ var (
 	// DBConn is our shared connection to postgres
 	DBConn *sqlx.DB
 )
-
-// MileToMeter converts miles to meters
-func MileToMeter(miles float64) float64 {
-	return miles * metersInMile
-}
-
-// MeterToMile converts meters to miles
-func MeterToMile(meters float64) float64 {
-	return meters / metersInMile
-}
 
 // TimeStrToSecs takes a string like "01:23:45" (hours:minutes:seconds)
 // and returns a integer of the total number of seconds
