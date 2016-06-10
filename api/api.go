@@ -85,14 +85,12 @@ func getStops(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 
-	miles, err := floatOrDie(w, r, "miles")
+	meters, err := floatOrDie(w, r, "meters")
 	if err != nil {
 		return
 	}
 
 	filter := r.FormValue("filter")
-
-	meters := etc.MileToMeter(miles)
 
 	sq := models.StopQuery{
 		MidLat:     lat,
@@ -199,14 +197,12 @@ func getRoutes(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 			return
 		}
 
-		miles, err := floatOrDie(w, r, "miles")
+		meters, err := floatOrDie(w, r, "meters")
 		if err != nil {
 			return
 		}
 
 		filter := r.FormValue("filter")
-
-		meters := etc.MileToMeter(miles)
 
 		sq := models.StopQuery{
 			MidLat:     lat,

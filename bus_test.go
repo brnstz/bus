@@ -144,7 +144,7 @@ func TestScheduledSubway(t *testing.T) {
 	// Manhattan Av. and Greenpoint Av. in Brooklyn
 	params.Set("lat", "40.730202")
 	params.Set("lon", "-73.9564682")
-	params.Set("miles", "0.1")
+	params.Set("meters", "160")
 	params.Set("filter", "subway")
 
 	err = getJSON(&resp, serverURL+"/api/stops?"+params.Encode())
@@ -193,7 +193,7 @@ func TestLiveSubway(t *testing.T) {
 	// Bedford Av. and N. 7th St. in Brooklyn
 	params.Set("lat", "40.717304")
 	params.Set("lon", "-73.956872")
-	params.Set("miles", "0.01")
+	params.Set("meters", "16")
 
 	err = getJSON(&resp, serverURL+"/api/stops?"+params.Encode())
 	if err != nil {
@@ -237,7 +237,7 @@ func TestLiveBus(t *testing.T) {
 	// Jackson Av. and 11th St. in Queens
 	params.Set("lat", "40.7422511")
 	params.Set("lon", "-73.9515471")
-	params.Set("miles", "0.1")
+	params.Set("meters", "160")
 
 	err = getJSON(&resp, serverURL+"/api/stops?"+params.Encode())
 	if err != nil {
@@ -284,7 +284,7 @@ func TestScheduledBus(t *testing.T) {
 	// Box St. and Manhattan Av. in Brooklyn
 	params.Set("lat", "40.7373215")
 	params.Set("lon", "-73.9563212")
-	params.Set("miles", "0.1")
+	params.Set("meters", "160")
 
 	err = getJSON(&resp, serverURL+"/api/stops?"+params.Encode())
 	if err != nil {
@@ -375,7 +375,7 @@ func TestRoutesByDistance(t *testing.T) {
 
 	params.Set("lat", "40.7373215")
 	params.Set("lon", "-73.9563212")
-	params.Set("miles", "2")
+	params.Set("meters", "3218")
 
 	u := fmt.Sprintf("%s/api/routes?%s", serverURL, params.Encode())
 
