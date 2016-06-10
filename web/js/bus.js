@@ -2,6 +2,26 @@
 // screen and managing objects.
 var bus = new Bus();
 
+var homeControl = L.Control.extend({
+    options: {
+        position: 'bottomright'
+    },
+
+    onAdd: function(map) {
+        return $("<button id='geolocate' type='button' class='btn btn-primary' onclick='bus.geolocate();'><span class='glyphicon glyphicon-screenshot'></span></button>")[0];
+    }
+});
+
+var refreshControl = L.Control.extend({
+    options: {
+        position: 'bottomright'
+    },
+
+    onAdd: function(map) {
+        return $("<button id='refresh' type='button' class='btn btn-success' onclick='bus.refresh();'><span class='glyphicon glyphicon-refresh'></span></button>")[0];
+    }
+});
+
 function Bus() {
     var self = this;
 
@@ -68,6 +88,9 @@ Bus.prototype.init = function() {
 
     self.marker.addTo(self.map);
 
+    self.map.addControl(new homeControl());
+    self.map.addControl(new refreshControl());
+
     self.geolocate();
 };
 
@@ -80,7 +103,7 @@ Bus.prototype.moveend = function() {
     self.updatePosition(ll.lat, ll.lng);
 };
 
-// refresh requests the location from the browser, sets our lat / lon and
+// geolocate requests the location from the browser, sets our lat / lon and
 // gets new trips from the API 
 Bus.prototype.geolocate = function() {
     var self = this;
@@ -100,6 +123,7 @@ Bus.prototype.geolocate = function() {
     }
 };
 
+// refresh re-requests stops from the current position
 Bus.prototype.refresh = function() {
     var self = this;
 
