@@ -1,5 +1,6 @@
 body {
 	padding-top: 5px;
+    font-family: 'Lato', sans-serif;
 }
 
 #map { 
@@ -25,4 +26,7 @@ body {
 
 #refresh {
     margin-bottom: 5px;
+}
+#rowroute {
+    vertical-align: middle;
 }
