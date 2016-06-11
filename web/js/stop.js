@@ -10,7 +10,7 @@ function Stop(api) {
 
     self.map_fg_opacity = 1.0;
 
-    self.table_bg_opacity = 0.5;
+    self.table_bg_opacity = 0.3;
     self.table_fg_opacity = 1.0;
 
     // live is true if we have live departures

@@ -63,6 +63,9 @@ function Bus() {
     // current_stop is current stop that is clicked
     self.current_stop = null;
 
+    // last_stop is the stop that was clicked second most recently
+    self.last_stop = null;
+
     // layer is the current layer on the map
     self.layer = null;
 
@@ -196,14 +199,18 @@ Bus.prototype.createRow = function(stop, i) {
     var self = this;
 
     var route = self.routes[stop.api.agency_id + "|" + stop.api.route_id];
-    if (!route) {
-        console.log(stop.api.agency_id + "|" + stop.api.route_id);
+
+    var opacity = 0;
+    if (self.current_stop && stop.id == self.current_stop.id) {
+        opacity = stop.table_fg_opacity;
+    } else {
+        opacity = stop.table_bg_opacity;
     }
 
     var cellCSS = {
         "color": route.api.route_text_color,
         "background-color": route.api.route_color,
-        "opacity": stop.table_bg_opacity
+        "opacity": opacity
     };
 
     // Create our row object
@@ -212,13 +219,15 @@ Bus.prototype.createRow = function(stop, i) {
 
     // Create and append the cell containing the route identifier
     // with colored background
-    $(row).append($("<td>").text(stop.api.route_id))
+    $(row).append($("<td class='rowroute'>").text(stop.api.route_id))
 
+    var datatd = $("<td>");
     var headsign = $('<span class="headsign">' + stop.api.headsign + '</span>');
-    $(row).append($("<td>").append(headsign));
+    var departures = $('<span><br>' + stop.departures + '</span>');
+    $(datatd).append(headsign);
+    $(datatd).append(departures);
+    $(row).append(datatd);
 
-    // Create and append cell with text of departure times
-    $(row).append($("<td>").text(stop.departures));
 
     return row;
 };
@@ -245,12 +254,19 @@ Bus.prototype.clickHandler = function(stop) {
         if (self.current_stop && self.current_stop.id == stop.id) {
             self.map.setView([stop.api.lat, stop.api.lon]);
             return;
+        } else if (self.current_stop) {
+            $(self.rows[self.current_stop.id]).css({
+                "opacity": self.current_stop.table_bg_opacity
+            });
         }
 
         var route = self.routes[stop.api.agency_id + "|" + stop.api.route_id];
-        var row = self.rows[stop.api.id];
+        var row = self.rows[stop.id];
         var markers = route.createMarkers(stop.api);
         var lines = route.createLines(stop.api);
+        $(row).css({
+            "opacity": stop.table_fg_opacity
+        });
 
         // First clear the map of any existing routes
         self.clear();
@@ -287,9 +303,20 @@ Bus.prototype.updateStops = function() {
     var tbody = $("<tbody>");
     var results = $("#results");
 
+    // If there's a current stop, show it first
+    if (self.current_stop != null) {
+        self.stopList.unshift(self.current_stop);
+    }
+
     for (var i = 0; i < self.stopList.length; i++) {
         // create the stop row and markers
         var stop = self.stopList[i];
+
+        // If the current stop shows up after first, then ignore it
+        if (i != 0 && self.current_stop && self.current_stop.id == stop.id) {
+            continue;
+        }
+
         var row = self.createRow(stop, i);
 
         // Put into row
@@ -300,6 +327,12 @@ Bus.prototype.updateStops = function() {
 
         var handler = self.clickHandler(stop);
         $(row).click(handler);
+    }
+
+    // Set first result to current stop if none selected
+    if (self.current_stop == null && self.stopList.length > 0) {
+        var row = self.rows[self.stopList[0].id];
+        $(row).trigger("click");
     }
 
     // Destroy and recreate results
