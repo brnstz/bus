@@ -16,7 +16,7 @@ const (
 	maxSecs = 43200
 
 	// maximum departures to return in a result
-	maxDepartures = 5
+	MaxDepartures = 5
 )
 
 type Departure struct {
@@ -63,7 +63,7 @@ func getDepartures(agencyID, routeID, stopID, serviceID string, minSec int, base
 	`
 
 	err = etc.DBConn.Select(&d, q, agencyID, routeID, stopID, serviceID,
-		minSec, maxDepartures)
+		minSec, MaxDepartures)
 
 	if err != nil {
 		log.Println("can't get departures", err)
