@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -53,49 +52,6 @@ func (s *Stop) Table() string {
 func (s *Stop) Save() error {
 	_, err := upsert.Upsert(etc.DBConn, s)
 	return err
-}
-
-// appendLive calls either the bus time API or the subway datamine API
-// to add live info to our stop info.
-func (s *Stop) appendLive(now time.Time) {
-	route, err := GetRoute(s.AgencyID, s.RouteID, false)
-	if err != nil {
-		log.Println("can't load route", err)
-		return
-	}
-
-	if route.Type == Bus {
-		departures, err := GetLiveBus(
-			s.RouteID, strconv.Itoa(s.DirectionID),
-			s.ID,
-		)
-		if err != nil {
-			log.Println("can't append live schedules")
-			return
-		}
-
-		sort.Sort(departures)
-
-		for i := 0; i < len(departures) && i < maxDepartures; i++ {
-			s.Live = append(s.Live, departures[i])
-		}
-	} else if route.Type == Subway {
-
-		departures, err := GetLiveSubways(
-			s.RouteID, strconv.Itoa(s.DirectionID),
-			s.ID,
-		)
-		if err != nil {
-			log.Println("can't append live subway sched", err)
-			return
-		}
-
-		sort.Sort(departures)
-		for i := 0; i < len(departures) && i < maxDepartures; i++ {
-			s.Live = append(s.Live, departures[i])
-		}
-
-	}
 }
 
 // String returns a descriptive string for this stop.
@@ -186,15 +142,11 @@ func (s *Stop) setDepartures(now time.Time, db sqlx.Ext) (err error) {
 	sort.Sort(allDepartures)
 
 	for i, d := range allDepartures {
-		if i > maxDepartures {
+		if i > MaxDepartures {
 			break
 		}
 		s.Scheduled = append(s.Scheduled, d)
 	}
-
-	// After reading scheduled times in the db, try to also append any
-	// live info available
-	s.appendLive(now)
 
 	return
 }
