@@ -1,51 +1,16 @@
 package models
 
-import "strings"
+import (
+	"strconv"
+	"strings"
+)
 
 const (
-	sqBeginDistinct = `
-		SELECT * FROM (
-			SELECT
-				DISTINCT ON (stop.route_id, direction_id)
-				stop.stop_id,
-				stop.stop_name,
-				stop.direction_id,
-				stop.headsign,
-				stop.route_id,
-				stop.agency_id,
-				latitude(location) AS lat,
-				longitude(location) AS lon,
-				earth_distance(location, ll_to_earth(:mid_lat, :mid_lon)) 
-					AS dist,
-				sst.stop_sequence 
-	`
 	sqBegin = `
-		SELECT
-			stop.stop_id,
-			stop.stop_name,
-			stop.direction_id,
-			stop.headsign,
-			stop.route_id,
-			stop.agency_id,
-			latitude(location) AS lat,
-			longitude(location) AS lon,
-			earth_distance(location, ll_to_earth(:mid_lat, :mid_lon)) 
-				AS dist,
-			sst.stop_sequence
-	`
-
-	sqFrom = `
-		FROM stop  
-		INNER JOIN route ON stop.agency_id = route.agency_id AND
-							stop.route_id  = route.route_id
-		INNER JOIN route_trip ON route_trip.agency_id = stop.agency_id AND
-		            			 route_trip.route_id  = stop.route_id
-		INNER JOIN scheduled_stop_time sst ON
-								sst.agency_id = stop.agency_id     AND
-								sst.route_id  = stop.route_id      AND
-		            			sst.trip_id   = route_trip.trip_id AND
-								sst.stop_id   = stop.stop_id  
-
+		SELECT stop.agency_id, stop.route_id, stop.stop_id,
+		       stop.direction_id
+		  earth_distance(location, ll_to_earth(:mid_lat, :mid_lon)) AS dist
+		FROM stop
 	`
 
 	sqLocationFilter = `
@@ -64,11 +29,22 @@ const (
 		route.agency_id = :agency_id
 	`
 
-	sqEndDistinct = ` 
-		ORDER BY stop.route_id, direction_id, dist 
-	    ) unique_routes ORDER BY dist ASC LIMIT 10
+	sqEnd = ` 
+		ORDER BY dist LIMIT 100
 	`
 )
+
+type stopQueryRow struct {
+	AgencyID    string  `db:"agency_id"`
+	RouteID     string  `db:"route_id"`
+	StopID      string  `db:"stop_id"`
+	DirectionID int     `db:"direction_id"`
+	Dist        float64 `db:"dist"`
+}
+
+func (sqr *stopQueryRow) id() string {
+	return sqr.AgencyID + "|" + sqr.RouteID + "|" + strconv.Itoa(sqr.DirectionID)
+}
 
 type StopQuery struct {
 	/*
@@ -96,8 +72,6 @@ type StopQuery struct {
 
 	// append departures to returned stops
 	Departures bool
-
-	Distinct bool
 
 	RouteID  string `db:"route_id"`
 	AgencyID string `db:"agency_id"`
@@ -146,9 +120,5 @@ func (sq *StopQuery) Query() string {
 		whereClause = ` WHERE ` + strings.Join(where, ` AND `)
 	}
 
-	if sq.Distinct {
-		return sqBeginDistinct + sqFrom + whereClause + sqEndDistinct
-	} else {
-		return sqBegin + sqFrom + whereClause
-	}
+	return sqBegin + whereClause + sqEnd
 }
