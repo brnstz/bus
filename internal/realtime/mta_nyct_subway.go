@@ -1,4 +1,4 @@
-package models
+package realtime
 
 import (
 	"fmt"
@@ -8,7 +8,8 @@ import (
 
 	"github.com/brnstz/bus/internal/conf"
 	"github.com/brnstz/bus/internal/etc"
-	"github.com/brnstz/bus/transit_realtime"
+	"github.com/brnstz/bus/internal/models"
+	"github.com/brnstz/bus/internal/realtime/transit_realtime"
 	"github.com/golang/protobuf/proto"
 )
 
@@ -30,9 +31,11 @@ var (
 	}
 )
 
-func GetLiveSubways(route, dir, stop string) (d Departures, err error) {
+type mtaNYCSubway struct{}
 
-	feed, exists := routeToFeed[route]
+func (_ mtaNYCSubway) Departures(route models.Route, stop models.Stop) (d Departures, err error) {
+
+	feed, exists := routeToFeed[stop.RouteID]
 	if !exists {
 		return
 	}
@@ -58,7 +61,7 @@ func GetLiveSubways(route, dir, stop string) (d Departures, err error) {
 		tripID := e.TripUpdate.GetTrip().GetTripId()
 		updates := e.GetTripUpdate().GetStopTimeUpdate()
 		for _, u := range updates {
-			if u.GetStopId() == stop {
+			if u.GetStopId() == stop.StopID {
 				d = append(d,
 					&Departure{
 						Time:   time.Unix(u.GetDeparture().GetTime(), 0),
@@ -70,4 +73,5 @@ func GetLiveSubways(route, dir, stop string) (d Departures, err error) {
 	}
 
 	return
+
 }

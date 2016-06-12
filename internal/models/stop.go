@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"log"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/brnstz/bus/internal/etc"
+	"github.com/brnstz/bus/internal/realtime"
 	"github.com/brnstz/upsert"
 	"github.com/jmoiron/sqlx"
 )
@@ -64,37 +64,22 @@ func (s *Stop) appendLive(now time.Time) {
 		return
 	}
 
-	if route.Type == Bus {
-		departures, err := GetLiveBus(
-			s.RouteID, strconv.Itoa(s.DirectionID),
-			s.ID,
-		)
-		if err != nil {
-			log.Println("can't append live schedules")
-			return
-		}
+	req, err := realtime.NewRequest(*route, *s)
+	if err != nil {
+		log.Println("can't append live info", route)
+		return
+	}
 
-		sort.Sort(departures)
+	response := <-req.Response
+	if response.Err != nil {
+		log.Println("couldn't get live info", response.Err)
+		return
+	}
 
-		for i := 0; i < len(departures) && i < maxDepartures; i++ {
-			s.Live = append(s.Live, departures[i])
-		}
-	} else if route.Type == Subway {
+	sort.Sort(response.departures)
 
-		departures, err := GetLiveSubways(
-			s.RouteID, strconv.Itoa(s.DirectionID),
-			s.ID,
-		)
-		if err != nil {
-			log.Println("can't append live subway sched", err)
-			return
-		}
-
-		sort.Sort(departures)
-		for i := 0; i < len(departures) && i < maxDepartures; i++ {
-			s.Live = append(s.Live, departures[i])
-		}
-
+	for i := 0; i < len(departures) && i < maxDepartures; i++ {
+		s.Live = append(s.Live, departures[i])
 	}
 }
 
