@@ -70,7 +70,6 @@ func getRoutes(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 			Dist:       meters,
 			RouteType:  filter,
 			Departures: false,
-			Distinct:   true,
 		}
 
 		err = sq.Initialize()
