@@ -29,6 +29,10 @@ Route.prototype.createMarkers = function(curstop) {
     var self = this;
     var markers = [];
 
+    if (!self.api.stops) {
+        return markers;
+    }
+
     for (var i = 0; i < self.api.stops.length; i++) {
         var stop = self.api.stops[i];
 
@@ -72,6 +76,9 @@ Route.prototype.createLines = function(curstop) {
     var self = this;
     var lines = [];
 
+    if (!self.api.route_shapes) {
+        return lines;
+    }
 
     // Go through each route shape
     for (var i = 0; i < self.api.route_shapes.length; i++) {
@@ -142,4 +149,38 @@ Route.prototype.createLines = function(curstop) {
     };
 
     return lines;
+};
+
+Route.prototype.createVehicles = function(curstop) {
+    var self = this;
+    var vehicles = [];
+
+    if (!curstop.vehicles) {
+        return vehicles;
+    }
+
+    for (var i = 0; i < curstop.vehicles.length; i++) {
+        var v = curstop.vehicles[i];
+        /* FIXME
+        var opts = {
+            color: self.api.route_color
+        };
+        var bounds = [
+            [v.lat, v.lon],
+            [v.lat + .000001, v.lon + 000001]
+        ];
+        var square = L.rectangle(bounds, opts);
+        vehicles.push(square);
+        */
+
+        var opts = {
+            color: '#000000'
+        };
+
+        var black = L.circleMarker([v.lat, v.lon], opts);
+        vehicles.push(black);
+
+    }
+
+    return vehicles;
 };

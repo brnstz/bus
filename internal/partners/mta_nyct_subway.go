@@ -34,7 +34,7 @@ var (
 
 type mtaNYCSubway struct{}
 
-func (_ mtaNYCSubway) LiveDepartures(route models.Route, stop models.Stop) (d models.Departures, err error) {
+func (_ mtaNYCSubway) Live(route models.Route, stop models.Stop) (d models.Departures, v []models.Vehicle, err error) {
 
 	feed, exists := routeToFeed[stop.RouteID]
 	if !exists {
@@ -74,5 +74,4 @@ func (_ mtaNYCSubway) LiveDepartures(route models.Route, stop models.Stop) (d mo
 	}
 
 	return
-
 }
