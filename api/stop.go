@@ -85,7 +85,6 @@ func getStops(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		Dist:       meters,
 		RouteType:  filter,
 		Departures: true,
-		Distinct:   true,
 	}
 	err = sq.Initialize()
 	if err != nil {
