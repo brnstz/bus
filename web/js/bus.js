@@ -264,6 +264,7 @@ Bus.prototype.clickHandler = function(stop) {
         var row = self.rows[stop.id];
         var markers = route.createMarkers(stop.api);
         var lines = route.createLines(stop.api);
+        var vehicles = route.createVehicles(stop.api);
         $(row).css({
             "opacity": stop.table_fg_opacity
         });
@@ -281,6 +282,11 @@ Bus.prototype.clickHandler = function(stop) {
         // Draw marker stops
         for (var key in markers) {
             vals.push(markers[key]);
+        }
+
+        // Draw vehicles
+        for (var key in vehicles) {
+            vals.push(vehicles[key]);
         }
 
         self.layer = L.layerGroup(vals);

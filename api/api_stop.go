@@ -41,13 +41,15 @@ func init() {
 // req.stop.Live
 func stopWorker() {
 	for req := range stopChan {
-		d, err := req.partner.LiveDepartures(*req.route, *req.stop)
+		d, v, err := req.partner.Live(*req.route, *req.stop)
 
 		if err == nil {
 			sort.Sort(d)
 			for i := 0; i < len(d) && i < models.MaxDepartures; i++ {
 				req.stop.Live = append(req.stop.Live, d[i])
 			}
+
+			req.stop.Vehicles = v
 		}
 
 		req.response <- err

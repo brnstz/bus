@@ -40,6 +40,8 @@ type Stop struct {
 	Dist      float64      `json:"dist" db:"-" upsert:"omit"`
 	Scheduled []*Departure `json:"scheduled" db:"-" upsert:"omit"`
 	Live      []*Departure `json:"live" db:"-" upsert:"omit"`
+
+	Vehicles []Vehicle `json:"vehicles" db:"-" upsert:"omit"`
 }
 
 // Table implements the upsert.Upserter interface, returning the table

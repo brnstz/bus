@@ -2,6 +2,7 @@ package partners
 
 import (
 	"errors"
+	"log"
 
 	"github.com/brnstz/bus/internal/models"
 )
@@ -10,7 +11,7 @@ var ErrNoPartner = errors.New("no partner for this route")
 
 // P is an interface that can pull extra info from partners
 type P interface {
-	LiveDepartures(models.Route, models.Stop) (models.Departures, error)
+	Live(models.Route, models.Stop) (models.Departures, []models.Vehicle, error)
 }
 
 // Find returns the correct partner for this route. If there is no
@@ -30,10 +31,12 @@ func Find(route models.Route) (P, error) {
 			return mtaNYCBus{}, nil
 
 		default:
+			log.Println("no partner for", route)
 			return nil, ErrNoPartner
 		}
 
 	default:
+		log.Println("no partner for", route)
 		return nil, ErrNoPartner
 	}
 

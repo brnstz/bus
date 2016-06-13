@@ -19,7 +19,7 @@ var (
 
 type mtaNYCBus struct{}
 
-func (_ mtaNYCBus) LiveDepartures(route models.Route, stop models.Stop) (d models.Departures, err error) {
+func (_ mtaNYCBus) Live(route models.Route, stop models.Stop) (d models.Departures, v []models.Vehicle, err error) {
 	lineRef := fmt.Sprint("MTA NYCT_", stop.RouteID)
 	stopPointRef := fmt.Sprint("MTA_", stop.ID)
 
@@ -47,6 +47,11 @@ func (_ mtaNYCBus) LiveDepartures(route models.Route, stop models.Stop) (d model
 
 	if len(vmd) > 0 {
 		for _, act := range vmd[0].VehicleActivity {
+			v = append(v, models.Vehicle{
+				Lat:  act.MonitoredVehicleJourney.VehicleLocation.Latitude,
+				Lon:  act.MonitoredVehicleJourney.VehicleLocation.Longitude,
+				Live: true,
+			})
 
 			for _, oc := range act.MonitoredVehicleJourney.OnwardCalls.OnwardCall {
 				if oc.StopPointRef == stopPointRef {
@@ -87,6 +92,11 @@ type journey struct {
 
 	FramedVehicleJourneyRef struct {
 		DatedVehicleJourneyRef string
+	}
+
+	VehicleLocation struct {
+		Latitude  float64
+		Longitude float64
 	}
 
 	OnwardCalls struct {
