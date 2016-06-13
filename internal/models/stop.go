@@ -161,14 +161,14 @@ func GetStop(db sqlx.Ext, agencyID, routeID, stopID string, apppendInfo bool) (*
 	now := time.Now()
 
 	err := sqlx.Get(db, &s, `
-		 SELECT stop.*, sst.stop_sequence,
+		 SELECT stop.*, COALESCE(sst.stop_sequence, 0) as stop_sequence,
 				latitude(stop.location) AS lat,
 				longitude(stop.location) AS lon
 
 		 FROM stop
 		 INNER JOIN route_trip ON route_trip.agency_id = stop.agency_id AND
 		            			  route_trip.route_id  = stop.route_id
-		 INNER JOIN scheduled_stop_time sst ON
+		 LEFT JOIN scheduled_stop_time sst ON
 								sst.agency_id = stop.agency_id     AND
 								sst.route_id  = stop.route_id      AND
 		            			sst.trip_id   = route_trip.trip_id AND
@@ -179,7 +179,7 @@ func GetStop(db sqlx.Ext, agencyID, routeID, stopID string, apppendInfo bool) (*
 		`, agencyID, routeID, stopID,
 	)
 	if err != nil {
-		log.Println("can't get stop", err)
+		log.Println("can't get stop", err, agencyID, routeID, stopID)
 		return nil, err
 	}
 
