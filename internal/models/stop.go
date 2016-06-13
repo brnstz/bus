@@ -41,7 +41,7 @@ type Stop struct {
 	// same agency / route / stop / direction / headsign
 	StopSequence int `json:"stop_sequence" db:"stop_sequence" upsert:"omit"`
 
-	Dist      float64      `json:"dist" db:"dist" upsert:"omit"`
+	Dist      float64      `json:"dist" db:"-" upsert:"omit"`
 	Scheduled []*Departure `json:"scheduled" db:"-" upsert:"omit"`
 	Live      []*Departure `json:"live" db:"-" upsert:"omit"`
 }
@@ -160,12 +160,22 @@ func GetStop(db sqlx.Ext, agencyID, routeID, stopID string, apppendInfo bool) (*
 	var s Stop
 	now := time.Now()
 
-	err = sqlx.Get(db, &s, `
-		 SELECT * 
+	err := sqlx.Get(db, &s, `
+		 SELECT stop.*, sst.stop_sequence,
+				latitude(stop.location) AS lat,
+				longitude(stop.location) AS lon
+
 		 FROM stop
-		 WHERE agency_id = $1 AND
-			   route_id  = $2 AND
-			   stop_id   = $3
+		 INNER JOIN route_trip ON route_trip.agency_id = stop.agency_id AND
+		            			  route_trip.route_id  = stop.route_id
+		 INNER JOIN scheduled_stop_time sst ON
+								sst.agency_id = stop.agency_id     AND
+								sst.route_id  = stop.route_id      AND
+		            			sst.trip_id   = route_trip.trip_id AND
+								sst.stop_id   = stop.stop_id  
+		 WHERE stop.agency_id = $1 AND
+			   stop.route_id  = $2 AND
+			   stop.stop_id   = $3
 		`, agencyID, routeID, stopID,
 	)
 	if err != nil {
@@ -179,13 +189,11 @@ func GetStop(db sqlx.Ext, agencyID, routeID, stopID string, apppendInfo bool) (*
 		return nil, err
 	}
 
-	return s, nil
+	return &s, nil
 }
 
 // GetStopsByQuery returns stops matching this StopQuery
 func GetStopsByQuery(db sqlx.Ext, sq StopQuery) (stops []*Stop, err error) {
-	now := time.Now()
-
 	// distinct maps agency_id|route_id|direction_id to bool to ensure
 	// we don't load duplicate routes
 	distinct := map[string]bool{}
@@ -199,23 +207,40 @@ func GetStopsByQuery(db sqlx.Ext, sq StopQuery) (stops []*Stop, err error) {
 
 	defer rows.Close()
 
+	count := 0
 	for rows.Next() {
-		var sqRow stopQueryRow
+		var sqr stopQueryRow
+		var stop *Stop
 
-		err = rows.StructScan(&sqRow)
+		if count >= maxStops {
+			break
+		}
+
+		err = rows.StructScan(&sqr)
 		if err != nil {
 			log.Println("can't scan stop row", err)
 			return
 		}
 
 		// skip duplicate rows
-		if distinct[sqRow.id()] {
+		if distinct[sqr.id()] {
 			continue
 		}
+		distinct[sqr.id()] = true
 
-		stop, err
+		stop, err = GetStop(
+			db, sqr.AgencyID, sqr.RouteID, sqr.StopID,
+			sq.Departures,
+		)
+		if err != nil {
+			log.Println("can't get stop", err)
+			return
+		}
 
-		stops = append(stops, &stop)
+		stop.Dist = sqr.Dist
+
+		stops = append(stops, stop)
+		count++
 	}
 
 	return

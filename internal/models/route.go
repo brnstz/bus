@@ -150,7 +150,6 @@ func GetRoute(agencyID, routeID string, appendInfo bool) (r *Route, err error) {
 			RouteID:    routeID,
 			AgencyID:   agencyID,
 			Departures: false,
-			Distinct:   false,
 		}
 
 		err = sq.Initialize()
