@@ -5,6 +5,8 @@ body {
 
 #map { 
 	height: 49vh;
+    width: 49vh;
+    margin: 0 auto;
 }
 
 .headsign { 
@@ -15,7 +17,9 @@ body {
 #results {
     padding-top: 0.5vh;
     height: 49vh;
+    width: 49vh;
     overflow: scroll;
+    margin: 0 auto;
 }
 
 #results::-webkit-scrollbar {
