@@ -69,6 +69,7 @@ func getRoutes(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 			MidLon:     lon,
 			Dist:       meters,
 			RouteType:  filter,
+			Distinct:   true,
 			Departures: false,
 		}
 

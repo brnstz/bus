@@ -13,10 +13,6 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-var (
-	maxStops = 20
-)
-
 // Stop is a single transit stop for a particular route. If a
 // stop serves more than one route, there are multiple distinct
 // entries for that stop.
@@ -156,7 +152,7 @@ func (s *Stop) setDepartures(now time.Time, db sqlx.Ext) (err error) {
 }
 
 // GetStop returns a single stop by its unique id
-func GetStop(db sqlx.Ext, agencyID, routeID, stopID string, apppendInfo bool) (*Stop, error) {
+func GetStop(db sqlx.Ext, agencyID, routeID, stopID string, appendInfo bool) (*Stop, error) {
 	var s Stop
 	now := time.Now()
 
@@ -183,10 +179,12 @@ func GetStop(db sqlx.Ext, agencyID, routeID, stopID string, apppendInfo bool) (*
 		return nil, err
 	}
 
-	err = s.setDepartures(now, db)
-	if err != nil {
-		log.Println("can't set departures", err)
-		return nil, err
+	if appendInfo {
+		err = s.setDepartures(now, db)
+		if err != nil {
+			log.Println("can't set departures", err)
+			return nil, err
+		}
 	}
 
 	return &s, nil
@@ -212,7 +210,7 @@ func GetStopsByQuery(db sqlx.Ext, sq StopQuery) (stops []*Stop, err error) {
 		var sqr stopQueryRow
 		var stop *Stop
 
-		if count >= maxStops {
+		if count >= sq.MaxStops {
 			break
 		}
 
@@ -222,8 +220,8 @@ func GetStopsByQuery(db sqlx.Ext, sq StopQuery) (stops []*Stop, err error) {
 			return
 		}
 
-		// skip duplicate rows
-		if distinct[sqr.id()] {
+		// skip duplicate rows if requested
+		if sq.Distinct && distinct[sqr.id()] {
 			continue
 		}
 		distinct[sqr.id()] = true

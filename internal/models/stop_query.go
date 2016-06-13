@@ -5,6 +5,10 @@ import (
 	"strings"
 )
 
+var (
+	defaultMaxStops = 20
+)
+
 const (
 	sqBegin = `
 		SELECT stop.agency_id, stop.route_id, stop.stop_id,
@@ -74,6 +78,12 @@ type StopQuery struct {
 	// append departures to returned stops
 	Departures bool
 
+	// only return distinct entries (agency_id|route_id|direction_id)
+	Distinct bool
+
+	// only return this many stops, defaults to  defaultMaxStops
+	MaxStops int
+
 	RouteID  string `db:"route_id"`
 	AgencyID string `db:"agency_id"`
 
@@ -91,6 +101,10 @@ func (sq *StopQuery) Initialize() error {
 		if !ok {
 			return ErrInvalidRouteType
 		}
+	}
+
+	if sq.MaxStops < 1 {
+		sq.MaxStops = defaultMaxStops
 	}
 
 	return nil
