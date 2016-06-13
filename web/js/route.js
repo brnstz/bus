@@ -13,7 +13,7 @@ function Route(api) {
 
     // before/after opacity is the opacity of stops before/after
     // us in the stop sequence
-    self.before_opacity = 0.4;
+    self.before_opacity = 0.2;
     self.after_opacity = 1.0;
 
     // stop_line_dist is the number of meters we assume
