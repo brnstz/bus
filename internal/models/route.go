@@ -150,6 +150,8 @@ func GetRoute(agencyID, routeID string, appendInfo bool) (r *Route, err error) {
 			RouteID:    routeID,
 			AgencyID:   agencyID,
 			Departures: false,
+			Distinct:   false,
+			MaxStops:   500,
 		}
 
 		err = sq.Initialize()
@@ -162,7 +164,6 @@ func GetRoute(agencyID, routeID string, appendInfo bool) (r *Route, err error) {
 			log.Println("can't get stops", err)
 			return
 		}
-
 	}
 
 	return
