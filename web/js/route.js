@@ -16,6 +16,8 @@ function Route(api) {
     self.before_opacity = 0.2;
     self.after_opacity = 1.0;
 
+    self.weight = 4;
+
     // stop_line_dist is the number of meters we assume
     // a stop can be from the polyline to say that it hit the stop
     self.stop_line_dist = 10;
@@ -115,6 +117,7 @@ Route.prototype.createLines = function(curstop) {
         // Create a polyline with the latlons
         var before_line = L.polyline(
             before_latlons, {
+                weight: self.weight,
                 color: self.api.route_color,
                 fillColor: self.api.route_color,
                 opacity: self.before_opacity,
@@ -125,6 +128,7 @@ Route.prototype.createLines = function(curstop) {
         // Create a polyline with the latlons
         var after_line = L.polyline(
             after_latlons, {
+                weight: self.weight,
                 color: self.api.route_color,
                 fillColor: self.api.route_color,
                 opacity: self.after_opacity,
