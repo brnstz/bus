@@ -23,6 +23,7 @@ type Departure struct {
 	Time         time.Time `json:"time" db:"-"`
 	DepartureSec int       `json:"-" db:"departure_sec"`
 	TripID       string    `json:"trip_id" db:"trip_id"`
+	ServiceID    string    `json:"service_id" db:"service_id"`
 
 	baseTime time.Time `json:"-" db:"-"`
 }
@@ -49,7 +50,7 @@ func (d Departures) Swap(i, j int) {
 
 func getDepartures(agencyID, routeID, stopID, serviceID string, minSec int, base time.Time) (d Departures, err error) {
 	q := `
-		SELECT departure_sec, trip_id
+		SELECT departure_sec, trip_id, service_id
 		FROM   scheduled_stop_time
 		WHERE  
 			   agency_id  =	$1 AND
