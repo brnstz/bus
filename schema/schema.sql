@@ -85,6 +85,7 @@ CREATE TABLE service_route_exception (
     route_id        TEXT NOT NULL,
     service_id      TEXT NOT NULL,
     exception_date  DATE NOT NULL,
+    exception_type  INT NOT NULL,
 
     UNIQUE(agency_id, route_id, service_id, exception_date)
 );
