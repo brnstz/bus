@@ -102,6 +102,7 @@ func (l *Loader) load() {
 	l.loadStopTrips()
 	l.loadUniqueStop()
 	l.loadCalendars()
+	l.loadCalendarDates()
 	l.loadShapes()
 
 	l.updateRouteShapes()
@@ -414,6 +415,64 @@ func (l *Loader) loadUniqueStop() {
 	}
 
 	log.Printf("loaded %v stops", i)
+}
+
+func (l *Loader) loadCalendarDates() {
+
+	cal := getcsv(l.dir, "calendar_dates.txt")
+
+	header, err := cal.Read()
+	if err != nil {
+		log.Fatalf("unable to read header: %v", err)
+	}
+
+	serviceIdx := find(header, "service_id")
+	exceptionDateIdx := find(header, "date")
+	exceptionTypeIdx := find(header, "exception_type")
+
+	for i := 0; ; i++ {
+		rec, err := cal.Read()
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			log.Fatalf("%v on line %v of calendar_dates.txt", err, i)
+		}
+
+		serviceId := rec[serviceIdx]
+
+		exceptionDate, err := time.Parse(datefmt, rec[exceptionDateIdx])
+		if err != nil {
+			log.Fatalf("can't parse exception date %v %v",
+				err, rec[exceptionDateIdx])
+		}
+
+		exceptionType, err := strconv.Atoi(rec[exceptionTypeIdx])
+		if err != nil {
+			log.Fatalf("can't parse exception type integer %v %v",
+				err, rec[exceptionTypeIdx])
+		}
+
+		if !(exceptionType == models.ServiceAdded || exceptionType == models.ServiceRemoved) {
+			log.Fatalf("invalid value for exception_type %v", exceptionType)
+		}
+
+		for route, _ := range l.serviceRoute[serviceId] {
+			s := models.ServiceRouteException{
+				AgencyID:      l.routeAgency[route],
+				ServiceID:     serviceId,
+				RouteID:       route,
+				ExceptionDate: exceptionDate,
+				ExceptionType: exceptionType,
+			}
+
+			err = s.Save()
+			if err != nil {
+				log.Fatalf("%v on line %v of calendar_dates.txt with %v", err, i, s)
+			}
+		}
+	}
 }
 
 func (l *Loader) loadCalendars() {
