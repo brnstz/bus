@@ -83,11 +83,11 @@ func (s *Stop) setDepartures(now time.Time, db sqlx.Ext) (err error) {
 
 	func() {
 		if yesterdayName != todayName {
-			var yesterdayID string
+			var yesterdayIDs []string
 			// Looks for trips starting yesterday that arrive here
 			// after midnight
-			yesterdayID, err = getServiceIDByDay(
-				db, s.RouteID, yesterdayName, yesterday,
+			yesterdayIDs, err = getServiceIDsByDay(
+				db, s.AgencyID, s.RouteID, yesterdayName, yesterday,
 			)
 			if err == sql.ErrNoRows {
 				err = nil
@@ -99,24 +99,25 @@ func (s *Stop) setDepartures(now time.Time, db sqlx.Ext) (err error) {
 				return
 			}
 
-			nowSecs :=
-				now.Hour()*3600 + now.Minute()*60 + now.Second() + midnightSecs
+			nowSecs := now.Hour()*3600 + now.Minute()*60 + now.Second() + midnightSecs
 
-			departures, err := getDepartures(
-				s.AgencyID, s.RouteID, s.ID, yesterdayID,
-				nowSecs, yesterday)
-			if err != nil {
-				log.Println("can't get departures", err)
-				return
+			for _, yesterdayID := range yesterdayIDs {
+				departures, err := getDepartures(
+					s.AgencyID, s.RouteID, s.ID, yesterdayID,
+					nowSecs, yesterday)
+				if err != nil {
+					log.Println("can't get departures", err)
+					return
+				}
+
+				allDepartures = append(allDepartures, departures...)
 			}
-
-			allDepartures = append(allDepartures, departures...)
 		}
 	}()
 
 	func() {
-		var todayID string
-		todayID, err = getServiceIDByDay(db, s.RouteID, todayName, today)
+		var todayIDs []string
+		todayIDs, err = getServiceIDsByDay(db, s.AgencyID, s.RouteID, todayName, today)
 		if err == sql.ErrNoRows {
 			err = nil
 			log.Println("no rows there", err)
@@ -129,15 +130,17 @@ func (s *Stop) setDepartures(now time.Time, db sqlx.Ext) (err error) {
 
 		nowSecs := now.Hour()*3600 + now.Minute()*60 + now.Second()
 
-		departures, err := getDepartures(
-			s.AgencyID, s.RouteID, s.ID, todayID,
-			nowSecs, today)
-		if err != nil {
-			log.Println("can't get departures", err)
-			return
-		}
+		for _, todayID := range todayIDs {
+			departures, err := getDepartures(
+				s.AgencyID, s.RouteID, s.ID, todayID,
+				nowSecs, today)
+			if err != nil {
+				log.Println("can't get departures", err)
+				return
+			}
 
-		allDepartures = append(allDepartures, departures...)
+			allDepartures = append(allDepartures, departures...)
+		}
 
 	}()
 
@@ -246,30 +249,26 @@ func GetStopsByQuery(db sqlx.Ext, sq StopQuery) (stops []*Stop, err error) {
 	return
 }
 
-func getServiceIDByDay(db sqlx.Ext, routeID, day string, now time.Time) (serviceID string, err error) {
+func getServiceIDsByDay(db sqlx.Ext, agencyID, routeID, day string, now time.Time) (serviceIDs []string, err error) {
 
-	// Select the service_id that:
-	//   * matches our routeID and day
+	// Select the service_ids that:
+	//   * matches our agencyID, routeID, day
 	//   * has an end_date after now
 	//   * has a start_date before now
-	//   * if there's more than one, choose the one with the latest start_date
 
-	row := db.QueryRowx(`
+	q := `
 		SELECT service_id 
 		FROM   service_route_day 
 		WHERE  day = $1 AND
 			   end_date >= $2 AND
 			   start_date <= $3 AND 
-			   route_id = $4
-		ORDER BY start_date DESC
-		LIMIT 1
-	`,
-		day, now, now, routeID,
-	)
+			   route_id = $4 AND
+			   agency_id = $5
+	`
 
-	err = row.Scan(&serviceID)
+	err = sqlx.Select(db, &serviceIDs, q, day, now, now, routeID, agencyID)
 	if err != nil {
-		log.Println("can't scan service id", err, day, now, routeID)
+		log.Println("can't scan service ids", err, day, now, routeID, agencyID)
 		return
 	}
 
