@@ -10,6 +10,7 @@ import (
 	"github.com/brnstz/bus/internal/conf"
 	"github.com/brnstz/bus/internal/etc"
 	"github.com/brnstz/bus/loader"
+	"github.com/brnstz/upsert"
 	"github.com/kelseyhightower/envconfig"
 )
 
@@ -37,6 +38,8 @@ func main() {
 	}
 
 	etc.DBConn = etc.MustDB()
+
+	upsert.LongQuery = time.Duration(1 * time.Second)
 
 	if conf.Loader.LoadForever {
 		loader.LoadForever()
