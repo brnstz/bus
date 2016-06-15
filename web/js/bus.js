@@ -169,13 +169,15 @@ Bus.prototype.updatePosition = function(lat, lon, zoom) {
 Bus.prototype.parseStops = function(data) {
     var self = this;
 
-    // Reset list of stops
-    self.stopList = [];
+    if (data.stops) {
+        // Reset list of stops
+        self.stopList = [];
 
-    // Create a stop object for each result and save to our list
-    for (var i = 0; i < data.stops.length; i++) {
-        var s = new Stop(data.stops[i]);
-        self.stopList[i] = s;
+        // Create a stop object for each result and save to our list
+        for (var i = 0; i < data.stops.length; i++) {
+            var s = new Stop(data.stops[i]);
+            self.stopList[i] = s;
+        }
     }
 
     // After we parseStops we need to get any missing routes
