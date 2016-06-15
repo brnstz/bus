@@ -162,7 +162,7 @@ func GetStop(db sqlx.Ext, agencyID, routeID, stopID string, appendInfo bool) (*S
 	now := time.Now()
 
 	err := sqlx.Get(db, &s, `
-		 SELECT stop.*, COALESCE(sst.stop_sequence, 0) as stop_sequence,
+		 SELECT stop.*, COALESCE(sst.stop_sequence, 0) AS stop_sequence,
 				latitude(stop.location) AS lat,
 				longitude(stop.location) AS lon
 
@@ -250,6 +250,11 @@ func GetStopsByQuery(db sqlx.Ext, sq StopQuery) (stops []*Stop, err error) {
 }
 
 func getServiceIDsByDay(db sqlx.Ext, agencyID, routeID, day string, now time.Time) (serviceIDs []string, err error) {
+	var normalIDs []string
+	var addedIDs []string
+	var removedIDs []string
+
+	removed := map[string]bool{}
 
 	// Select the service_ids that:
 	//   * matches our agencyID, routeID, day
@@ -266,10 +271,50 @@ func getServiceIDsByDay(db sqlx.Ext, agencyID, routeID, day string, now time.Tim
 			   agency_id = $5
 	`
 
-	err = sqlx.Select(db, &serviceIDs, q, day, now, now, routeID, agencyID)
+	err = sqlx.Select(db, &normalIDs, q, day, now, now, routeID, agencyID)
 	if err != nil {
-		log.Println("can't scan service ids", err, day, now, routeID, agencyID)
+		log.Println("can't scan service ids", err, q, day, now, routeID, agencyID)
 		return
+	}
+
+	// Get services added / removed
+	q = `
+		SELECT service_id 
+		FROM   service_route_exception
+		WHERE  exception_date = $1 AND
+			   route_id = $2 AND
+			   agency_id = $3 AND
+			   exception_type = $4
+	`
+
+	// Added
+	err = sqlx.Select(db, &addedIDs, q, now, routeID, agencyID, ServiceAdded)
+	if err != nil {
+		log.Println("can't scan service ids", err, q, day, now, routeID, agencyID, ServiceAdded)
+		return
+	}
+
+	// Removed
+	err = sqlx.Select(db, &removedIDs, q, now, routeID, agencyID, ServiceRemoved)
+	if err != nil {
+		log.Println("can't scan service ids", err, q, day, now, routeID, agencyID, ServiceRemoved)
+		return
+	}
+
+	for _, v := range removedIDs {
+		removed[v] = true
+	}
+
+	for _, v := range normalIDs {
+		if !removed[v] {
+			serviceIDs = append(serviceIDs, v)
+		}
+	}
+
+	for _, v := range addedIDs {
+		if !removed[v] {
+			serviceIDs = append(serviceIDs, v)
+		}
 	}
 
 	return
