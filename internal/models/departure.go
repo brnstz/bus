@@ -12,9 +12,6 @@ const (
 	// use this for trying to find departures after midnight.
 	midnightSecs = 86400
 
-	// maxSecs is how far in the future we look for times (12 hours)
-	maxSecs = 43200
-
 	// maximum departures to return in a result
 	MaxDepartures = 5
 )
