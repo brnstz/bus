@@ -265,7 +265,7 @@ func GetStopsByQuery(db sqlx.Ext, sq StopQuery) (stops []*Stop, err error) {
 		}
 
 		// If there are no scheduled departures, skip this stop
-		if len(stop.Scheduled) < 1 {
+		if sq.Departures && len(stop.Scheduled) < 1 {
 			continue
 		}
 
