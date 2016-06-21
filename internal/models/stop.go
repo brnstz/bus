@@ -13,6 +13,16 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+const (
+	// minFirstDepartureSec is the minimum amount of time the first
+	// departure must occur (2 hours)
+	minFirstDepartureSec float64 = 60 * 60 * 2
+
+	// departurePreWindow is how far in the past to look departures
+	// that have already passed
+	departurePreSec = 60 * 2
+)
+
 // Stop is a single transit stop for a particular route. If a
 // stop serves more than one route, there are multiple distinct
 // entries for that stop.
@@ -104,7 +114,7 @@ func (s *Stop) setDepartures(now time.Time, db sqlx.Ext) (err error) {
 			for _, yesterdayID := range yesterdayIDs {
 				departures, err := getDepartures(
 					s.AgencyID, s.RouteID, s.ID, yesterdayID,
-					nowSecs, yesterday)
+					nowSecs-departurePreSec, yesterday)
 				if err != nil {
 					log.Println("can't get departures", err)
 					return
@@ -133,7 +143,7 @@ func (s *Stop) setDepartures(now time.Time, db sqlx.Ext) (err error) {
 		for _, todayID := range todayIDs {
 			departures, err := getDepartures(
 				s.AgencyID, s.RouteID, s.ID, todayID,
-				nowSecs, today)
+				nowSecs-departurePreSec, today)
 			if err != nil {
 				log.Println("can't get departures", err)
 				return
@@ -144,8 +154,22 @@ func (s *Stop) setDepartures(now time.Time, db sqlx.Ext) (err error) {
 
 	}()
 
+	// If there are no departures, we can return now
+	if len(allDepartures) < 1 {
+		return
+	}
+
+	// Sort departures by time
 	sort.Sort(allDepartures)
 
+	// Calculate the difference between now and the first
+	// scheduled departure. Return if it's not soon enough.
+	diff := allDepartures[0].Time.Sub(now)
+	if diff.Seconds() > minFirstDepartureSec {
+		return
+	}
+
+	// Add up to MaxDepartures to our scheduled list
 	for i, d := range allDepartures {
 		if i > MaxDepartures {
 			break
@@ -238,6 +262,11 @@ func GetStopsByQuery(db sqlx.Ext, sq StopQuery) (stops []*Stop, err error) {
 		if err != nil {
 			log.Println("can't get stop", err)
 			return
+		}
+
+		// If there are no scheduled departures, skip this stop
+		if len(stop.Scheduled) < 1 {
+			continue
 		}
 
 		stop.Dist = sqr.Dist
