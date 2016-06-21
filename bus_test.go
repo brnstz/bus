@@ -329,7 +329,6 @@ func TestTrip(t *testing.T) {
 		serverURL, url.QueryEscape(agencyID), url.QueryEscape(routeID),
 		url.QueryEscape(tripID),
 	)
-	log.Println(u)
 
 	err := getJSON(&trip, u)
 	if err != nil {
