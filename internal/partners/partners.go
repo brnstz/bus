@@ -24,7 +24,7 @@ func Find(route models.Route) (P, error) {
 		// The MTA has a different partner API for bus and subway
 		switch route.Type {
 
-		case models.Subway:
+		case models.Subway, models.Rail:
 			return mtaNYCSubway{}, nil
 
 		case models.Bus:
