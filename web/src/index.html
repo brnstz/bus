@@ -22,13 +22,10 @@
 
 		<!-- Bus -->
         <link rel="stylesheet" href="css/bus.css?ts={{.BuildTimestamp}}">
-        <script src="js/util.js?ts={{.BuildTimestamp}}"></script>
-        <script src="js/stop.js?ts={{.BuildTimestamp}}"></script>
         <script src="js/bus.js?ts={{.BuildTimestamp}}"></script>
-        <script src="js/route.js?ts={{.BuildTimestamp}}"></script>
         <script>
             $(function() {
-                bus.init();
+                initbus();
             });
         </script>
 

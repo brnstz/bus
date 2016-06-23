@@ -1,12 +1,8 @@
-// util is a util package
-var util = new Util();
-
-function Util() {}
-
 // measure returns the distance in meters between two lat / lon points
 // stolen from: 
 // http://stackoverflow.com/questions/639695/how-to-convert-latitude-or-longitude-to-meters
-Util.prototype.measure = function(lat1, lon1, lat2, lon2) {
+
+module.exports.measure = function(lat1, lon1, lat2, lon2) {
     var R = 6378.137;
     var dLat = (lat2 - lat1) * Math.PI / 180;
     var dLon = (lon2 - lon1) * Math.PI / 180;

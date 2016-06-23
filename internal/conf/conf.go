@@ -56,9 +56,9 @@ type APISpec struct {
 	DatamineAPIKey string `envconfig:"mta_datamine_api_key" required:"true"`
 
 	// WebDir is the location of the static web assets
-	// Default: ../../web
+	// Default: ../../web/dist
 	// Environment variable: $BUS_WEB_DIR
-	WebDir string `envconfig:"web_dir" default:"../../web"`
+	WebDir string `envconfig:"web_dir" default:"../../web/dist"`
 
 	// BuildTimestamp is the UNIX timestamp when static assets were last built.
 	// Default: 0 (API will use current timestamp)

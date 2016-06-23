@@ -42,4 +42,9 @@ go get $CODE_ROOT/... || error
 go build -o $BIN_DIR/busapi $CODE_ROOT/cmds/busapi || error
 go build -o $BIN_DIR/busloader $CODE_ROOT/cmds/busloader || error
 
+# Run web build
+cd ../web || error
+npm install || error
+grunt || error
+
 cleanup

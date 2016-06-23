@@ -80,3 +80,5 @@ Stop.prototype.createDepartures = function() {
 
     return text;
 };
+
+module.exports = Stop;
