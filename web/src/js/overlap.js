@@ -13,15 +13,10 @@ function Overlap() {
 Overlap.prototype.add = function(x1, y1, x2, y2) {
     var self = this;
 
-    console.log("incoming", x1, y1, x2, y2);
-
     var fwd = [x1, y1, x2, y2].join(",");
     var rev = [x2, y2, x1, y1].join(",");
 
     var count = 0;
-
-
-    console.log("Hello there 2", self.overlap);
 
     // If we have it in fwd direction, increment local count to return
     // and value in cache
@@ -37,8 +32,6 @@ Overlap.prototype.add = function(x1, y1, x2, y2) {
     if (self.overlap[rev]) {
         count += self.overlap[rev];
     }
-
-    console.log("what is count", count);
 
     return count;
 }

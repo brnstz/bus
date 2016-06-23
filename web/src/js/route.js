@@ -19,7 +19,7 @@ function Route(api) {
     self.before_opacity = 0.2;
     self.after_opacity = 1.0;
 
-    self.weight = 4;
+    self.weight = 2;
 
     // stop_line_dist is the number of meters we assume
     // a stop can be from the polyline to say that it hit the stop
@@ -73,7 +73,6 @@ Route.prototype.createMarkers = function(curstop) {
 };
 
 Route.prototype.createGlobalLines = function(curstop, overlap) {
-    console.log("what am I?", overlap);
     var self = this;
     var lines = [];
 
@@ -102,15 +101,12 @@ Route.prototype.createGlobalLines = function(curstop, overlap) {
         for (var j = 1; j < shape.shapes.length; j++) {
             var p2 = shape.shapes[j];
             var offset = overlap.add(p1.lat, p1.lon, p2.lat, p2.lon);
-            console.log("offset is", offset);
 
-            if (offset == last_offset) {
-                console.log("matching offset", offset, last_offset);
+            if ((offset == last_offset) && (j != shape.shapes.length)) {
                 // While offset is the same, push to list
                 offset_points.push(p2);
 
             } else {
-                console.log("mismatching offset", offset, last_offset);
                 // Copy and reinit the list
                 var now_points = offset_points;
                 offset_points = [p2];
@@ -162,6 +158,8 @@ Route.prototype.createGlobalLines = function(curstop, overlap) {
 
                 lines.push(line);
             };
+
+            console.log("what remains?", offset_points);
         };
 
         return lines;

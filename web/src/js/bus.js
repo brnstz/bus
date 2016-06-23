@@ -278,7 +278,6 @@ Bus.prototype.clickHandler = function(stop) {
             });
         }
 
-        console.log("hello hhhh", self.overlap);
         var route = self.routes[stop.api.agency_id + "|" + stop.api.route_id];
         var row = self.rows[stop.id];
         var markers = route.createMarkers(stop.api);
@@ -301,9 +300,11 @@ Bus.prototype.clickHandler = function(stop) {
         }
 
         // Draw marker stops
+        /*
         for (var key in markers) {
             self.layer.addLayer(markers[key]);
         }
+        */
 
         // Draw vehicles
         for (var key in vehicles) {
