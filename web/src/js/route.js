@@ -1,4 +1,5 @@
 var util = require("./util.js");
+var Bezier = require("bezier-js");
 
 // Route is a single instance of a route
 function Route(api) {
@@ -71,6 +72,101 @@ Route.prototype.createMarkers = function(curstop) {
     return markers;
 };
 
+Route.prototype.createGlobalLines = function(overlap) {
+    var self = this;
+    var lines = [];
+
+    if (!self.api.route_shapes) {
+        return lines;
+    }
+
+    // Go through each route shape
+    for (var i = 0; i < self.api.route_shapes.length; i++) {
+        var latlons = [];
+
+        // If this shape is not our direction, then skip it
+        if (self.api.route_shapes[i].direction_id != curstop.direction_id) {
+            continue;
+        }
+
+        // Get the shape in a local var
+        var shape = self.api.route_shapes[i];
+
+        // Create a point for each latlon
+        // Set up p1 for initial iteration
+        var p1 = shape.shapes[0];
+        var last_offset = 0;
+        var offset_points = [p1];
+
+        for (var j = 1; j < shape.shapes.length; j++) {
+            var p2 = shape.shapes[j];
+            var offset = overlap.add(p1.lat, p1.lon, p2.lat, p2.lon);
+            console.log("offset is", offset);
+
+            if (offset == last_offset) {
+                console.log("matching offset", offset, last_offset);
+                // While offset is the same, push to list
+                offset_points.push(p2);
+
+            } else {
+                console.log("mismatching offset", offset, last_offset);
+                // Copy and reinit the list
+                var now_points = offset_points;
+                offset_points = [p2];
+
+                if (last_offset == 0) {
+                    // If it's zero, nothing special to do, just add
+                    // the points.
+                    for (var k = 0; k < now_points.length; k++) {
+                        var np = now_points[k];
+                        latlons.push(L.latLng(np.lat, np.lon));
+                    }
+                } else {
+                    // Otherwise, we need to offset them, so convert to 
+                    // format that bezier likes
+                    var coords = [];
+                    for (var k = 0; k < now_points.length; k++) {
+                        var np = now_points[k];
+                        coords.push(np.lat);
+                        coords.push(np.lon);
+                    }
+
+                    // Create bezier obj and create points with offset
+                    var bezier = new Bezier(coords);
+                    var bzpoints = line.offset(offset);
+
+                    // Add all points to latlons (offset returns a list
+                    // of objects, each of which has points).
+                    for (var l = 0; l < bzpoints.length; l++) {
+                        for (var m = 0; m < bzpoints[l].points.length; m++) {
+                            var p = bzpoints[l].points[m];
+                            latlons.push(L.latLng(p.x, p.y));
+                        }
+                    }
+
+                    // Set up for next iteration
+                    p1 = p2;
+                }
+
+                // Create a polyline with the latlons
+                var line = L.polyline(
+                    latlons, {
+                        weight: self.weight,
+                        color: self.api.route_color,
+                        fillColor: self.api.route_color,
+                        opacity: self.after_opacity,
+                        fillOpacity: self.after_opacity
+                    }
+                );
+
+                lines.push(line);
+            };
+
+            return lines;
+        };
+    }
+};
+
 
 // createLines returns a list of L.polyline values for this route
 // given we are at curstop
@@ -90,7 +186,7 @@ Route.prototype.createLines = function(curstop) {
             continue;
         }
 
-        // Get the shap in a local var
+        // Get the shape in a local var
         var shape = self.api.route_shapes[i];
 
         // Create a list of before and after latlons (different drawing 

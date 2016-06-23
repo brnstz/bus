@@ -4,7 +4,7 @@ var bus = new Bus();
 var util = require("./util.js");
 var Stop = require("./stop.js");
 var Route = require("./route.js");
-var Bezier = require("bezier-js");
+var Overlap = require("./overlap.js");
 
 var homeControl = L.Control.extend({
     options: {
@@ -78,6 +78,9 @@ function Bus() {
 
     // true while updating
     self.updating = false;
+
+    // create a new overlap counter
+    self.overlap = null;
 }
 
 // init is run when the page initially loads
@@ -100,6 +103,9 @@ Bus.prototype.init = function() {
 
     self.layer.addTo(self.map);
     self.global_layer.addTo(self.map);
+
+    console.log("hello", Overlap);
+    self.overlap = new Overlap();
 
     self.map.addControl(new homeControl());
     self.map.addControl(new refreshControl());
@@ -276,7 +282,7 @@ Bus.prototype.clickHandler = function(stop) {
         var row = self.rows[stop.id];
         var markers = route.createMarkers(stop.api);
         var lines = route.createLines(stop.api);
-        var lines2 = route.createLines(stop.api);
+        var lines2 = route.createGlobalLines(self.overlap);
         var vehicles = route.createVehicles(stop.api);
         $(row).css({
             "opacity": stop.table_fg_opacity
