@@ -278,11 +278,12 @@ Bus.prototype.clickHandler = function(stop) {
             });
         }
 
+        console.log("hello hhhh", self.overlap);
         var route = self.routes[stop.api.agency_id + "|" + stop.api.route_id];
         var row = self.rows[stop.id];
         var markers = route.createMarkers(stop.api);
         var lines = route.createLines(stop.api);
-        var lines2 = route.createGlobalLines(self.overlap);
+        var lines2 = route.createGlobalLines(stop.api, self.overlap);
         var vehicles = route.createVehicles(stop.api);
         $(row).css({
             "opacity": stop.table_fg_opacity

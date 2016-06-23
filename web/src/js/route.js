@@ -72,7 +72,8 @@ Route.prototype.createMarkers = function(curstop) {
     return markers;
 };
 
-Route.prototype.createGlobalLines = function(overlap) {
+Route.prototype.createGlobalLines = function(curstop, overlap) {
+    console.log("what am I?", overlap);
     var self = this;
     var lines = [];
 
@@ -161,9 +162,9 @@ Route.prototype.createGlobalLines = function(overlap) {
 
                 lines.push(line);
             };
-
-            return lines;
         };
+
+        return lines;
     }
 };
 
