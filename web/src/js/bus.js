@@ -70,8 +70,11 @@ function Bus() {
     // last_stop is the stop that was clicked second most recently
     self.last_stop = null;
 
-    // layer is the current layer on the map
-    self.layer = null;
+    // layer is the current highlighted layer on the map
+    self.layer = L.layerGroup();
+
+    // global_layer the accumulated global layer
+    self.global_layer = L.layerGroup();
 
     // true while updating
     self.updating = false;
@@ -94,6 +97,9 @@ Bus.prototype.init = function() {
     });
 
     self.marker.addTo(self.map);
+
+    self.layer.addTo(self.map);
+    self.global_layer.addTo(self.map);
 
     self.map.addControl(new homeControl());
     self.map.addControl(new refreshControl());
@@ -282,21 +288,19 @@ Bus.prototype.clickHandler = function(stop) {
 
         // Draw lines 
         for (var i = 0; i < lines.length; i++) {
-            vals.push(lines[i]);
+            self.layer.addLayer(lines[i]);
         }
 
         // Draw marker stops
         for (var key in markers) {
-            vals.push(markers[key]);
+            self.layer.addLayer(markers[key]);
         }
 
         // Draw vehicles
         for (var key in vehicles) {
-            vals.push(vehicles[key]);
+            self.layer.addLayer(vehicles[key]);
         }
 
-        self.layer = L.layerGroup(vals);
-        self.layer.addTo(self.map);
 
         self.current_stop = stop;
     };
