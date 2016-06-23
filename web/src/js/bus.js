@@ -1,6 +1,10 @@
 // bus is our controller for the bus application. It handles drawing to the
 // screen and managing objects.
 var bus = new Bus();
+var util = require("./util.js");
+var Stop = require("./stop.js");
+var Route = require("./route.js");
+var Bezier = require("bezier-js");
 
 var homeControl = L.Control.extend({
     options: {
@@ -429,4 +433,8 @@ Bus.prototype.getRoutes = function() {
         // Otherwise we just need to update the stops
         self.updateStops();
     }
+};
+
+window.initbus = function() {
+    bus.init();
 };

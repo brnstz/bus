@@ -1,0 +1,14 @@
+{
+    "name": "bus",
+
+    "devDependencies": {
+        "grunt": "latest",
+        "grunt-browserify": "latest",
+        "grunt-contrib-copy": "latest",
+        "grunt-contrib-clean": "latest"
+    },
+
+    "dependencies": {
+        "bezier-js": "latest"
+    }
+}

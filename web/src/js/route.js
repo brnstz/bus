@@ -1,3 +1,5 @@
+var util = require("./util.js");
+
 // Route is a single instance of a route
 function Route(api) {
     var self = this;
@@ -184,3 +186,5 @@ Route.prototype.createVehicles = function(curstop) {
 
     return vehicles;
 };
+
+module.exports = Route;

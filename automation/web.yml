@@ -15,4 +15,4 @@
       file: path="{{ web_dir }}" owner=bus mode=755 state=directory
 
     - name: Copy static web assets
-      copy: src=../web/ dest="{{ web_dir }}"
+      copy: src=../web/dist/ dest="{{ web_dir }}"
