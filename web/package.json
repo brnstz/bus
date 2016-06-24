@@ -9,6 +9,7 @@
     },
 
     "dependencies": {
-        "bezier-js": "latest"
+        "bezier-js": "latest",
+        "js-clipper": "latest"
     }
 }

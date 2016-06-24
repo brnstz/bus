@@ -1,5 +1,6 @@
 var util = require("./util.js");
 var Bezier = require("bezier-js");
+var ClipperLib = require("js-clipper");
 
 // Route is a single instance of a route
 function Route(api) {
@@ -79,7 +80,10 @@ Route.prototype.createGlobalLines = function(overlap) {
     if (!self.api.route_shapes) {
         return lines;
     }
+    /*
     console.log("here we go!");
+    console.log("What does it say?", Clipper);
+    */
 
     // Go through each route shape
     for (var i = 0; i < self.api.route_shapes.length; i++) {
@@ -88,6 +92,26 @@ Route.prototype.createGlobalLines = function(overlap) {
         // Get the shape in a local var
         var shape = self.api.route_shapes[i];
 
+
+        var path = new ClipperLib.Path();
+        console.log("what is path?", path);
+        for (var j = 0; j < shape.shapes.length; j++) {
+            var p = shape.shapes[j];
+            path.push({
+                X: p.lat,
+                Y: p.lon
+            });
+        }
+        console.log("before path", path);
+        var miterLimit = 2;
+        var arcTolerance = 0.25;
+        var co = new ClipperLib.ClipperOffset(miterLimit, arcTolerance);
+        co.AddPath(path, ClipperLib.JoinType.jtRound, ClipperLib.EndType.etClosedLine);
+        var newTree = new ClipperLib.Path();
+        co.Execute(newTree, -7);
+        console.log("after path", newTree);
+
+        /*
         var p1 = shape.shapes[0];
         var points = [p1];
         for (var j = 1; j < shape.shapes.length; j++) {
@@ -126,6 +150,7 @@ Route.prototype.createGlobalLines = function(overlap) {
                 }
             }
         }
+        */
 
         // Create a polyline with the latlons
         var line = L.polyline(
