@@ -4,7 +4,6 @@ function Overlap() {
 
     // a map of "x,y,x,y" values to integers. eg
     // "40.721938,-73.9537543,40.7142157,-73.9516788" => 1
-    console.log("Hello there");
     self.overlap = {};
 }
 

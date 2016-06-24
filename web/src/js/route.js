@@ -72,6 +72,80 @@ Route.prototype.createMarkers = function(curstop) {
     return markers;
 };
 
+Route.prototype.createGlobalLines = function(overlap) {
+    var self = this;
+    var lines = [];
+
+    if (!self.api.route_shapes) {
+        return lines;
+    }
+    console.log("here we go!");
+
+    // Go through each route shape
+    for (var i = 0; i < self.api.route_shapes.length; i++) {
+        var latlons = [];
+
+        // Get the shape in a local var
+        var shape = self.api.route_shapes[i];
+
+        var p1 = shape.shapes[0];
+        var points = [p1];
+        for (var j = 1; j < shape.shapes.length; j++) {
+            var p2 = shape.shapes[j];
+            overlap.add(p1.lat, p1.lon, p2.lat, p2.lon);
+
+            points.push(p2);
+
+            // Set up for next iteration
+            p1 = p2;
+        }
+
+        var latlons = [];
+
+        // Create bezier style coords from our points
+        for (var j = 0; j < points.length - 4; j += 4) {
+            var coords = [];
+            for (var k = 0; k < 4; k++) {
+                var p = points[j + k];
+                coords.push(p.lat);
+                coords.push(p.lon);
+            }
+
+            // Create bezier obj and create points with offset
+            var bz = new Bezier(coords);
+            var bzpoints = bz.offset(0.00002);
+
+            // Add all points to latlons (offset returns a list
+            // of objects, each of which has points).
+            for (var l = 0; l < bzpoints.length; l++) {
+                for (var m = 0; m < bzpoints[l].points.length; m++) {
+                    var p = bzpoints[l].points[m];
+                    if (!isNaN(p.x)) {
+                        latlons.push(L.latLng(p.x, p.y));
+                    }
+                }
+            }
+        }
+
+        // Create a polyline with the latlons
+        var line = L.polyline(
+            latlons, {
+                weight: self.weight,
+                color: self.api.route_color,
+                fillColor: self.api.route_color,
+                opacity: self.after_opacity,
+                fillOpacity: self.after_opacity
+            }
+        );
+
+        lines.push(line);
+    }
+
+    return lines;
+}
+
+
+/*
 Route.prototype.createGlobalLines = function(curstop, overlap) {
     var self = this;
     var lines = [];
@@ -165,6 +239,7 @@ Route.prototype.createGlobalLines = function(curstop, overlap) {
         return lines;
     }
 };
+*/
 
 
 // createLines returns a list of L.polyline values for this route

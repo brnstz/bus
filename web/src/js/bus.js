@@ -104,7 +104,6 @@ Bus.prototype.init = function() {
     self.layer.addTo(self.map);
     self.global_layer.addTo(self.map);
 
-    console.log("hello", Overlap);
     self.overlap = new Overlap();
 
     self.map.addControl(new homeControl());
@@ -206,6 +205,12 @@ Bus.prototype.parseRoutes = function(data) {
     for (var i = 0; i < data.routes.length; i++) {
         var r = new Route(data.routes[i]);
         self.routes[r.id] = r;
+        console.log("hey now", r);
+
+        var lines = r.createGlobalLines(self.overlap);
+        for (var j = 0; j < lines.length; j++) {
+            self.global_layer.addLayer(lines[j]);
+        }
     };
 
     // After we parseRoutes, it's time to updateStops
@@ -282,7 +287,6 @@ Bus.prototype.clickHandler = function(stop) {
         var row = self.rows[stop.id];
         var markers = route.createMarkers(stop.api);
         var lines = route.createLines(stop.api);
-        var lines2 = route.createGlobalLines(stop.api, self.overlap);
         var vehicles = route.createVehicles(stop.api);
         $(row).css({
             "opacity": stop.table_fg_opacity
@@ -294,10 +298,11 @@ Bus.prototype.clickHandler = function(stop) {
         var vals = [];
 
         // Draw lines 
+        /*
         for (var i = 0; i < lines.length; i++) {
             self.layer.addLayer(lines[i]);
-            self.global_layer.addLayer(lines2[i]);
         }
+        */
 
         // Draw marker stops
         /*
