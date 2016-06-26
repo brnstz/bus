@@ -22,14 +22,20 @@ function Stop(api) {
 }
 
 // isLive returns true if we have live departures, false if we are using
-// scheduled departures
+// only scheduled departures
 Stop.prototype.isLive = function() {
     var self = this;
     var live = false;
 
-    if (self.api.live != null &&
-        self.api.live.length > 0) {
-        live = true;
+    var departures = self.api.departures;
+
+    if (departures != null) {
+        for (var i = 0; i < departures.length; i++) {
+            if (departures[i].live == true) {
+                live = true;
+                break;
+            }
+        }
     }
 
     return live;
@@ -63,14 +69,9 @@ Stop.prototype.timeFormat = function(time) {
 Stop.prototype.createDepartures = function() {
     var self = this;
 
-    var departures = [];
     var text = "";
 
-    if (self.live) {
-        departures = self.api.live;
-    } else {
-        departures = self.api.scheduled;
-    }
+    var departures = self.api.departures;
 
     if (departures != null) {
         for (var i = 0; i < departures.length; i++) {

@@ -97,11 +97,7 @@ type stopResponse struct {
 		Route_ID     string
 		Headsign     string
 		Direction_ID int
-		Live         []struct {
-			Time time.Time
-		}
-
-		Scheduled []struct {
+		Departures   []struct {
 			Time time.Time
 		}
 		Dist float64
@@ -166,14 +162,14 @@ func TestScheduledSubway(t *testing.T) {
 			t.Errorf("expected %v route_id but got %v", expectedRoute, v.Route_ID)
 		}
 
-		if len(v.Scheduled) < 1 {
+		if len(v.Departures) < 1 {
 			t.Errorf("expected at least one scheduled departure but got none in %#v", v)
 		}
 
 		// Check that scheduled times are in the future
-		for _, d := range v.Live {
+		for _, d := range v.Departures {
 			if d.Time.Before(now) {
-				t.Errorf("expected scheduled time %v would be after or equal to %v but it was not", v.Scheduled, now)
+				t.Errorf("expected scheduled time %v would be after or equal to %v but it was not", v.Departures, now)
 			}
 		}
 	}
@@ -214,12 +210,12 @@ func TestLiveSubway(t *testing.T) {
 			t.Errorf("expected %v route_id but got %v", expectedRoute, v.Route_ID)
 		}
 
-		if len(v.Live) < 1 {
+		if len(v.Departures) < 1 {
 			t.Errorf("expected at least one live departure but got none in %#v", v)
 		}
 
 		// Check that live times are in the future
-		for _, d := range v.Live {
+		for _, d := range v.Departures {
 			if d.Time.Before(now) {
 				t.Errorf("expected live time %v would be after or equal to %v but it was not", d.Time, now)
 			}
@@ -261,7 +257,7 @@ func TestLiveBus(t *testing.T) {
 		*/
 
 		// Check that
-		for _, d := range v.Live {
+		for _, d := range v.Departures {
 			if d.Time.IsZero() {
 				t.Errorf("empty time identified in live departure in %#v", v)
 			}
@@ -302,7 +298,7 @@ func TestScheduledBus(t *testing.T) {
 		}
 
 		// Check that scheduled times are in the future
-		for _, d := range v.Scheduled {
+		for _, d := range v.Departures {
 			if d.Time.Before(now) {
 				t.Errorf("expected scheduled time %v would be after or equal to %v but it was not", d.Time, now)
 			}

@@ -21,6 +21,7 @@ type Departure struct {
 	DepartureSec int       `json:"-" db:"departure_sec"`
 	TripID       string    `json:"trip_id" db:"trip_id"`
 	ServiceID    string    `json:"service_id" db:"service_id"`
+	Live         bool      `json:"live" db:"-" upsert:"omit"`
 
 	baseTime time.Time `json:"-" db:"-"`
 }

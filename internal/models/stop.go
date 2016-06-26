@@ -47,11 +47,9 @@ type Stop struct {
 	// same agency / route / stop / direction / headsign
 	StopSequence int `json:"stop_sequence" db:"stop_sequence" upsert:"omit"`
 
-	Dist      float64      `json:"dist" db:"-" upsert:"omit"`
-	Scheduled []*Departure `json:"scheduled" db:"-" upsert:"omit"`
-	Live      []*Departure `json:"live" db:"-" upsert:"omit"`
-
-	Vehicles []Vehicle `json:"vehicles" db:"-" upsert:"omit"`
+	Dist       float64      `json:"dist" db:"-" upsert:"omit"`
+	Departures []*Departure `json:"departures" db:"-" upsert:"omit"`
+	Vehicles   []Vehicle    `json:"vehicles" db:"-" upsert:"omit"`
 }
 
 // Table implements the upsert.Upserter interface, returning the table
@@ -174,7 +172,7 @@ func (s *Stop) setDepartures(now time.Time, db sqlx.Ext) (err error) {
 		if i > MaxDepartures {
 			break
 		}
-		s.Scheduled = append(s.Scheduled, d)
+		s.Departures = append(s.Departures, d)
 	}
 
 	return
@@ -264,8 +262,9 @@ func GetStopsByQuery(db sqlx.Ext, sq StopQuery) (stops []*Stop, err error) {
 			return
 		}
 
-		// If there are no scheduled departures, skip this stop
-		if sq.Departures && len(stop.Scheduled) < 1 {
+		// If there are no scheduled departures (and we are
+		// asking for them), skip this stop
+		if sq.Departures && len(stop.Departures) < 1 {
 			continue
 		}
 
