@@ -24,7 +24,7 @@ var (
 		errBadRequest:              http.StatusBadRequest,
 	}
 
-	staticPaths = []string{"js", "css"}
+	staticPaths = []string{"js", "css", "img"}
 )
 
 func NewHandler() http.Handler {

@@ -225,11 +225,18 @@ Bus.prototype.createRow = function(stop, i) {
 
     // Create and append the cell containing the route identifier
     // with colored background
-    $(row).append($("<td class='rowroute'>").text(stop.api.route_id))
+    var routeID = null;
+    if (stop.live == true) {
+        routeID = $("<td class='rowroute'>" + stop.api.route_id + "<br><img src='img/radio.png' width=20 height=20></td>");
+    } else {
+        routeID = $("<td class='rowroute'>" + stop.api.route_id + "</td>");
+    }
+
 
     var datatd = $("<td>");
     var headsign = $('<span class="headsign">' + stop.api.headsign + '</span>');
     var departures = $('<span><br>' + stop.departures + '</span>');
+    $(row).append(routeID);
     $(datatd).append(headsign);
     $(datatd).append(departures);
     $(row).append(datatd);
