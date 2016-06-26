@@ -16,7 +16,12 @@ module.exports = function(grunt) {
                 }, {
                     src: "src/index.html",
                     dest: "dist/index.html"
-                }]
+                }, {
+                    expand: true,
+                    cwd: "src/img",
+                    src: "**/*",
+                    dest: "dist/img/"
+                }, ]
             }
         },
         browserify: {
