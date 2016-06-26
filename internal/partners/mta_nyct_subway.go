@@ -67,6 +67,7 @@ func (_ mtaNYCSubway) Live(route models.Route, stop models.Stop) (d models.Depar
 					&models.Departure{
 						Time:   time.Unix(u.GetDeparture().GetTime(), 0),
 						TripID: tripID,
+						Live:   true,
 					},
 				)
 			}

@@ -63,6 +63,7 @@ func (_ mtaNYCBus) Live(route models.Route, stop models.Stop) (d models.Departur
 					d = append(d, &models.Departure{
 						Time:   oc.ExpectedDepartureTime,
 						TripID: tripID,
+						Live:   true,
 					})
 				}
 			}
