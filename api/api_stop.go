@@ -41,18 +41,69 @@ func init() {
 // req.stop.Live
 func stopWorker() {
 	for req := range stopChan {
-		d, v, err := req.partner.Live(*req.route, *req.stop)
-
-		if err == nil {
-			sort.Sort(d)
-			for i := 0; i < len(d) && i < models.MaxDepartures; i++ {
-				req.stop.Live = append(req.stop.Live, d[i])
-			}
-
-			req.stop.Vehicles = v
+		liveDepartures, liveVehicles, err := req.partner.Live(*req.route, *req.stop)
+		if err != nil {
+			req.response <- err
+			continue
 		}
 
-		req.response <- err
+		if len(liveVehicles) > 0 {
+			req.stop.Vehicles = liveVehicles
+		}
+
+		// Ensure the departures are sorted
+		sort.Sort(liveDepartures)
+
+		if len(liveDepartures) > 0 {
+			liveTripIDs := map[string]bool{}
+
+			// Remove any of the same trip ids that appear in scheduled
+			// departures. Live info is better for that trip, but there
+			// might still be scheduled departures later we want to use.
+			for _, d := range liveDepartures {
+				liveTripIDs[d.TripID] = true
+			}
+
+			// If there are less than max departures, then add scheduled
+			// departures that are after our last live departure and
+			// don't have dupe trip IDs
+			count := len(liveDepartures)
+			lastLiveDeparture := liveDepartures[count-1]
+
+			i := -1
+			for {
+				i++
+
+				// Stop once we have enough departures
+				if count >= models.MaxDepartures {
+					break
+				}
+
+				// Stop if we reach the end of the scheduled departures
+				if i >= len(req.stop.Departures) {
+					break
+				}
+
+				// Ignore departures with trip IDs that we know of
+				if liveTripIDs[req.stop.Departures[i].TripID] {
+					continue
+				}
+
+				if req.stop.Departures[i].Time.After(lastLiveDeparture.Time) {
+					liveDepartures = append(liveDepartures, req.stop.Departures[i])
+				}
+
+			}
+
+			if len(liveDepartures) > 5 {
+				req.stop.Departures = liveDepartures[0:5]
+			} else {
+				req.stop.Departures = liveDepartures
+			}
+
+		}
+
+		req.response <- nil
 	}
 }
 
