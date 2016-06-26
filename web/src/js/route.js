@@ -90,7 +90,7 @@ Route.prototype.createLines = function(curstop) {
             continue;
         }
 
-        // Get the shap in a local var
+        // Get the shape in a local var
         var shape = self.api.route_shapes[i];
 
         // Create a list of before and after latlons (different drawing 
