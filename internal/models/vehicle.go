@@ -1,5 +1,12 @@
 package models
 
+import (
+	"log"
+
+	"github.com/brnstz/bus/internal/etc"
+	"github.com/jmoiron/sqlx"
+)
+
 // Vehicle is the location (and maybe any other info) we want to provide
 // about a
 type Vehicle struct {
@@ -8,4 +15,67 @@ type Vehicle struct {
 
 	// Is this location live or estimated based on scheduled?
 	Live bool `json:"live"`
+}
+
+type vehicleRes struct {
+	StopID       string `db:"stop_id"`
+	TripID       string `db:"trip_id"`
+	DepartureSec int    `db:"departure_sec"`
+}
+
+func getVehicles(agencyID, routeID string, serviceIDs []string, minSec int) (vehicles []Vehicle, err error) {
+	var vehicle Vehicle
+
+	for _, serviceID := range serviceIDs {
+
+		// For each service id, get all departures. The first one for each
+		// trip_id is the actual stop where the train is (estimated to be)
+		// at.
+
+		vr := []vehicleRes{}
+
+		q := `
+			SELECT sst.stop_id, sst.trip_id, sst.departure_sec
+			FROM scheduled_stop_time sst
+			WHERE sst.agency_id      = $1  AND
+				  sst.route_id       = $2  AND
+				  sst.service_id     = $3  AND
+				  sst.departure_sec >= $4
+			ORDER BY trip_id, departure_sec
+	    `
+
+		err = sqlx.Select(etc.DBConn, &vr, q, agencyID, routeID, serviceID, minSec)
+		if err != nil {
+			log.Println("can't get vehicle results", err)
+			return
+		}
+
+		// Get the first stop for each trip, and retrieve lat/lon
+		lastTripID := ""
+		for _, res := range vr {
+			// Ignore until we get a new trip
+			if lastTripID == res.TripID {
+				continue
+			}
+
+			lastTripID = res.TripID
+
+			q2 := `
+				SELECT latitude(location) AS lat, longitude(location) AS lon
+				FROM   stop
+				WHERE  agency_id = $1 AND
+					   stop_id   = $2
+			`
+
+			err = sqlx.Get(etc.DBConn, &vehicle, q2, agencyID, res.StopID)
+			if err != nil {
+				log.Println("can't get stop location", err)
+				return
+			}
+
+			vehicles = append(vehicles, vehicle)
+		}
+	}
+
+	return
 }
