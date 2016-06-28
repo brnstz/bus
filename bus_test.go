@@ -331,8 +331,6 @@ func TestTrip(t *testing.T) {
 		t.Fatal("can't get API response for trip", err)
 	}
 
-	log.Println(len(trip.Shape_Points))
-
 	if len(trip.Shape_Points) != 520 {
 		t.Fatal("expected 520 shape points but got:", len(trip.Shape_Points))
 	}
