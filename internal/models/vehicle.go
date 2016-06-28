@@ -23,7 +23,7 @@ type vehicleRes struct {
 	DepartureSec int    `db:"departure_sec"`
 }
 
-func getVehicles(agencyID, routeID string, serviceIDs []string, minSec int) (vehicles []Vehicle, err error) {
+func getVehicles(agencyID, routeID string, directionID int, serviceIDs []string, minSec int) (vehicles []Vehicle, err error) {
 	var vehicle Vehicle
 
 	for _, serviceID := range serviceIDs {
@@ -35,16 +35,29 @@ func getVehicles(agencyID, routeID string, serviceIDs []string, minSec int) (veh
 		vr := []vehicleRes{}
 
 		q := `
-			SELECT sst.stop_id, sst.trip_id, sst.departure_sec
-			FROM scheduled_stop_time sst
-			WHERE sst.agency_id      = $1  AND
-				  sst.route_id       = $2  AND
-				  sst.service_id     = $3  AND
-				  sst.departure_sec >= $4
-			ORDER BY trip_id, departure_sec
+            SELECT sst.stop_id, sst.trip_id, sst.departure_sec
+            FROM scheduled_stop_time sst
+		    INNER JOIN trip ON sst.agency_id = trip.agency_id AND
+                               sst.route_id  = trip.route_id  AND
+                               sst.trip_id   = trip.trip_id	
+            INNER JOIN (
+                SELECT max(departure_sec) AS max_departure, agency_id, trip_id, route_id
+                FROM scheduled_stop_time max_sst_inner
+                GROUP BY agency_id, trip_id, route_id
+            ) max_sst ON sst.agency_id = max_sst.agency_id AND
+                         sst.route_id  = max_sst.route_id AND
+                         sst.trip_id   = max_sst.trip_id
+
+            WHERE sst.agency_id          = $1 AND
+                  sst.route_id           = $2 AND
+                  sst.service_id         = $3 AND
+                  sst.departure_sec     <= $4 AND
+                  max_sst.max_departure >= $4 AND
+                  trip.direction_id      = $5
+            ORDER BY trip_id, departure_sec DESC 
 	    `
 
-		err = sqlx.Select(etc.DBConn, &vr, q, agencyID, routeID, serviceID, minSec)
+		err = sqlx.Select(etc.DBConn, &vr, q, agencyID, routeID, serviceID, minSec, directionID)
 		if err != nil {
 			log.Println("can't get vehicle results", err)
 			return
