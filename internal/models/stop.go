@@ -123,7 +123,7 @@ func (s *Stop) setDepartures(now time.Time, db sqlx.Ext) (err error) {
 				allDepartures = append(allDepartures, departures...)
 			}
 
-			yesterdayVehicles, err = getVehicles(s.AgencyID, s.RouteID, yesterdayIDs, nowSecs)
+			yesterdayVehicles, err = getVehicles(s.AgencyID, s.RouteID, s.DirectionID, yesterdayIDs, nowSecs)
 			if err != nil {
 				log.Println("can't get vehicles", err)
 				return
@@ -158,7 +158,7 @@ func (s *Stop) setDepartures(now time.Time, db sqlx.Ext) (err error) {
 			allDepartures = append(allDepartures, departures...)
 		}
 
-		todayVehicles, err = getVehicles(s.AgencyID, s.RouteID, todayIDs, nowSecs)
+		todayVehicles, err = getVehicles(s.AgencyID, s.RouteID, s.DirectionID, todayIDs, nowSecs)
 		if err != nil {
 			log.Println("can't get vehicles", err)
 			return
