@@ -80,6 +80,8 @@ func (s Stop) Key() string {
 // setDepartures checks the database and any relevant APIs to set the scheduled
 // and live departures for this stop
 func (s *Stop) setDepartures(now time.Time, db sqlx.Ext) (err error) {
+	var yesterdayVehicles []Vehicle
+	var todayVehicles []Vehicle
 
 	allDepartures := Departures{}
 
@@ -120,6 +122,12 @@ func (s *Stop) setDepartures(now time.Time, db sqlx.Ext) (err error) {
 
 				allDepartures = append(allDepartures, departures...)
 			}
+
+			yesterdayVehicles, err = getVehicles(s.AgencyID, s.RouteID, yesterdayIDs, nowSecs)
+			if err != nil {
+				log.Println("can't get vehicles", err)
+				return
+			}
 		}
 	}()
 
@@ -150,7 +158,16 @@ func (s *Stop) setDepartures(now time.Time, db sqlx.Ext) (err error) {
 			allDepartures = append(allDepartures, departures...)
 		}
 
+		todayVehicles, err = getVehicles(s.AgencyID, s.RouteID, todayIDs, nowSecs)
+		if err != nil {
+			log.Println("can't get vehicles", err)
+			return
+		}
+
 	}()
+
+	s.Vehicles = append(s.Vehicles, yesterdayVehicles...)
+	s.Vehicles = append(s.Vehicles, todayVehicles...)
 
 	// If there are no departures, we can return now
 	if len(allDepartures) < 1 {
