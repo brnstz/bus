@@ -58,8 +58,8 @@ func TestMain(m *testing.M) {
 
 	// Load the just subway and Brooklyn bus files
 	conf.Loader.GTFSURLs = []string{
-		"http://web.mta.info/developers/data/nyct/subway/google_transit.zip",
-		"http://web.mta.info/developers/data/nyct/bus/google_transit_brooklyn.zip",
+		"http://pub.brnstz.com.s3-website-us-east-1.amazonaws.com/bus/testdata/google_transit.zip",
+		"http://pub.brnstz.com.s3-website-us-east-1.amazonaws.com/bus/testdata/google_transit_brooklyn.zip",
 	}
 
 	// Filter on a few routes for our tests
