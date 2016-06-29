@@ -67,26 +67,41 @@ func (_ mtaNYCSubway) Live(route models.Route, stop models.Stop) (d models.Depar
 	}
 
 	for _, e := range tr.Entity {
-		//log.Println("what is it?", e)
+		var event interface{}
+
 		var vehicle models.Vehicle
 
 		tripUpdate := e.GetTripUpdate()
-		log.Println("what is trip?", tripUpdate.GetTrip().String())
+		trip := tripUpdate.GetTrip()
+		if trip == nil {
+			log.Println("skipping nil trip", e)
+			continue
+		}
 
-		tripID := tripUpdate.GetTrip().GetTripId()
+		event, err = proto.GetExtension(trip, nyct_subway.E_NyctTripDescriptor)
+		if err != nil {
+			log.Println("can't get extension", err)
+			continue
+		}
+
+		nycTrip, ok := event.(*nyct_subway.NyctTripDescriptor)
+		if !ok {
+			log.Println("can't coerce to nyct_subway.NyctTripDescriptor")
+			continue
+		}
 
 		updates := tripUpdate.GetStopTimeUpdate()
 
 		first := true
 		for _, u := range updates {
-			//log.Println("what is update?", u)
 
 			stopID := u.GetStopId()
 			departureTime := time.Unix(u.GetDeparture().GetTime(), 0)
 
 			// The first update in an entity is the stop where the train will
-			// next be (including trips that haven't started yet)
-			if first {
+			// next be. Include only "assigned" trips, which are those that
+			// are about to start.
+			if first && nycTrip.GetIsAssigned() {
 				first = false
 
 				vehicle, err = models.GetVehicle(route.AgencyID, route.ID, stop.ID)
@@ -96,6 +111,8 @@ func (_ mtaNYCSubway) Live(route models.Route, stop models.Stop) (d models.Depar
 					return
 				}
 				v = append(v, vehicle)
+			} else {
+				first = false
 			}
 
 			// If this is our stop, then get the departure time.
@@ -103,7 +120,7 @@ func (_ mtaNYCSubway) Live(route models.Route, stop models.Stop) (d models.Depar
 				d = append(d,
 					&models.Departure{
 						Time:   departureTime,
-						TripID: tripID,
+						TripID: trip.GetTripId(),
 						Live:   true,
 					},
 				)
