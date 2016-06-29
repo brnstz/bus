@@ -30,7 +30,8 @@ func GetVehicle(agencyID, routeID, stopID string, directionID int) (vehicle Vehi
 	err = sqlx.Get(etc.DBConn, &vehicle, q, agencyID, routeID, stopID,
 		directionID)
 	if err != nil {
-		log.Println("can't get vehicle", err)
+		// FIXME: distinguish not found vs. other errors
+		//	log.Println("can't get vehicle", err)
 		return
 	}
 
