@@ -107,7 +107,8 @@ func (_ mtaNYCSubway) Live(route models.Route, stop models.Stop) (d models.Depar
 					stop.DirectionID,
 				)
 				if err != nil {
-					log.Println("can't get vehicle", err)
+					// FIXME: identify not found error vs. others
+					//log.Println("can't get vehicle", err)
 
 				} else {
 					vehicle.Live = true
