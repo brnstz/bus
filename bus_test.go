@@ -318,7 +318,7 @@ func TestTrip(t *testing.T) {
 	trip := tripResp{}
 
 	agencyID := "MTA NYCT"
-	tripID := "B20151206SAT_083700_G..N13R"
+	tripID := "B20160612SAT_083700_G..N13R"
 	routeID := "G"
 
 	u := fmt.Sprintf("%s/api/agencies/%s/routes/%s/trips/%s",
