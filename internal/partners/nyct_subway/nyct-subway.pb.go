@@ -18,7 +18,6 @@ package nyct_subway
 
 import (
 	fmt "fmt"
-	"log"
 
 	proto "github.com/golang/protobuf/proto"
 
@@ -299,7 +298,6 @@ var E_NyctStopTimeUpdate = &proto.ExtensionDesc{
 }
 
 func init() {
-	log.Println("i am initing")
 	proto.RegisterType((*TripReplacementPeriod)(nil), "TripReplacementPeriod")
 	proto.RegisterType((*NyctFeedHeader)(nil), "NyctFeedHeader")
 	proto.RegisterType((*NyctTripDescriptor)(nil), "NyctTripDescriptor")

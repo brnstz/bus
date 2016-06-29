@@ -34,10 +34,6 @@ var (
 	}
 )
 
-func init() {
-	log.Println("hello", nyct_subway.NyctTripDescriptor_Direction_name[1])
-}
-
 type mtaNYCSubway struct{}
 
 func (_ mtaNYCSubway) Live(route models.Route, stop models.Stop) (d models.Departures, v []models.Vehicle, err error) {
