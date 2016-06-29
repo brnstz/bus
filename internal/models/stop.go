@@ -301,10 +301,15 @@ func getServiceIDsByDay(db sqlx.Ext, agencyID, routeID, day string, now time.Tim
 
 	removed := map[string]bool{}
 
-	// Select the service_ids that:
+	// FIXME: do we want to select all service IDs that are valid
+	// in this time window or just the max start date (most recent one)
+	// Experience with MTA data suggests we only want one.
+
+	// Select the service_id that:
 	//   * matches our agencyID, routeID, day
 	//   * has an end_date after now
 	//   * has a start_date before now
+	//   * has the maximum start date of those
 
 	q := `
 		SELECT service_id 
@@ -314,6 +319,8 @@ func getServiceIDsByDay(db sqlx.Ext, agencyID, routeID, day string, now time.Tim
 			   start_date <= $3 AND 
 			   route_id = $4 AND
 			   agency_id = $5
+		ORDER BY start_date DESC
+		LIMIT 1
 	`
 
 	err = sqlx.Select(db, &normalIDs, q, day, now, now, routeID, agencyID)
