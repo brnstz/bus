@@ -9,6 +9,8 @@ import (
 	"github.com/brnstz/bus/internal/conf"
 	"github.com/brnstz/bus/internal/etc"
 	"github.com/brnstz/bus/internal/models"
+
+	"github.com/brnstz/bus/internal/partners/nyct_subway"
 	"github.com/brnstz/bus/internal/partners/transit_realtime"
 
 	"github.com/golang/protobuf/proto"
@@ -32,9 +34,14 @@ var (
 	}
 )
 
+func init() {
+	log.Println("hello", nyct_subway.NyctTripDescriptor_Direction_name[1])
+}
+
 type mtaNYCSubway struct{}
 
 func (_ mtaNYCSubway) Live(route models.Route, stop models.Stop) (d models.Departures, v []models.Vehicle, err error) {
+	//now := time.Now()
 
 	feed, exists := routeToFeed[stop.RouteID]
 	if !exists {
@@ -56,16 +63,46 @@ func (_ mtaNYCSubway) Live(route models.Route, stop models.Stop) (d models.Depar
 	err = proto.Unmarshal(b, tr)
 	if err != nil {
 		log.Println("can't unmarshal", err)
+		return
 	}
 
 	for _, e := range tr.Entity {
-		tripID := e.TripUpdate.GetTrip().GetTripId()
-		updates := e.GetTripUpdate().GetStopTimeUpdate()
+		//log.Println("what is it?", e)
+		var vehicle models.Vehicle
+
+		tripUpdate := e.GetTripUpdate()
+		log.Println("what is trip?", tripUpdate.GetTrip().String())
+
+		tripID := tripUpdate.GetTrip().GetTripId()
+
+		updates := tripUpdate.GetStopTimeUpdate()
+
+		first := true
 		for _, u := range updates {
-			if u.GetStopId() == stop.ID {
+			//log.Println("what is update?", u)
+
+			stopID := u.GetStopId()
+			departureTime := time.Unix(u.GetDeparture().GetTime(), 0)
+
+			// The first update in an entity is the stop where the train will
+			// next be (including trips that haven't started yet)
+			if first {
+				first = false
+
+				vehicle, err = models.GetVehicle(route.AgencyID, route.ID, stop.ID)
+				vehicle.Live = true
+				if err != nil {
+					log.Println("can't get vehicle", err)
+					return
+				}
+				v = append(v, vehicle)
+			}
+
+			// If this is our stop, then get the departure time.
+			if stopID == stop.ID {
 				d = append(d,
 					&models.Departure{
-						Time:   time.Unix(u.GetDeparture().GetTime(), 0),
+						Time:   departureTime,
 						TripID: tripID,
 						Live:   true,
 					},

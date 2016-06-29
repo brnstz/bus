@@ -1,1 +1,0 @@
-generate go file with `protoc --go_out=. *.proto`
