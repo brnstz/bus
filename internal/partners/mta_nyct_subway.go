@@ -37,13 +37,16 @@ var (
 type mtaNYCSubway struct{}
 
 func (_ mtaNYCSubway) Live(route models.Route, stop models.Stop) (d models.Departures, v []models.Vehicle, err error) {
-	//now := time.Now()
 
+	// Get the feed for this route, if there is one. Otherwise, nothing
+	// to return.
 	feed, exists := routeToFeed[stop.RouteID]
 	if !exists {
 		return
 	}
 
+	// Construct URL and call external API, possibly getting cached
+	// value.
 	q := url.Values{}
 	q.Set("key", conf.API.DatamineAPIKey)
 	q.Set("feed_id", feed)
@@ -55,6 +58,7 @@ func (_ mtaNYCSubway) Live(route models.Route, stop models.Stop) (d models.Depar
 		return
 	}
 
+	// Load the protobuf struct
 	tr := &transit_realtime.FeedMessage{}
 	err = proto.Unmarshal(b, tr)
 	if err != nil {
@@ -62,60 +66,62 @@ func (_ mtaNYCSubway) Live(route models.Route, stop models.Stop) (d models.Depar
 		return
 	}
 
+	// Look at each message in the feed
 	for _, e := range tr.Entity {
-		var event interface{}
 
-		var vehicle models.Vehicle
-
+		// Get some updates
 		tripUpdate := e.GetTripUpdate()
 		trip := tripUpdate.GetTrip()
-		if trip == nil {
-			log.Println("skipping nil trip", e)
-			continue
-		}
+		stopTimeUpdates := tripUpdate.GetStopTimeUpdate()
 
-		event, err = proto.GetExtension(trip, nyct_subway.E_NyctTripDescriptor)
-		if err != nil {
-			log.Println("can't get extension", err)
-			continue
-		}
+		// If we have at least one stopTimeUpdate and the trip is non-nil,
+		// we can get the NYCT extensions.
+		if len(stopTimeUpdates) > 0 && trip != nil {
+			var event interface{}
 
-		nycTrip, ok := event.(*nyct_subway.NyctTripDescriptor)
-		if !ok {
-			log.Println("can't coerce to nyct_subway.NyctTripDescriptor")
-			continue
-		}
-
-		updates := tripUpdate.GetStopTimeUpdate()
-
-		first := true
-		for _, u := range updates {
-
-			stopID := u.GetStopId()
-			departureTime := time.Unix(u.GetDeparture().GetTime(), 0)
+			// Get the NYC extension so we can see if the Trip is "assigned"
+			// yet If it's assigned, we'll put the vehicle on the map.
+			event, err = proto.GetExtension(
+				trip, nyct_subway.E_NyctTripDescriptor,
+			)
+			if err != nil {
+				log.Println("can't get extension", err)
+				return
+			}
+			nycTrip, ok := event.(*nyct_subway.NyctTripDescriptor)
+			if !ok {
+				log.Println("can't coerce to nyct_subway.NyctTripDescriptor")
+				return
+			}
 
 			// The first update in an entity is the stop where the train will
 			// next be. Include only "assigned" trips, which are those that
 			// are about to start.
-			if first && nycTrip.GetIsAssigned() {
-				first = false
+			if nycTrip.GetIsAssigned() {
+				var vehicle models.Vehicle
 
-				vehicle, err = models.GetVehicle(route.AgencyID, route.ID, stop.ID)
+				// Get a "vehicle" with the lat/lon of the update's stop
+				// (*not* the stop of our request)
+				vehicle, err = models.GetVehicle(
+					route.AgencyID, route.ID, stopTimeUpdates[0].GetStopId(),
+				)
 				vehicle.Live = true
 				if err != nil {
 					log.Println("can't get vehicle", err)
 					return
 				}
 				v = append(v, vehicle)
-			} else {
-				first = false
 			}
+		}
 
+		// Go through all updates to check for our stop ID's departure
+		// time.
+		for _, u := range stopTimeUpdates {
 			// If this is our stop, then get the departure time.
-			if stopID == stop.ID {
+			if u.GetStopId() == stop.ID {
 				d = append(d,
 					&models.Departure{
-						Time:   departureTime,
+						Time:   time.Unix(u.GetDeparture().GetTime(), 0),
 						TripID: trip.GetTripId(),
 						Live:   true,
 					},
