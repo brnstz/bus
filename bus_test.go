@@ -240,9 +240,9 @@ func TestLiveBus(t *testing.T) {
 		t.Fatal("can't get API response for B62, B32 bus test", err)
 	}
 
-	// We should get results for both B62 and B32
-	if len(resp.Stops) != 4 {
-		t.Fatalf("expected %v results but got %v", 4, len(resp.Stops))
+	// We should get results for at lesat the B62
+	if len(resp.Stops) < 2 {
+		t.Fatalf("expected at least %v results but got %v", 2, len(resp.Stops))
 	}
 
 	// Check each result
