@@ -104,13 +104,15 @@ func (_ mtaNYCSubway) Live(route models.Route, stop models.Stop) (d models.Depar
 				// (*not* the stop of our request)
 				vehicle, err = models.GetVehicle(
 					route.AgencyID, route.ID, stopTimeUpdates[0].GetStopId(),
+					stop.DirectionID,
 				)
-				vehicle.Live = true
 				if err != nil {
 					log.Println("can't get vehicle", err)
-					return
+
+				} else {
+					vehicle.Live = true
+					v = append(v, vehicle)
 				}
-				v = append(v, vehicle)
 			}
 		}
 

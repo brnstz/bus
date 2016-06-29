@@ -17,18 +17,20 @@ type Vehicle struct {
 	Live bool `json:"live"`
 }
 
-func GetVehicle(agencyID, routeID, stopID string) (vehicle Vehicle, err error) {
+func GetVehicle(agencyID, routeID, stopID string, directionID int) (vehicle Vehicle, err error) {
 	q := `
 		SELECT latitude(location) AS lat, longitude(location) AS lon
 		FROM   stop
-		WHERE  agency_id = $1 AND
-			   route_id  = $2 AND
-			   stop_id   = $3
+		WHERE  agency_id    = $1 AND
+			   route_id     = $2 AND
+			   stop_id      = $3 AND
+			   direction_id = $4
 	`
 
-	err = sqlx.Get(etc.DBConn, &vehicle, q, agencyID, routeID, stopID)
+	err = sqlx.Get(etc.DBConn, &vehicle, q, agencyID, routeID, stopID,
+		directionID)
 	if err != nil {
-		log.Println("can't get stop location", err)
+		log.Println("can't get vehicle", err)
 		return
 	}
 
@@ -91,7 +93,7 @@ func getVehicles(agencyID, routeID string, directionID int, serviceIDs []string,
 
 			lastTripID = res.TripID
 
-			vehicle, err = GetVehicle(agencyID, routeID, res.StopID)
+			vehicle, err = GetVehicle(agencyID, routeID, res.StopID, directionID)
 			if err != nil {
 				log.Println("can't get vehicle", err)
 				return
