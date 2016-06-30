@@ -200,7 +200,7 @@ $ cd ../..
 
 # Deploy the system
 $ cd automation
-$ ./build.sh && ./deploy.sh inventory_vagrant db.yml api.yml loader.yml
+$ ./build.sh && ./deploy.sh inventory_vagrant db.yml api.yml web.yml loader.yml
 
 # If all goes well, system is available on http://localhost:8000
 ```
