@@ -18,14 +18,14 @@ type Shape struct {
 
 	// Location is an "earth" field value that combines lat and lon into
 	// a single field.
-	Location interface{} `json:"-" db:"location" upsert_value:"ll_to_earth(:lat, :lon)"`
+	Location interface{} `json:"-" db:"location" upsert_value:"'POINT(:lat, :lon)'"`
 }
 
 func GetShapes(db sqlx.Ext, agencyID, shapeID string) ([]*Shape, error) {
 	shapes := []*Shape{}
 
 	q := `
-		SELECT latitude(location) AS lat, longitude(location) AS lon
+		SELECT ST_X(location::geometry) AS lat, ST_Y(location::geometry) AS lon
 		FROM shape
 		WHERE 
 			agency_id = $1 AND

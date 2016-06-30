@@ -52,8 +52,8 @@ func (t *Trip) addShapes(agencyID, shapeID string) (err error) {
 	// Try to get the shapes specific to this trip
 	q := `
 		SELECT 
-			latitude(location) AS lat,
-			longitude(location) AS lon
+			ST_X(location::geometry) AS lat, 
+			ST_Y(location::geometry) AS lon
 		FROM shape
 		WHERE agency_id = $1 AND
 		      shape_id  = $2

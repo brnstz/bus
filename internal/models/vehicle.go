@@ -19,7 +19,7 @@ type Vehicle struct {
 
 func GetVehicle(agencyID, routeID, stopID string, directionID int) (vehicle Vehicle, err error) {
 	q := `
-		SELECT latitude(location) AS lat, longitude(location) AS lon
+		SELECT ST_X(location::geometry) AS lat, ST_Y(location::geometry) AS lon	
 		FROM   stop
 		WHERE  agency_id    = $1 AND
 			   route_id     = $2 AND

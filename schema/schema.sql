@@ -1,8 +1,7 @@
 DROP schema PUBLIC cascade;
 CREATE schema PUBLIC;
 
-CREATE EXTENSION IF NOT EXISTS cube;
-CREATE EXTENSION IF NOT EXISTS earthdistance;
+CREATE EXTENSION IF NOT EXISTS postgis;
 
 -- route contains selected fields from 
 -- https://developers.google.com/transit/gtfs/reference#routestxt
@@ -40,7 +39,7 @@ CREATE TABLE stop (
     route_id    TEXT NOT NULL,
 
     -- lat and lon converted into an earthdistance type
-    location    EARTH NOT NULL,
+    location    GEOGRAPHY(POINT, 4326) NOT NULL,
 
     UNIQUE(agency_id, route_id, stop_id)
 );
@@ -74,7 +73,7 @@ CREATE TABLE trip (
 CREATE TABLE shape (
     agency_id   TEXT NOT NULL,
     shape_id    TEXT NOT NULL,
-    location    EARTH NOT NULL,
+    location    GEOGRAPHY(POINT, 4326) NOT NULL,
     seq         INT NOT NULL,
 
     UNIQUE(agency_id, shape_id, seq)

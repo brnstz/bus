@@ -40,7 +40,7 @@ type Stop struct {
 
 	// Location is an "earth" field value that combines lat and lon into
 	// a single field.
-	Location interface{} `json:"-" db:"location" upsert_value:"ll_to_earth(:lat, :lon)"`
+	Location interface{} `json:"-" db:"location" upsert_value:"'POINT(:lat, :lon)'"`
 
 	// StopSequence is the order in which this stop occurs in a typical
 	// route trip, for comparisons with other stops matching the
@@ -201,9 +201,10 @@ func GetStop(db sqlx.Ext, agencyID, routeID, stopID string, appendInfo bool) (*S
 	now := time.Now()
 
 	err := sqlx.Get(db, &s, `
-		 SELECT stop.*, COALESCE(sst.stop_sequence, 0) AS stop_sequence,
-				latitude(stop.location) AS lat,
-				longitude(stop.location) AS lon
+		 SELECT stop.*, 
+				COALESCE(sst.stop_sequence, 0) AS stop_sequence,
+				ST_X(location::geometry) AS lat, 
+				ST_Y(location::geometry) AS lon
 
 		 FROM stop
 		 INNER JOIN route_trip ON route_trip.agency_id = stop.agency_id AND
