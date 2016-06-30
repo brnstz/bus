@@ -8,8 +8,6 @@ import (
 	"path"
 	"strconv"
 
-	"github.com/julienschmidt/httprouter"
-
 	"github.com/brnstz/bus/internal/conf"
 	"github.com/brnstz/bus/internal/models"
 )
@@ -28,32 +26,44 @@ var (
 )
 
 func NewHandler() http.Handler {
-	// Create our mux
-	mux := httprouter.New()
+	mux := http.NewServeMux()
 
-	// Set up index and dynamic endpoints
-	mux.GET("/", getIndex)
-	mux.GET("/api/stops", getStops)
-	mux.GET("/api/routes", getRoutes)
-	mux.GET("/api/agencies/:agencyID/routes/:routeID/trips/:tripID", getTrip)
+	mux.HandleFunc("/api/stops", getStops)
+	mux.HandleFunc("/api/routes", getRoutes)
+	mux.HandleFunc("/api/trip", getTrip)
 
-	// Create static endpoints
+	// Add specific handlers for each static directory. These will
+	// be served directly.
 	for _, v := range staticPaths {
-		endpoint := "/" + v + "/*filepath"
-		dir := http.Dir(path.Join(conf.API.WebDir, v))
-		mux.ServeFiles(endpoint, dir)
+		pattern := "/" + v + "/"
+		dir := path.Join(conf.API.WebDir, v)
+		fs := http.StripPrefix(pattern, http.FileServer(http.Dir(dir)))
+		mux.Handle(pattern, fs)
 	}
+
+	// The index template gets special treatment to add the build
+	// timestamp and also to possibly allow different caching treatment.
+	mux.HandleFunc("/", getIndex)
 
 	return mux
 }
 
-func getIndex(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
+func getIndex(w http.ResponseWriter, r *http.Request) {
+	switch r.RequestURI {
+	case "/", "/index.html":
+
+	default:
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
 	// Create index template
 	indexTemplate, err := template.ParseFiles(
 		path.Join(conf.API.WebDir, "index.html"),
 	)
 	if err != nil {
 		apiErr(w, err)
+		return
 	}
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
