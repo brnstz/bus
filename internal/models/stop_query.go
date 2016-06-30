@@ -13,7 +13,7 @@ const (
 	sqBegin = `
 		SELECT stop.agency_id, stop.route_id, stop.stop_id,
 		       stop.direction_id,
-		  earth_distance(location, ll_to_earth(:mid_lat, :mid_lon)) AS dist
+			   ST_Distance(location::geography, 'POINT(:lat, :lon)') AS dist
 		FROM stop
 		INNER JOIN route ON stop.route_id = route.route_id
 	`
