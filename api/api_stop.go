@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"sort"
 
-	"github.com/julienschmidt/httprouter"
-
 	"github.com/brnstz/bus/internal/etc"
 	"github.com/brnstz/bus/internal/models"
 	"github.com/brnstz/bus/internal/partners"
@@ -112,7 +110,7 @@ type stopResponse struct {
 	Stops []*models.Stop `json:"stops"`
 }
 
-func getStops(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func getStops(w http.ResponseWriter, r *http.Request) {
 	var err error
 
 	lat, err := floatOrDie(r.FormValue("lat"))

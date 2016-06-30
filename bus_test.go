@@ -317,14 +317,12 @@ type tripResp struct {
 func TestTrip(t *testing.T) {
 	trip := tripResp{}
 
-	agencyID := "MTA NYCT"
-	tripID := "B20160612SAT_083700_G..N13R"
-	routeID := "G"
+	params := url.Values{}
+	params.Set("agency_id", "MTA NYCT")
+	params.Set("trip_id", "B20160612SAT_083700_G..N13R")
+	params.Set("route_id", "G")
 
-	u := fmt.Sprintf("%s/api/agencies/%s/routes/%s/trips/%s",
-		serverURL, url.QueryEscape(agencyID), url.QueryEscape(routeID),
-		url.QueryEscape(tripID),
-	)
+	u := serverURL + "/api/trip?" + params.Encode()
 
 	err := getJSON(&trip, u)
 	if err != nil {

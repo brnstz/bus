@@ -5,8 +5,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/julienschmidt/httprouter"
-
 	"github.com/brnstz/bus/internal/etc"
 	"github.com/brnstz/bus/internal/models"
 )
@@ -15,7 +13,7 @@ type routesResp struct {
 	Routes []*models.Route `json:"routes"`
 }
 
-func getRoutes(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func getRoutes(w http.ResponseWriter, r *http.Request) {
 	var err error
 	err = r.ParseForm()
 	if err != nil {

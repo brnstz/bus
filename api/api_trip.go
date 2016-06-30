@@ -4,17 +4,14 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"strings"
 
 	"github.com/brnstz/bus/internal/models"
-	"github.com/julienschmidt/httprouter"
 )
 
-func getTrip(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	// FIXME: hack
-	agencyID := strings.Replace(p.ByName("agencyID"), "+", " ", -1)
-	routeID := strings.Replace(p.ByName("routeID"), "+", " ", -1)
-	tripID := strings.Replace(p.ByName("tripID"), "+", " ", -1)
+func getTrip(w http.ResponseWriter, r *http.Request) {
+	agencyID := r.FormValue("agency_id")
+	routeID := r.FormValue("route_id")
+	tripID := r.FormValue("trip_id")
 
 	trip, err := models.GetTrip(agencyID, routeID, tripID)
 	if err != nil {
