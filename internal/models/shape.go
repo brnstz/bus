@@ -16,9 +16,9 @@ type Shape struct {
 	Lat float64 `json:"lat" db:"lat" upsert:"omit"`
 	Lon float64 `json:"lon" db:"lon" upsert:"omit"`
 
-	// Location is an "earth" field value that combines lat and lon into
-	// a single field.
-	Location interface{} `json:"-" db:"location" upsert_value:"'POINT(:lat, :lon)'"`
+	// Location is PostGIS field value that combines lat and lon into a single
+	// field.
+	Location interface{} `json:"-" db:"location" upsert_value:"ST_SetSRID(ST_MakePoint(:lat, :lon),4326)"`
 }
 
 func GetShapes(db sqlx.Ext, agencyID, shapeID string) ([]*Shape, error) {

@@ -38,9 +38,9 @@ type Stop struct {
 	Lat float64 `json:"lat" db:"lat" upsert:"omit"`
 	Lon float64 `json:"lon" db:"lon" upsert:"omit"`
 
-	// Location is an "earth" field value that combines lat and lon into
-	// a single field.
-	Location interface{} `json:"-" db:"location" upsert_value:"'POINT(:lat, :lon)'"`
+	// Location is PostGIS field value that combines lat and lon into a single
+	// field.
+	Location interface{} `json:"-" db:"location" upsert_value:"ST_SetSRID(ST_MakePoint(:lat, :lon),4326)"`
 
 	// StopSequence is the order in which this stop occurs in a typical
 	// route trip, for comparisons with other stops matching the
