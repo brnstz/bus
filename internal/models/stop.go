@@ -244,7 +244,8 @@ func GetStopsByQuery(db sqlx.Ext, sq StopQuery) (stops []*Stop, err error) {
 	// Get rows matching the stop query
 	rows, err := sqlx.NamedQuery(db, sq.Query(), sq)
 	if err != nil {
-		log.Println("can't get stops", sq.Query(), err)
+		log.Println("can't get stops", err)
+		log.Printf("%s %+v", sq.Query(), sq)
 		return
 	}
 
