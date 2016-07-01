@@ -75,11 +75,26 @@ function Bus() {
 
     // true while updating
     self.updating = false;
+
+    // Avoid weird iPhone bouncing: http://stackoverflow.com/a/26853900
+    self.firstMove = false;
 }
 
 // init is run when the page initially loads
 Bus.prototype.init = function() {
     var self = this;
+
+    // Avoid weird iPhone bouncing: http://stackoverflow.com/a/26853900
+    window.addEventListener('touchstart', function(e) {
+        self.firstMove = true;
+    });
+    window.addEventListener('touchmove', function(e) {
+        if (self.firstMove) {
+            e.preventDefault();
+
+            self.firstMove = false;
+        }
+    });
 
     self.map = L.map('map');
 
