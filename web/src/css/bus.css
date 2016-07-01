@@ -5,7 +5,7 @@ body {
 
 #map { 
 	height: 49vh;
-    width: 49vh;
+    width: 100%;
     margin: 0 auto;
 }
 
@@ -17,7 +17,7 @@ body {
 #results {
     padding-top: 0.5vh;
     height: 49vh;
-    width: 49vh;
+    width: 100%;
     overflow: scroll;
     margin: 0 auto;
 }
