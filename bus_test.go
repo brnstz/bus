@@ -140,7 +140,7 @@ func TestScheduledSubway(t *testing.T) {
 	// Manhattan Av. and Greenpoint Av. in Brooklyn
 	params.Set("lat", "40.730202")
 	params.Set("lon", "-73.9564682")
-	params.Set("meters", "160")
+	params.Set("meters", "260")
 	params.Set("filter", "subway")
 
 	err = getJSON(&resp, serverURL+"/api/stops?"+params.Encode())

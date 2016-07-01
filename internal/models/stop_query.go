@@ -13,13 +13,13 @@ const (
 	sqBegin = `
 		SELECT stop.agency_id, stop.route_id, stop.stop_id,
 		       stop.direction_id,
-			   ST_Distance(location::geography, 'POINT(:lat, :lon)') AS dist
+			   ST_Distance(location, ST_SetSRID(ST_MakePoint(:mid_lat, :mid_lon),4326)) AS dist
 		FROM stop
 		INNER JOIN route ON stop.route_id = route.route_id
 	`
 
 	sqLocationFilter = `
-		earth_box(ll_to_earth(:mid_lat, :mid_lon), :dist) @> location
+		ST_DWithin(ST_SetSRID(ST_MakePoint(:mid_lat, :mid_lon),4326), geography(location), :dist)
 	`
 
 	sqRouteFilter = ` 
