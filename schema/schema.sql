@@ -115,15 +115,3 @@ CREATE TABLE route_shape (
     UNIQUE(agency_id, route_id, direction_id, headsign)
 );
 
-
--- route_trip contains the "biggest" (most stops) trip_id for reach
--- agency_id + route_id + direction_id + trip.headsign combination
-CREATE TABLE route_trip (
-    agency_id      TEXT NOT NULL,
-    route_id       TEXT NOT NULL,
-    direction_id   INT NOT NULL,
-    headsign       TEXT NOT NULL,
-    trip_id        TEXT NOT NULL,
-
-    UNIQUE(agency_id, route_id, direction_id, headsign)
-);

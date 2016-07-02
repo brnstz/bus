@@ -42,11 +42,6 @@ type Stop struct {
 	// field.
 	Location interface{} `json:"-" db:"location" upsert_value:"ST_SetSRID(ST_MakePoint(:lat, :lon),4326)"`
 
-	// StopSequence is the order in which this stop occurs in a typical
-	// route trip, for comparisons with other stops matching the
-	// same agency / route / stop / direction / headsign
-	StopSequence int `json:"stop_sequence" db:"stop_sequence" upsert:"omit"`
-
 	Dist       float64      `json:"dist" db:"-" upsert:"omit"`
 	Departures []*Departure `json:"departures" db:"-" upsert:"omit"`
 	Vehicles   []Vehicle    `json:"vehicles" db:"-" upsert:"omit"`
@@ -202,18 +197,10 @@ func GetStop(db sqlx.Ext, agencyID, routeID, stopID string, appendInfo bool) (*S
 
 	err := sqlx.Get(db, &s, `
 		 SELECT stop.*, 
-				COALESCE(sst.stop_sequence, 0) AS stop_sequence,
 				ST_X(location::geometry) AS lat, 
 				ST_Y(location::geometry) AS lon
 
 		 FROM stop
-		 INNER JOIN route_trip ON route_trip.agency_id = stop.agency_id AND
-		            			  route_trip.route_id  = stop.route_id
-		 LEFT JOIN scheduled_stop_time sst ON
-								sst.agency_id = stop.agency_id     AND
-								sst.route_id  = stop.route_id      AND
-		            			sst.trip_id   = route_trip.trip_id AND
-								sst.stop_id   = stop.stop_id  
 		 WHERE stop.agency_id = $1 AND
 			   stop.route_id  = $2 AND
 			   stop.stop_id   = $3
