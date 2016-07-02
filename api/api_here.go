@@ -172,6 +172,7 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 		resp.Filter = bloom.New(bloomM, bloomK)
 
 	} else {
+		resp.Filter = &bloom.BloomFilter{}
 		// Otherwise read the passed value as JSON string
 		err = json.Unmarshal([]byte(filter), resp.Filter)
 		if err != nil {

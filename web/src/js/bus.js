@@ -32,15 +32,18 @@ function Bus() {
     // lat, lon is the center of our request. We send this to the Bus API
     // and also use it to draw the map. We can get this value from the
     // HTML5 location API.
+    //
+    // FIXME: these should all be local vars / parameters
     self.lat = 0;
     self.lon = 0;
-
     self.sw_lat = 0;
     self.sw_lon = 0;
     self.ne_lat = 0;
     self.ne_lon = 0;
 
-    // miles and filter are options sent to the Bus API
+    // JSON-encoded Bloom filter (of routes that we have loaded) as 
+    // returned by "here" API. Send this back to each "here" request
+    // for an update.
     self.filter = '';
 
     // tileURL is passed to Leaflet JS for drawing the map
@@ -48,11 +51,20 @@ function Bus() {
 
     // tileOptions is passed to Leatlef JS for drawing the map
     self.tileOptions = {
-        MaxZoom: 20
+        maxZoom: 18,
+        minZoom: 5,
+        opacity: 0.8,
     };
 
-    // zoom is the initial zoom value when drawing the Leaflet map
-    self.zoom = 16;
+    // mapOptions is the initial options sent on creation of the map
+    self.mapOptions = {
+        maxZoom: 18,
+        minZoom: 5,
+        zoom: 16,
+
+        // default to Times Square
+        center: [40.758895, -73.9873197]
+    };
 
     // map is our Leaflet JS map object
     self.map = null;
@@ -70,17 +82,23 @@ function Bus() {
     // current_stop is current stop that is clicked
     self.current_stop = null;
 
-    // last_stop is the stop that was clicked second most recently
-    self.last_stop = null;
+    // The current clicked trip
+    self.clickedTripLayer = L.layerGroup();
 
-    // layer is the current layer on the map
-    self.layer = null;
+    // Train route shapes
+    self.trainRouteLayer = L.layerGroup();
+
+    // Bus route shapes
+    self.busRouteLayer = L.layerGroup();
+
+    // The zoom level at which busRouteLayer is visible
+    self.minBusZoom = 10;
 
     // true while updating
     self.updating = false;
 
     // Avoid weird iPhone bouncing: http://stackoverflow.com/a/26853900
-    self.firstMove = false;
+    //self.firstMove = false;
 }
 
 // init is run when the page initially loads
@@ -88,6 +106,7 @@ Bus.prototype.init = function() {
     var self = this;
 
     // Avoid weird iPhone bouncing: http://stackoverflow.com/a/26853900
+    /*
     window.addEventListener('touchstart', function(e) {
         self.firstMove = true;
     });
@@ -98,8 +117,9 @@ Bus.prototype.init = function() {
             self.firstMove = false;
         }
     });
+    */
 
-    self.map = L.map('map');
+    self.map = L.map('map', self.mapOptions);
 
     // Add our tiles
     L.tileLayer(self.tileURL, self.tileOptions).addTo(self.map);
@@ -107,8 +127,17 @@ Bus.prototype.init = function() {
     // Create "you are here" marker
     self.marker = L.marker([0, 0]);
 
+    // Set up event handler
+    /* FIXME: would this be good enough?
+    self.map.on("moveend", self.movend);
+    self.map.on("zoomend", self.zoomend);
+    */
+    // Set up event handlers
     self.map.on("moveend", function() {
         self.moveend();
+    });
+    self.map.on("zoomend", function() {
+        self.zoomend();
     });
 
     self.marker.addTo(self.map);
@@ -128,6 +157,23 @@ Bus.prototype.moveend = function() {
     self.updatePosition(ll.lat, ll.lng);
 };
 
+// zoomend ensures the correct layers are shown on the map after
+// a zoom event
+Bus.prototype.zoomend = function() {
+    var self = this;
+
+    // Add/remove bus layer at the appropriate zoom levels
+    if (self.map.getZoom() >= self.minBusZoom) {
+        if (!self.map.hasLayer(self.busRouteLayer)) {
+            self.map.addLayer(self.busRouteLayer);
+        }
+    } else {
+        if (self.map.hasLayer(self.busRouteLayer)) {
+            self.map.removeLayer(self.busRouteLayer);
+        }
+    }
+};
+
 // geolocate requests the location from the browser, sets our lat / lon and
 // gets new trips from the API 
 Bus.prototype.geolocate = function() {
@@ -141,8 +187,7 @@ Bus.prototype.geolocate = function() {
             // update our position with current geolocation
             self.updatePosition(
                 p.coords.latitude,
-                p.coords.longitude,
-                self.zoom
+                p.coords.longitude
             );
         });
     }
@@ -153,7 +198,7 @@ Bus.prototype.refresh = function() {
     var self = this;
 
     // Get the results for this location
-    self.getStops();
+    self.getHere();
 };
 
 // updatePosition takes an HTML5 geolocation position response and 
@@ -185,12 +230,12 @@ Bus.prototype.updatePosition = function(lat, lon, zoom) {
     self.ne_lon = ne.lng;
 
     // Get the results for this location
-    self.getStops();
+    self.getHere();
 };
 
-// parseStops reads the text of response from the stops API and updates
-// the initial list of stop objects
-Bus.prototype.parseStops = function(data) {
+// parseHere reads the text of response from the here API and updates
+// stops and routes
+Bus.prototype.parseHere = function(data) {
     var self = this;
 
     if (data.stops) {
@@ -204,20 +249,16 @@ Bus.prototype.parseStops = function(data) {
         }
     }
 
-    // After we parseStops we need to get any missing routes
-    self.getRoutes();
-};
+    if (data.routes) {
+        for (var i = 0; i < data.routes.length; i++) {
+            var r = new Route(data.routes[i]);
+            self.routes[r.api.unique_id] = r;
+        };
+    }
 
-Bus.prototype.parseRoutes = function(data) {
-    var self = this;
-
-    for (var i = 0; i < data.routes.length; i++) {
-        var r = new Route(data.routes[i]);
-        self.routes[r.id] = r;
-    };
-
-    // After we parseRoutes, it's time to updateStops
-    self.updateStops();
+    if (data.filter) {
+        self.filter = JSON.stringify(data.filter);
+    }
 };
 
 // createRow creates a results row for this stop
@@ -364,8 +405,10 @@ Bus.prototype.updateStops = function() {
         // Add to row display
         $(tbody).append(row);
 
+        /* FIXME: ignore this for now
         var handler = self.clickHandler(stop);
         $(row).click(handler);
+        */
     }
 
     // Set first result to current stop if none selected
@@ -389,80 +432,57 @@ Bus.prototype.updateStops = function() {
     }
 };
 
-// getStops calls the stops API with our current state and updates
+Bus.prototype.updateRoutes = function() {
+    var self = this;
+    var layer = null;
+
+    // Go through each route and add to appropriate layer
+    // if it hasn't already been added.
+    for (var key in self.routes) {
+        var route = self.routes[key];
+
+        if (route.api.route_type == "bus") {
+            layer = self.busRouteLayer;
+        } else {
+            layer = self.trainRouteLayer;
+        }
+
+        if (!layer.hasLayer(route.api.routeLines)) {
+            layer.addLayer(route.api.routeLines);
+        }
+    };
+
+};
+
+// getHere calls the here API with our current state and updates
 // the UI with the results
-Bus.prototype.getStops = function() {
+Bus.prototype.getHere = function() {
     var self = this;
 
-    var url = '/api/stops' +
+    var url = '/api/here' +
         '?lat=' + encodeURIComponent(self.lat) +
         '&lon=' + encodeURIComponent(self.lon) +
-        '&filter=' + encodeURIComponent(self.filter) +
         '&sw_lat=' + encodeURIComponent(self.sw_lat) +
         '&sw_lon=' + encodeURIComponent(self.sw_lon) +
         '&ne_lat=' + encodeURIComponent(self.ne_lat) +
-        '&ne_lon=' + encodeURIComponent(self.ne_lon);
+        '&ne_lon=' + encodeURIComponent(self.ne_lon) +
+        '&filter=' + encodeURIComponent(self.filter);
 
     $.ajax(url, {
         dataType: "json",
         success: function(data) {
-            self.parseStops(data);
+            self.parseHere(data);
+            self.updateStops();
+            self.updateRoutes();
+            self.updating = false;
         },
 
         error: function(xhr, stat, err) {
-            console.log("error in request");
+            console.log("error executing here request");
             console.log(xhr, stat, err);
-            self.updateStops();
+            self.updating = false;
         }
     });
-};
-
-// getRoutes calls the routes API for any routes 
-// we don't yet have
-Bus.prototype.getRoutes = function() {
-    var self = this;
-    var params = [];
-    var uniq = {};
-
-    // Iterate through stops in the response and get info on
-    // any routes we don't have
-    for (var i = 0; i < self.stopList.length; i++) {
-        var stop = self.stopList[i];
-        var uniq_id = stop.api.agency_id + "|" + stop.api.route_id;
-
-        // Ignore routes already found in this call
-        if (uniq[uniq_id]) {
-            continue;
-        }
-
-        // Ignore routes we already pulled
-        if (self.routes[uniq_id]) {
-            continue;
-        }
-
-        params.push('agency_id=' + encodeURIComponent(stop.api.agency_id));
-        params.push('route_id=' + encodeURIComponent(stop.api.route_id));
-    }
-
-    if (params.length > 0) {
-        // Only make the call when there are any routes to add
-        var url = '/api/routes?' + params.join("&");
-        $.ajax(url, {
-            dataType: "json",
-            success: function(data) {
-                self.parseRoutes(data);
-            },
-
-            error: function(xhr, stat, err) {
-                console.log("error in request");
-                console.log(xhr, stat, err);
-                self.updateStops();
-            }
-        });
-    } else {
-        // Otherwise we just need to update the stops
-        self.updateStops();
-    }
 };
 
 window.initbus = function() {
