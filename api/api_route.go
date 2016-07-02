@@ -55,17 +55,11 @@ func getRoutes(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		meters, err := floatOrDie(r.FormValue("meters"))
-		if err != nil {
-			return
-		}
-
 		filter := r.FormValue("filter")
 
 		sq := models.StopQuery{
 			MidLat:     lat,
 			MidLon:     lon,
-			Dist:       meters,
 			RouteType:  filter,
 			Distinct:   true,
 			Departures: false,

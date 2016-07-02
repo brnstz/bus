@@ -35,6 +35,11 @@ function Bus() {
     self.lat = 0;
     self.lon = 0;
 
+    self.sw_lat = 0;
+    self.sw_lon = 0;
+    self.ne_lat = 0;
+    self.ne_lon = 0;
+
     // miles and filter are options sent to the Bus API
     self.filter = '';
 
@@ -48,8 +53,6 @@ function Bus() {
 
     // zoom is the initial zoom value when drawing the Leaflet map
     self.zoom = 16;
-
-    self.meters = 1000;
 
     // map is our Leaflet JS map object
     self.map = null;
@@ -174,10 +177,12 @@ Bus.prototype.updatePosition = function(lat, lon, zoom) {
     self.map.setView([self.lat, self.lon], zoom);
 
     var bounds = self.map.getBounds();
-    var nw = bounds.getNorthWest();
-    var distance = util.measure(self.lat, self.lon, nw.lat, nw.lng);
-
-    self.meters = distance;
+    var sw = bounds.getSouthWest();
+    var ne = bounds.getNorthEast();
+    self.sw_lat = sw.lat;
+    self.sw_lon = sw.lng;
+    self.ne_lat = ne.lat;
+    self.ne_lon = ne.lng;
 
     // Get the results for this location
     self.getStops();
@@ -393,7 +398,10 @@ Bus.prototype.getStops = function() {
         '?lat=' + encodeURIComponent(self.lat) +
         '&lon=' + encodeURIComponent(self.lon) +
         '&filter=' + encodeURIComponent(self.filter) +
-        '&meters=' + encodeURIComponent(self.meters);
+        '&sw_lat=' + encodeURIComponent(self.sw_lat) +
+        '&sw_lon=' + encodeURIComponent(self.sw_lon) +
+        '&ne_lat=' + encodeURIComponent(self.ne_lat) +
+        '&ne_lon=' + encodeURIComponent(self.ne_lon);
 
     $.ajax(url, {
         dataType: "json",

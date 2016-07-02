@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -19,7 +20,7 @@ const (
 	`
 
 	sqLocationFilter = `
-		ST_DWithin(ST_SetSRID(ST_MakePoint(:mid_lat, :mid_lon),4326), geography(location), :dist)
+		ST_Contains(ST_SetSRID(ST_MakePolygon(:line_string), 4326), geometry(location))
 	`
 
 	sqRouteFilter = ` 
@@ -52,23 +53,16 @@ func (sqr *stopQueryRow) id() string {
 }
 
 type StopQuery struct {
-	/*
-		// The southwest and northeast bounding points of the box we are
-		// searching
-		// FIXME: ignored for now, we need to use something other than
-		// pg earthdistance (probably post_gis)
-			SWLat float64 `db:"sw_lat"`
-			SWLon float64 `db:"sw_lon"`
-			NELat float64 `db:"ne_lat"`
-			NELon float64 `db:"ne_lon"`
-	*/
+	// The southwest and northeast bounding points of the box we are
+	// searching
+	SWLat float64 `db:"sw_lat"`
+	SWLon float64 `db:"sw_lon"`
+	NELat float64 `db:"ne_lat"`
+	NELon float64 `db:"ne_lon"`
 
 	// The midpoint of our search box
 	MidLat float64 `db:"mid_lat"`
 	MidLon float64 `db:"mid_lon"`
-
-	// The distance in meters we're searching from the midpoint
-	Dist float64 `db:"dist"`
 
 	// filter on this specific RouteType if specified
 	RouteType string `db:"-"`
@@ -87,6 +81,7 @@ type StopQuery struct {
 	RouteID  string `db:"route_id"`
 	AgencyID string `db:"agency_id"`
 
+	LineString  string `db:"line_string"`
 	routeFilter bool
 }
 
@@ -106,6 +101,15 @@ func (sq *StopQuery) Initialize() error {
 	if sq.MaxStops < 1 {
 		sq.MaxStops = defaultMaxStops
 	}
+
+	sq.LineString = fmt.Sprintf(
+		`LINESTRING(%f %f, %f %f, %f %f, %f %f, %f %f)`,
+		sq.SWLat, sq.SWLon,
+		sq.SWLat, sq.NELon,
+		sq.NELat, sq.NELon,
+		sq.NELat, sq.SWLon,
+		sq.SWLat, sq.SWLon,
+	)
 
 	return nil
 }
@@ -127,7 +131,8 @@ func (sq *StopQuery) Query() string {
 		where = append(where, sqAgencyIDFilter)
 	}
 
-	if !(sq.MidLat == 0.0 && sq.MidLon == 0.0 && sq.Dist == 0.0) {
+	if !(sq.SWLat == 0.0 && sq.SWLon == 0.0 && sq.NELat == 0.0 && sq.NELon == 0.0) {
+
 		where = append(where, sqLocationFilter)
 	}
 
