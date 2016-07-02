@@ -28,10 +28,11 @@ var (
 func NewHandler() http.Handler {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/api/stops", getStops)
+	mux.HandleFunc("/api/here", getHere)
+
+	// FIXME should be getRoute
 	mux.HandleFunc("/api/routes", getRoutes)
 	mux.HandleFunc("/api/trip", getTrip)
-	//mux.HandleFunc("/api/here", getHere)
 
 	// Add specific handlers for each static directory. These will
 	// be served directly.

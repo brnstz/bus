@@ -9,6 +9,7 @@ import (
 	"github.com/brnstz/bus/internal/etc"
 	"github.com/brnstz/bus/internal/models"
 	"github.com/brnstz/bus/internal/partners"
+	"github.com/willf/bloom"
 )
 
 var (
@@ -18,6 +19,15 @@ var (
 
 	// workers is the number of workers processing requestChan concurrently
 	stopWorkers = 10
+
+	// Formula for determining m and k values: http://hur.st/bloomfilter
+	// n = approx number of items to insert
+	// p = desired false positive rate (between 0 and 1)
+	// m = ceil((n * log(p)) / log(1.0 / (pow(2.0, log(2.0)))))
+	// k = round(log(2.0) * m / n)
+	// with n = 300 and p = 0.001
+	bloomM uint = 4314
+	bloomK uint = 10
 )
 
 type stopLiveRequest struct {
@@ -105,14 +115,19 @@ func stopWorker() {
 	}
 }
 
-// stopResponse is the value returned by getStops
+// hereResponse is the value returned by getHere
 type stopResponse struct {
-	Stops []*models.Stop `json:"stops"`
+	Stops  []*models.Stop     `json:"stops"`
+	Routes []*models.Route    `json:"routes"`
+	Filter *bloom.BloomFilter `json:"filter"`
 }
 
-func getStops(w http.ResponseWriter, r *http.Request) {
+func getHere(w http.ResponseWriter, r *http.Request) {
 	var err error
+	var resp stopResponse
+	var routes []*models.Route
 
+	// Read values incoming from http request
 	lat, err := floatOrDie(r.FormValue("lat"))
 	if err != nil {
 		apiErr(w, err)
@@ -149,8 +164,24 @@ func getStops(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Initialize or read incoming bloom filter
 	filter := r.FormValue("filter")
 
+	if len(filter) < 1 {
+		// If there is no filter, then create a new one
+		resp.Filter = bloom.New(bloomM, bloomK)
+
+	} else {
+		// Otherwise read the passed value as JSON string
+		err = json.Unmarshal([]byte(filter), resp.Filter)
+		if err != nil {
+			log.Println("can't read incoming bloom filter JSON", err)
+			apiErr(w, errBadRequest)
+			return
+		}
+	}
+
+	// Create a query for stops
 	sq := models.StopQuery{
 		MidLat:     lat,
 		MidLon:     lon,
@@ -158,7 +189,6 @@ func getStops(w http.ResponseWriter, r *http.Request) {
 		SWLon:      SWLon,
 		NELat:      NELat,
 		NELon:      NELon,
-		RouteType:  filter,
 		Distinct:   true,
 		Departures: true,
 	}
@@ -169,6 +199,7 @@ func getStops(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get stops that match this query
 	stops, err := models.GetStopsByQuery(etc.DBConn, sq)
 	if err != nil {
 		log.Println("can't get stops", err)
@@ -176,16 +207,20 @@ func getStops(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Create a channel for receiving responses to stopLiveRequest values
 	respch := make(chan error, len(stops))
 	count := 0
 
 	for _, s := range stops {
-		route, err := models.GetRoute(s.AgencyID, s.RouteID, false)
+
+		// Get the route for this stop and add to our list (may include dupes)
+		route, err := models.GetRouteV2(etc.DBConn, s.AgencyID, s.RouteID)
 		if err != nil {
 			log.Println("can't get route", err)
 			apiErr(w, err)
 			return
 		}
+		routes = append(routes, route)
 
 		// Get a live partner or skip it
 		partner, err := partners.Find(*route)
@@ -194,17 +229,18 @@ func getStops(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
+		// Create a request to get live info and send it on the channel
 		req := &stopLiveRequest{
 			route:    route,
 			stop:     s,
 			partner:  partner,
 			response: respch,
 		}
-
 		stopChan <- req
 		count++
 	}
 
+	// Wait for all responses
 	for i := 0; i < count; i++ {
 		err = <-respch
 		if err != nil {
@@ -212,8 +248,26 @@ func getStops(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	resp := stopResponse{
-		Stops: stops,
+	// Set stop value of the response
+	resp.Stops = stops
+
+	// Add any routes to the response that the bloom filter says we don't have
+	for _, route := range routes {
+		exists := resp.Filter.TestAndAddString(route.UniqueID)
+		// If the route doesn't exist in our filter, then we want to pull
+		// the shapes and also append it to our response list.
+		if !exists {
+			route.RouteShapes, err = models.GetSavedRouteShapes(
+				etc.DBConn, route.AgencyID, route.RouteID,
+			)
+			if err != nil {
+				log.Println("can't get route shapes", err)
+				apiErr(w, err)
+				return
+			}
+
+			resp.Routes = append(resp.Routes, route)
+		}
 	}
 
 	b, err := json.Marshal(resp)
