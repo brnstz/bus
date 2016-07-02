@@ -8,8 +8,6 @@ function Route(api) {
     // and add any other info we want as a sibling data piece.
     self.api = api;
 
-    self.id = self.api.agency_id + "|" + self.api.route_id;
-
     self.stop_radius = 15;
     self.outline_color = '#000000';
 
@@ -23,6 +21,8 @@ function Route(api) {
     // stop_line_dist is the number of meters we assume
     // a stop can be from the polyline to say that it hit the stop
     self.stop_line_dist = 10;
+
+    self.routeLines = self.createRouteLines();
 };
 
 // createMarkers returns a list of L.circle values for this route
@@ -69,6 +69,37 @@ Route.prototype.createMarkers = function(curstop) {
     }
 
     return markers;
+};
+
+// createRouteLine returns a list of L.polyline values representing 
+// the entire route, without caring about the trip, direction or stops.
+Route.prototype.createRouteLines = function() {
+    var self = this;
+    var lines = [];
+
+    for (var i = 0; i < self.api.route_shapes.length; i++) {
+        // Each shape gets its own list of latlons
+        var shape = self.api.route_shapes[i];
+        var latlons = [];
+
+        // Create a point for each latlon
+        for (var j = 0; j < shape.shapes.length; j++) {
+            var point = shape.shapes[j];
+            latlons.push(L.latLng(point.lat, point.lon));
+        }
+
+        lines.push(L.polyline(
+            latlons, {
+                weight: 1,
+                color: self.api.route_color,
+                fillColor: self.api.route_color,
+                opacity: 1.0,
+                fillOpacity: 1.0
+            }
+        ));
+    }
+
+    return lines;
 };
 
 
