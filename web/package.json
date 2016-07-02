@@ -1,5 +1,8 @@
 {
     "name": "bus",
+    "description": "MTA bus/subway mashup",
+    "license": "MIT",
+    "repository": "https://github.com/brnstz/bus",
 
     "devDependencies": {
         "grunt": "latest",
@@ -8,7 +11,5 @@
         "grunt-contrib-clean": "latest"
     },
 
-    "dependencies": {
-        "bezier-js": "latest"
-    }
+    "dependencies": {}
 }
