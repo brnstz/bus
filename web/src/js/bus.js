@@ -6,6 +6,7 @@ var Stop = require("./stop.js");
 var Route = require("./route.js");
 var Bezier = require("bezier-js");
 
+/*
 var homeControl = L.Control.extend({
     options: {
         position: 'bottomright'
@@ -22,9 +23,10 @@ var refreshControl = L.Control.extend({
     },
 
     onAdd: function(map) {
-        return $("<button id='refresh' type='button' class='btn btn-success' onclick='bus.refresh();'><span class='glyphicon glyphicon-refresh'></span></button>")[0];
+        return $("<button id='refresh' type='button' class='btn btn-success' onclick='bus.getHere();'><span class='glyphicon glyphicon-refresh'></span></button>")[0];
     }
 });
+*/
 
 function Bus() {
     var self = this;
@@ -33,13 +35,6 @@ function Bus() {
     // and also use it to draw the map. We can get this value from the
     // HTML5 location API.
     //
-    // FIXME: these should all be local vars / parameters
-    self.lat = 0;
-    self.lon = 0;
-    self.sw_lat = 0;
-    self.sw_lon = 0;
-    self.ne_lat = 0;
-    self.ne_lon = 0;
 
     // JSON-encoded Bloom filter (of routes that we have loaded) as 
     // returned by "here" API. Send this back to each "here" request
@@ -92,7 +87,7 @@ function Bus() {
     self.busRouteLayer = L.layerGroup();
 
     // The zoom level at which busRouteLayer is visible
-    self.minBusZoom = 10;
+    self.minBusZoom = 13;
 
     // true while updating
     self.updating = false;
@@ -128,109 +123,46 @@ Bus.prototype.init = function() {
     self.marker = L.marker([0, 0]);
 
     // Set up event handler
-    /* FIXME: would this be good enough?
-    self.map.on("moveend", self.movend);
-    self.map.on("zoomend", self.zoomend);
-    */
-    // Set up event handlers
     self.map.on("moveend", function() {
-        self.moveend();
-    });
-    self.map.on("zoomend", function() {
-        self.zoomend();
+        self.getHere();
+
+        // Add/remove bus layer at the appropriate zoom levels
+        if (self.map.getZoom() >= self.minBusZoom) {
+            if (!self.map.hasLayer(self.busRouteLayer)) {
+                self.map.addLayer(self.busRouteLayer);
+            }
+        } else {
+            if (self.map.hasLayer(self.busRouteLayer)) {
+                self.map.removeLayer(self.busRouteLayer);
+            }
+        }
+
     });
 
     self.marker.addTo(self.map);
+    self.clickedTripLayer.addTo(self.map);
+    self.trainRouteLayer.addTo(self.map);
+    self.busRouteLayer.addTo(self.map);
 
+    /*
     self.map.addControl(new homeControl());
     self.map.addControl(new refreshControl());
+    */
 
     self.geolocate();
 };
 
-// movend gets the current center of the maps and gets new data 
-// based on the location
-Bus.prototype.moveend = function() {
-    var self = this;
-
-    var ll = self.map.getCenter();
-    self.updatePosition(ll.lat, ll.lng);
-};
-
-// zoomend ensures the correct layers are shown on the map after
-// a zoom event
-Bus.prototype.zoomend = function() {
-    var self = this;
-
-    // Add/remove bus layer at the appropriate zoom levels
-    if (self.map.getZoom() >= self.minBusZoom) {
-        if (!self.map.hasLayer(self.busRouteLayer)) {
-            self.map.addLayer(self.busRouteLayer);
-        }
-    } else {
-        if (self.map.hasLayer(self.busRouteLayer)) {
-            self.map.removeLayer(self.busRouteLayer);
-        }
-    }
-};
-
-// geolocate requests the location from the browser, sets our lat / lon and
-// gets new trips from the API 
+// geolocate requests the location from the browser and sets the location
 Bus.prototype.geolocate = function() {
     var self = this;
 
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(p) {
-            // Set location of "you are here"
+            // Set location of "you are here" and map view
             self.marker.setLatLng([p.coords.latitude, p.coords.longitude]);
-
-            // update our position with current geolocation
-            self.updatePosition(
-                p.coords.latitude,
-                p.coords.longitude
-            );
+            self.map.setView([p.coords.latitude, p.coords.longitude]);
         });
     }
-};
-
-// refresh re-requests stops from the current position
-Bus.prototype.refresh = function() {
-    var self = this;
-
-    // Get the results for this location
-    self.getHere();
-};
-
-// updatePosition takes an HTML5 geolocation position response and 
-// updates our map and trip info
-Bus.prototype.updatePosition = function(lat, lon, zoom) {
-    var self = this;
-
-    // Don't update more than once at a time
-    if (self.updating) {
-        return;
-    }
-
-    // This is set to false in self.updateStops()
-    self.updating = true;
-
-    // Set our lat and lon based on the coords
-    self.lat = lat;
-    self.lon = lon;
-
-    // Set location and zoom of the map.
-    self.map.setView([self.lat, self.lon], zoom);
-
-    var bounds = self.map.getBounds();
-    var sw = bounds.getSouthWest();
-    var ne = bounds.getNorthEast();
-    self.sw_lat = sw.lat;
-    self.sw_lon = sw.lng;
-    self.ne_lat = ne.lat;
-    self.ne_lon = ne.lng;
-
-    // Get the results for this location
-    self.getHere();
 };
 
 // parseHere reads the text of response from the here API and updates
@@ -421,15 +353,6 @@ Bus.prototype.updateStops = function() {
     $(table).append(tbody);
     $(results).empty();
     $(results).append(table);
-
-    self.updating = false;
-
-    // If we rejected a move, our position might be off. Trigger
-    // another update.
-    var ll = self.map.getCenter();
-    if (!(self.lat == ll.lat && self.lon == ll.lng)) {
-        self.updatePosition(ll.lat, ll.lng);
-    }
 };
 
 Bus.prototype.updateRoutes = function() {
@@ -441,14 +364,17 @@ Bus.prototype.updateRoutes = function() {
     for (var key in self.routes) {
         var route = self.routes[key];
 
-        if (route.api.route_type == "bus") {
+        if (route.api.route_type_name == "bus") {
             layer = self.busRouteLayer;
         } else {
             layer = self.trainRouteLayer;
         }
 
-        if (!layer.hasLayer(route.api.routeLines)) {
-            layer.addLayer(route.api.routeLines);
+        for (var i = 0; i < route.routeLines.length; i++) {
+            var line = route.routeLines[i];
+            if (!layer.hasLayer(line)) {
+                layer.addLayer(line);
+            }
         }
     };
 
@@ -459,13 +385,25 @@ Bus.prototype.updateRoutes = function() {
 Bus.prototype.getHere = function() {
     var self = this;
 
+    // Don't update more than once at a time
+    if (self.updating) {
+        return;
+    }
+
+    self.updating = true;
+
+    var center = self.map.getCenter();
+    var bounds = self.map.getBounds();
+    var sw = bounds.getSouthWest();
+    var ne = bounds.getNorthEast();
+
     var url = '/api/here' +
-        '?lat=' + encodeURIComponent(self.lat) +
-        '&lon=' + encodeURIComponent(self.lon) +
-        '&sw_lat=' + encodeURIComponent(self.sw_lat) +
-        '&sw_lon=' + encodeURIComponent(self.sw_lon) +
-        '&ne_lat=' + encodeURIComponent(self.ne_lat) +
-        '&ne_lon=' + encodeURIComponent(self.ne_lon) +
+        '?lat=' + encodeURIComponent(center.lat) +
+        '&lon=' + encodeURIComponent(center.lng) +
+        '&sw_lat=' + encodeURIComponent(sw.lat) +
+        '&sw_lon=' + encodeURIComponent(sw.lng) +
+        '&ne_lat=' + encodeURIComponent(ne.lat) +
+        '&ne_lon=' + encodeURIComponent(ne.lng) +
         '&filter=' + encodeURIComponent(self.filter);
 
     $.ajax(url, {
