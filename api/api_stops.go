@@ -115,16 +115,37 @@ func getStops(w http.ResponseWriter, r *http.Request) {
 
 	lat, err := floatOrDie(r.FormValue("lat"))
 	if err != nil {
+		apiErr(w, err)
 		return
 	}
 
 	lon, err := floatOrDie(r.FormValue("lon"))
 	if err != nil {
+		apiErr(w, err)
 		return
 	}
 
-	meters, err := floatOrDie(r.FormValue("meters"))
+	SWLat, err := floatOrDie(r.FormValue("sw_lat"))
 	if err != nil {
+		apiErr(w, err)
+		return
+	}
+
+	SWLon, err := floatOrDie(r.FormValue("sw_lon"))
+	if err != nil {
+		apiErr(w, err)
+		return
+	}
+
+	NELat, err := floatOrDie(r.FormValue("ne_lat"))
+	if err != nil {
+		apiErr(w, err)
+		return
+	}
+
+	NELon, err := floatOrDie(r.FormValue("ne_lon"))
+	if err != nil {
+		apiErr(w, err)
 		return
 	}
 
@@ -133,7 +154,10 @@ func getStops(w http.ResponseWriter, r *http.Request) {
 	sq := models.StopQuery{
 		MidLat:     lat,
 		MidLon:     lon,
-		Dist:       meters,
+		SWLat:      SWLat,
+		SWLon:      SWLon,
+		NELat:      NELat,
+		NELon:      NELon,
 		RouteType:  filter,
 		Distinct:   true,
 		Departures: true,
