@@ -103,7 +103,8 @@ func (_ mtaNYCSubway) Live(route models.Route, stop models.Stop) (d models.Depar
 				// Get a "vehicle" with the lat/lon of the update's stop
 				// (*not* the stop of our request)
 				vehicle, err = models.GetVehicle(
-					route.AgencyID, route.ID, stopTimeUpdates[0].GetStopId(),
+					route.AgencyID, route.RouteID,
+					stopTimeUpdates[0].GetStopId(),
 					stop.DirectionID,
 				)
 				if err != nil {

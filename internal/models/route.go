@@ -51,13 +51,14 @@ func init() {
 
 // Route is https://developers.google.com/transit/gtfs/reference#routestxt
 type Route struct {
-	ID        string `json:"route_id" db:"route_id" upsert:"key"`
+	RouteID   string `json:"route_id" db:"route_id" upsert:"key"`
 	AgencyID  string `json:"agency_id" db:"agency_id" upsert:"key"`
 	Type      int    `json:"route_type" db:"route_type"`
 	TypeName  string `json:"route_type_name" db:"-" upsert:"omit"`
 	Color     string `json:"route_color" db:"route_color"`
 	TextColor string `json:"route_text_color" db:"route_text_color"`
 
+	UniqueID    string        `json:"unique_id" db:"-" upsert:"omit"`
 	RouteShapes []*RouteShape `json:"route_shapes" upsert:"omit"`
 	Stops       []*Stop       `json:"stops" upsert:"omit"`
 }
@@ -66,6 +67,25 @@ type Route struct {
 // upsert.Upserter interface
 func (r *Route) Table() string {
 	return "route"
+}
+
+// init ensures any derived values are correct after creating/loading
+// an object
+func (r *Route) init() (err error) {
+	var ok bool
+
+	// Load the string name of the route type, also checking that the incoming
+	// rtype was correct
+	r.TypeName, ok = routeTypeString[r.Type]
+	if !ok {
+		r = nil
+		err = ErrInvalidRouteType
+		return
+	}
+
+	r.UniqueID = r.AgencyID + "|" + r.RouteID
+
+	return
 }
 
 // checkColor ensures that color is a non-empty string and ensures
@@ -86,7 +106,6 @@ func checkColor(color, def string) string {
 // NewRoute creates a Route given incoming data, typically from a routes.txt
 // file
 func NewRoute(id string, rtype int, color, textColor, agencyID string) (r *Route, err error) {
-	var ok bool
 
 	color = checkColor(color, defaultColor)
 	textColor = checkColor(textColor, defaultTextColor)
@@ -97,19 +116,36 @@ func NewRoute(id string, rtype int, color, textColor, agencyID string) (r *Route
 	}
 
 	r = &Route{
-		ID:        id,
+		RouteID:   id,
 		Type:      rtype,
 		Color:     color,
 		TextColor: textColor,
 		AgencyID:  agencyID,
 	}
 
-	// Load the string name of the route type, also checking that the incoming
-	// rtype was correct
-	r.TypeName, ok = routeTypeString[r.Type]
-	if !ok {
-		r = nil
-		err = ErrInvalidRouteType
+	err = r.init()
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	return
+}
+
+// GetRouteV2 returns a Route with the given ID
+func GetRouteV2(db sqlx.Ext, agencyID, routeID string) (r *Route, err error) {
+
+	r = &Route{}
+	err = sqlx.Get(db, r,
+		`SELECT * FROM route WHERE agency_id = $1 AND route_id = $2`,
+		agencyID, routeID,
+	)
+	if err != nil {
+		return
+	}
+
+	err = r.init()
+	if err != nil {
 		return
 	}
 
@@ -118,7 +154,6 @@ func NewRoute(id string, rtype int, color, textColor, agencyID string) (r *Route
 
 // GetRoute returns a Route with the given ID
 func GetRoute(agencyID, routeID string, appendInfo bool) (r *Route, err error) {
-	var ok bool
 
 	r = &Route{}
 	err = sqlx.Get(etc.DBConn, r,
@@ -129,17 +164,14 @@ func GetRoute(agencyID, routeID string, appendInfo bool) (r *Route, err error) {
 		return
 	}
 
-	// Load the string name of the route type
-	r.TypeName, ok = routeTypeString[r.Type]
-	if !ok {
-		r = nil
-		err = ErrInvalidRouteType
+	err = r.init()
+	if err != nil {
 		return
 	}
 
 	if appendInfo {
 		r.RouteShapes, err = GetSavedRouteShapes(
-			etc.DBConn, r.AgencyID, r.ID,
+			etc.DBConn, r.AgencyID, r.RouteID,
 		)
 		if err != nil {
 			log.Println("can't append shapes", err)
