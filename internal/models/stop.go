@@ -235,16 +235,25 @@ func GetStop(db sqlx.Ext, agencyID, routeID, stopID string, appendInfo bool) (*S
 
 // GetStopsByQuery returns stops matching this StopQuery
 func GetStopsByQuery(db sqlx.Ext, sq StopQuery) (stops []*Stop, err error) {
+	if conf.API.LogTiming {
+		t1 := time.Now()
+		defer func() { log.Println(time.Now().Sub(t1)) }()
+	}
+
 	// distinct maps agency_id|route_id|direction_id to bool to ensure
 	// we don't load duplicate routes
 	distinct := map[string]bool{}
 
 	// Get rows matching the stop query
+	t3 := time.Now()
 	rows, err := sqlx.NamedQuery(db, sq.Query(), sq)
 	if err != nil {
 		log.Println("can't get stops", err)
 		log.Printf("%s %+v", sq.Query(), sq)
 		return
+	}
+	if conf.API.LogTiming {
+		log.Println(time.Now().Sub(t3))
 	}
 
 	defer rows.Close()
