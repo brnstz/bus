@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/brnstz/bus/internal/conf"
 	"github.com/brnstz/bus/internal/etc"
 	"github.com/brnstz/upsert"
 	"github.com/jmoiron/sqlx"
@@ -77,6 +78,11 @@ func (s Stop) Key() string {
 func (s *Stop) setDepartures(now time.Time, db sqlx.Ext) (err error) {
 	var yesterdayVehicles []Vehicle
 	var todayVehicles []Vehicle
+
+	if conf.API.LogTiming {
+		t1 := time.Now()
+		defer func() { log.Println(time.Now().Sub(t1)) }()
+	}
 
 	allDepartures := Departures{}
 
@@ -195,6 +201,11 @@ func GetStop(db sqlx.Ext, agencyID, routeID, stopID string, appendInfo bool) (*S
 	var s Stop
 	now := time.Now()
 
+	if conf.API.LogTiming {
+		t1 := time.Now()
+		defer func() { log.Println(time.Now().Sub(t1)) }()
+	}
+
 	err := sqlx.Get(db, &s, `
 		 SELECT stop.*, 
 				ST_X(location::geometry) AS lat, 
@@ -287,6 +298,11 @@ func getServiceIDsByDay(db sqlx.Ext, agencyID, routeID, day string, now time.Tim
 	var normalIDs []string
 	var addedIDs []string
 	var removedIDs []string
+
+	if conf.API.LogTiming {
+		t1 := time.Now()
+		defer func() { log.Println(time.Now().Sub(t1)) }()
+	}
 
 	removed := map[string]bool{}
 
