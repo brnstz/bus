@@ -2,7 +2,9 @@ package models
 
 import (
 	"log"
+	"time"
 
+	"github.com/brnstz/bus/internal/conf"
 	"github.com/brnstz/bus/internal/etc"
 	"github.com/brnstz/upsert"
 	"github.com/jmoiron/sqlx"
@@ -23,6 +25,10 @@ type Shape struct {
 
 func GetShapes(db sqlx.Ext, agencyID, shapeID string) ([]*Shape, error) {
 	shapes := []*Shape{}
+	if conf.API.LogTiming {
+		t1 := time.Now()
+		defer log.Println(time.Now().Sub(t1))
+	}
 
 	q := `
 		SELECT ST_X(location::geometry) AS lat, ST_Y(location::geometry) AS lon

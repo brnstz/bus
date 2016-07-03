@@ -64,6 +64,11 @@ type APISpec struct {
 	// Default: 0 (API will use current timestamp)
 	// Environment variable: $BUS_BUILD_TIMESTAMP
 	BuildTimestamp int64 `envconfig:"build_timestamp"`
+
+	// LogTiming will log timing info of some core operations / queries
+	// Default: false
+	// Environment variable: $BUS_LOG_TIMING
+	LogTiming bool `envconfig:"log_timing" default:"false"`
 }
 
 // LoaderSpec is our config spec used by busloader
