@@ -43,9 +43,11 @@ type Stop struct {
 	// field.
 	Location interface{} `json:"-" db:"location" upsert_value:"ST_SetSRID(ST_MakePoint(:lat, :lon),4326)"`
 
-	Dist       float64      `json:"dist" db:"-" upsert:"omit"`
-	Departures []*Departure `json:"departures" db:"-" upsert:"omit"`
-	Vehicles   []Vehicle    `json:"vehicles" db:"-" upsert:"omit"`
+	Seq int `json:"seq" db:"stop_sequence" upsert:"omit"`
+
+	Dist       float64      `json:"dist,omitempty" db:"-" upsert:"omit"`
+	Departures []*Departure `json:"departures,omitempty" db:"-" upsert:"omit"`
+	Vehicles   []Vehicle    `json:"vehicles,omitempty" db:"-" upsert:"omit"`
 }
 
 // Table implements the upsert.Upserter interface, returning the table
@@ -191,6 +193,40 @@ func (s *Stop) setDepartures(now time.Time, db sqlx.Ext) (err error) {
 			break
 		}
 		s.Departures = append(s.Departures, d)
+	}
+
+	return
+}
+
+func GetStopsByTrip(db sqlx.Ext, t *Trip) (stops []*Stop, err error) {
+
+	q := `
+		SELECT stop.*, 
+			ST_X(location::geometry) AS lat, 
+			ST_Y(location::geometry) AS lon,
+			sst.stop_sequence
+
+		FROM stop
+		INNER JOIN scheduled_stop_time sst 
+			ON stop.agency_id = sst.agency_id AND
+			   stop.route_id  = sst.route_id  AND
+			   stop.stop_id   = sst.stop_id
+
+		WHERE sst.agency_id     = $1 AND
+			  sst.route_id      = $2 AND
+	          sst.trip_id       = $3 AND
+			  stop.direction_id = $4
+
+		ORDER by sst.stop_sequence ASC
+	`
+
+	err = sqlx.Select(db, &stops, q,
+		t.AgencyID, t.RouteID, t.ID, t.DirectionID,
+	)
+
+	if err != nil {
+		log.Println("can't get trips", err)
+		return
 	}
 
 	return

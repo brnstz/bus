@@ -19,10 +19,8 @@ type Trip struct {
 	Headsign    string `json:"headsign" db:"headsign"`
 	DirectionID int    `json:"direction_id" db:"direction_id"`
 
-	ShapePoints []struct {
-		Lat float64 `json:"lat"`
-		Lon float64 `json:"lon"`
-	} `json:"shape_points" db:"-" upsert:"omit"`
+	ShapePoints []*Shape `json:"shape_points" db:"-" upsert:"omit"`
+	Stops       []*Stop  `json:"stops" db:"-" upsert:"omit"`
 }
 
 func NewTrip(id, routeID, agencyID, serviceID, shapeID, headsign string, direction int) (t *Trip, err error) {
@@ -49,7 +47,7 @@ func (t *Trip) Save() error {
 	return err
 }
 
-func (t *Trip) addShapes(agencyID, shapeID string) (err error) {
+func (t *Trip) addShapes(db sqlx.Ext, agencyID, shapeID string) (err error) {
 	// Try to get the shapes specific to this trip
 	q := `
 		SELECT 
@@ -65,6 +63,48 @@ func (t *Trip) addShapes(agencyID, shapeID string) (err error) {
 	if err != nil {
 		log.Println("can't get shapes", err)
 		return
+	}
+
+	// If we got some points, we're good
+	if len(t.ShapePoints) > 0 {
+		return
+	}
+
+	// But shapes are optional for trips. If there aren't any, try to get one
+	// for the route.
+	routeShapes, err := GetSavedRouteShapes(db, agencyID, t.RouteID)
+	if err != nil {
+		log.Println("can't get saved route shapes", err)
+		return
+	}
+
+	// At least we want a route shape that matches our direction
+	var directionRouteShape *RouteShape
+
+	// Ideally we get one that also matches the headsign
+	var headsignShape *RouteShape
+
+	for _, rs := range routeShapes {
+		if rs.DirectionID == t.DirectionID {
+			directionRouteShape = rs
+
+			if rs.Headsign == t.Headsign {
+				headsignShape = rs
+			}
+		}
+	}
+
+	if headsignShape != nil {
+		t.ShapePoints = headsignShape.Shapes
+		t.ShapeID = headsignShape.ShapeID
+
+	} else if directionRouteShape != nil {
+		t.ShapePoints = directionRouteShape.Shapes
+		t.ShapeID = directionRouteShape.ShapeID
+
+	} else {
+		// FIXME: final backup: draw a line from stop to stop?
+		log.Println("can't get shape for", t)
 	}
 
 	return
@@ -88,9 +128,15 @@ func GetTrip(db sqlx.Ext, agencyID, routeID, tripID string) (t Trip, err error) 
 		return
 	}
 
-	err = t.addShapes(agencyID, t.ShapeID)
+	err = t.addShapes(db, agencyID, t.ShapeID)
 	if err != nil {
 		log.Println("can't get shapes", err)
+		return
+	}
+
+	t.Stops, err = GetStopsByTrip(db, &t)
+	if err != nil {
+		log.Println("can't get trip stops", err)
 		return
 	}
 
