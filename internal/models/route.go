@@ -60,7 +60,6 @@ type Route struct {
 
 	UniqueID    string        `json:"unique_id" db:"-" upsert:"omit"`
 	RouteShapes []*RouteShape `json:"route_shapes" upsert:"omit"`
-	Stops       []*Stop       `json:"stops" upsert:"omit"`
 }
 
 // Table returns the table name for the Route struct, implementing the
