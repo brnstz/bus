@@ -11,7 +11,8 @@ import (
 type Trip struct {
 	AgencyID string `json:"agency_id" db:"agency_id" upsert:"key"`
 	RouteID  string `json:"route_id" db:"route_id" upsert:"key"`
-	ID       string `json:"trip_id" db:"trip_id" upsert:"key"`
+	TripID   string `json:"trip_id" db:"trip_id" upsert:"key"`
+	UniqueID string `json:"unique_id" db:"-" upsert:"omit"`
 
 	ServiceID string `json:"service_id" db:"service_id"`
 	ShapeID   string `json:"shape_id" db:"shape_id"`
@@ -25,7 +26,7 @@ type Trip struct {
 
 func NewTrip(id, routeID, agencyID, serviceID, shapeID, headsign string, direction int) (t *Trip, err error) {
 	t = &Trip{
-		ID:          id,
+		TripID:      id,
 		AgencyID:    agencyID,
 		RouteID:     routeID,
 		ServiceID:   serviceID,
@@ -34,11 +35,25 @@ func NewTrip(id, routeID, agencyID, serviceID, shapeID, headsign string, directi
 		DirectionID: direction,
 	}
 
+	err = t.init()
+	if err != nil {
+		log.Println("can't init", err)
+		return
+	}
+
 	return
 }
 
 func (t *Trip) Table() string {
 	return "trip"
+}
+
+// init ensures any derived values are correct after creating/loading
+// an object
+func (t *Trip) init() (err error) {
+	t.UniqueID = t.AgencyID + "|" + t.TripID
+
+	return nil
 }
 
 // Save saves a trip to the database
@@ -125,6 +140,12 @@ func GetTrip(db sqlx.Ext, agencyID, routeID, tripID string) (t Trip, err error) 
 	err = sqlx.Get(db, &t, q, agencyID, tripID, routeID)
 	if err != nil {
 		log.Println("can't get trip", q, agencyID, tripID, routeID, err)
+		return
+	}
+
+	err = t.init()
+	if err != nil {
+		log.Println("can't init", err)
 		return
 	}
 
