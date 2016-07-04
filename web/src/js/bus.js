@@ -4,7 +4,7 @@ var bus = new Bus();
 var util = require("./util.js");
 var Stop = require("./stop.js");
 var Route = require("./route.js");
-var Bezier = require("bezier-js");
+var Trip = require("./trip.js");
 
 /*
 var homeControl = L.Control.extend({
@@ -63,11 +63,14 @@ function Bus() {
     // (i.e., distance from location)
     self.stopList = [];
 
-    // routes is a mapping from route_id to route object
+    // routes is a mapping from route's unique id to route object
     self.routes = {};
 
     // rows is stop ids mapped to rows in the results table
     self.rows = {};
+
+    // trip is a mapping from trip's unique id to trip object
+    self.trips = {};
 
     // current_stop is current stop that is clicked
     self.current_stop = null;
@@ -185,6 +188,13 @@ Bus.prototype.parseHere = function(data) {
         };
     }
 
+    if (data.trips) {
+        for (var i = 0; i < data.trips.length; i++) {
+            var t = new Trip(data.trips[i]);
+            self.trips[t.api.unique_id] = t;
+        };
+    }
+
     if (data.filter) {
         self.filter = JSON.stringify(data.filter);
     }
@@ -235,18 +245,6 @@ Bus.prototype.createRow = function(stop, i) {
     return row;
 };
 
-// clear removes the current route from map
-Bus.prototype.clear = function() {
-    var self = this;
-
-    // Nothing to do
-    if (self.layer == null || self.map == null) {
-        return
-    }
-
-    self.layer.clearLayers();
-};
-
 // clickHandler highlights the marker and the row for this stop_id
 Bus.prototype.clickHandler = function(stop) {
     var self = this;
@@ -264,36 +262,39 @@ Bus.prototype.clickHandler = function(stop) {
         }
 
         var route = self.routes[stop.api.agency_id + "|" + stop.api.route_id];
+        var trip = self.trips[stop.api.agency_id + "|" + stop.api.departures[0].trip_id]
         var row = self.rows[stop.id];
-        var markers = route.createMarkers(stop.api);
-        var lines = route.createLines(stop.api);
-        var vehicles = route.createVehicles(stop.api);
+
+        var markers = trip.createMarkers(stop, route);
+        var lines = trip.createLines(stop, route);
+        var vehicles = stop.createVehicles();
         $(row).css({
             "opacity": stop.table_fg_opacity
         });
 
-        // First clear the map of any existing routes
-        self.clear();
-
-        var vals = [];
+        self.clickedTripLayer.clearLayers();
 
         // Draw lines 
         for (var i = 0; i < lines.length; i++) {
-            vals.push(lines[i]);
+            self.clickedTripLayer.addLayer(lines[i]);
         }
 
         // Draw marker stops
         for (var key in markers) {
-            vals.push(markers[key]);
+            self.clickedTripLayer.addLayer(markers[key]);
         }
 
         // Draw vehicles
         for (var key in vehicles) {
-            vals.push(vehicles[key]);
+            self.clickedTripLayer.addLayer(vehicles[key]);
         }
 
-        self.layer = L.layerGroup(vals);
-        self.layer.addTo(self.map);
+        console.log(markers);
+        console.log(vehicles);
+        console.log(lines);
+
+        // Clear the "clicked layer"
+        self.clickedTripLayer.addTo(self.map);
 
         self.current_stop = stop;
     };
@@ -334,10 +335,8 @@ Bus.prototype.updateStops = function() {
         // Add to row display
         $(tbody).append(row);
 
-        /* FIXME: ignore this for now
         var handler = self.clickHandler(stop);
         $(row).click(handler);
-        */
     }
 
     // Set first result to current stop if none selected
@@ -374,7 +373,6 @@ Bus.prototype.updateRoutes = function() {
             }
         }
     };
-
 };
 
 Bus.prototype.getInitialRoutes = function() {
@@ -441,5 +439,4 @@ Bus.prototype.getHere = function() {
 
 window.initbus = function() {
     bus.init();
-
 };

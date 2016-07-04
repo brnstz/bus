@@ -82,4 +82,33 @@ Stop.prototype.createDepartures = function() {
     return text;
 };
 
+Stop.prototype.createVehicles = function() {
+    var self = this;
+    var vehicles = [];
+
+    for (var i = 0; i < self.api.vehicles.length; i++) {
+        var v = self.api.vehicles[i];
+        /* FIXME
+        var opts = {
+            color: self.api.route_color
+        };
+        var bounds = [
+            [v.lat, v.lon],
+            [v.lat + .000001, v.lon + 000001]
+        ];
+        var square = L.rectangle(bounds, opts);
+        vehicles.push(square);
+        */
+
+        var opts = {
+            color: '#000000'
+        };
+
+        var black = L.circleMarker([v.lat, v.lon], opts);
+        vehicles.push(black);
+    }
+
+    return vehicles;
+};
+
 module.exports = Stop;
