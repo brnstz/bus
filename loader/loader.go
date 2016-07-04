@@ -248,14 +248,14 @@ func (l *Loader) loadTrips() {
 			log.Fatalf("%v on line %v of trips.txt", err, i)
 		}
 
-		l.trips[trip.ID] = trip
+		l.trips[trip.TripID] = trip
 
 		serviceObj := &models.Service{
 			ID:      service,
 			RouteID: route,
 		}
 
-		l.tripService[trip.ID] = serviceObj
+		l.tripService[trip.TripID] = serviceObj
 
 		if l.serviceRoute[service] == nil {
 			l.serviceRoute[service] = map[string]bool{}
