@@ -10,7 +10,7 @@ type Service struct {
 }
 
 // baseTime takes a time and returns the same time with the hour, minute, second
-// and nanosecond values set so zero, so that it represents the start
+// and nanosecond values set to zero, so that it represents the start
 // of the day
 func baseTime(t time.Time) time.Time {
 	t = t.Add(-time.Hour * time.Duration(t.Hour()))
