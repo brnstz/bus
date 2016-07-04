@@ -132,8 +132,38 @@ func NewRoute(id string, rtype int, color, textColor, agencyID string) (r *Route
 	return
 }
 
-// GetRouteV2 returns a Route with the given ID
-func GetRouteV2(db sqlx.Ext, agencyID, routeID string) (r *Route, err error) {
+// test func for static json file
+func GetAllRoutes(db sqlx.Ext, agencyID string) (routes []*Route, err error) {
+	err = sqlx.Select(db, &routes,
+		`SELECT * FROM route WHERE agency_id = $1 AND route_type != $2`,
+		agencyID, Bus,
+	)
+	if err != nil {
+		return
+	}
+
+	for _, r := range routes {
+		err = r.init()
+		if err != nil {
+			return
+		}
+
+		r.RouteShapes, err = GetSavedRouteShapes(
+			etc.DBConn, r.AgencyID, r.RouteID,
+		)
+		if err != nil {
+			log.Println("can't append shapes", err)
+			return
+		}
+
+	}
+
+	return
+
+}
+
+// GetRoute returns a Route with the given ID
+func GetRoute(db sqlx.Ext, agencyID, routeID string) (r *Route, err error) {
 
 	r = &Route{}
 	err = sqlx.Get(db, r,
@@ -147,55 +177,6 @@ func GetRouteV2(db sqlx.Ext, agencyID, routeID string) (r *Route, err error) {
 	err = r.init()
 	if err != nil {
 		return
-	}
-
-	return
-}
-
-// GetRoute returns a Route with the given ID
-func GetRoute(agencyID, routeID string, appendInfo bool) (r *Route, err error) {
-
-	r = &Route{}
-	err = sqlx.Get(etc.DBConn, r,
-		`SELECT * FROM route WHERE agency_id = $1 AND route_id = $2`,
-		agencyID, routeID,
-	)
-	if err != nil {
-		return
-	}
-
-	err = r.init()
-	if err != nil {
-		return
-	}
-
-	if appendInfo {
-		r.RouteShapes, err = GetSavedRouteShapes(
-			etc.DBConn, r.AgencyID, r.RouteID,
-		)
-		if err != nil {
-			log.Println("can't append shapes", err)
-			return
-		}
-
-		sq := StopQuery{
-			RouteID:    routeID,
-			AgencyID:   agencyID,
-			Departures: false,
-			Distinct:   false,
-			MaxStops:   500,
-		}
-
-		err = sq.Initialize()
-		if err != nil {
-			log.Println("can't initialize stop query", err)
-			return
-		}
-		r.Stops, err = GetStopsByQuery(etc.DBConn, sq)
-		if err != nil {
-			log.Println("can't get stops", err)
-			return
-		}
 	}
 
 	return

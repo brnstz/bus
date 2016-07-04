@@ -41,6 +41,11 @@ func main() {
 
 	handler := api.NewHandler()
 
+	err = api.InitRouteCache()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	go func() {
 		http.ListenAndServe("localhost:6060", nil)
 	}()
