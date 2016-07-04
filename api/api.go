@@ -28,10 +28,16 @@ var (
 func NewHandler() http.Handler {
 	mux := http.NewServeMux()
 
+	// Get stop / route / trip info close to here
 	mux.HandleFunc("/api/here", getHere)
 
-	// FIXME should be getRoute
+	// Get routes that should be preloaded
 	mux.HandleFunc("/api/routes", getRoutes)
+
+	// Get a single route by agency_id / route_id
+	mux.HandleFunc("/api/route", getRoute)
+
+	// Get a single trip by agency_id / route_id / trip_id
 	mux.HandleFunc("/api/trip", getTrip)
 
 	// Add specific handlers for each static directory. These will

@@ -9,102 +9,28 @@ import (
 	"github.com/brnstz/bus/internal/models"
 )
 
-type routesResp struct {
-	Routes []*models.Route `json:"routes"`
-}
+func getRoute(w http.ResponseWriter, r *http.Request) {
+	agencyID := r.FormValue("agency_id")
+	routeID := r.FormValue("route_id")
 
-func getRoutes(w http.ResponseWriter, r *http.Request) {
-	var err error
-	err = r.ParseForm()
+	route, err := models.GetRoute(etc.DBConn, agencyID, routeID)
 	if err != nil {
+		log.Println("can't get route", err)
+		apiErr(w, err)
 		return
 	}
-	routes := []*models.Route{}
 
-	agencyIDs := r.Form["agency_id"]
-	routeIDs := r.Form["route_id"]
-
-	if len(agencyIDs) > 0 && len(routeIDs) > 0 {
-		// If agency_id and route_ids are passed, then assume
-		// that's how we're querying
-		if len(agencyIDs) != len(routeIDs) {
-			err = errBadRequest
-			return
-		}
-
-		for i := 0; i < len(routeIDs); i++ {
-			route, err := models.GetRoute(agencyIDs[i], routeIDs[i], true)
-			if err != nil {
-				log.Println("can't get route", err)
-				apiErr(w, err)
-				return
-			}
-			routes = append(routes, route)
-		}
-
-	} else {
-		// Otherwise they are querying by lat/lon
-
-		lat, err := floatOrDie(r.FormValue("lat"))
-		if err != nil {
-			return
-		}
-
-		lon, err := floatOrDie(r.FormValue("lon"))
-		if err != nil {
-			return
-		}
-
-		filter := r.FormValue("filter")
-
-		sq := models.StopQuery{
-			MidLat:     lat,
-			MidLon:     lon,
-			RouteType:  filter,
-			Distinct:   true,
-			Departures: false,
-		}
-
-		err = sq.Initialize()
-		if err != nil {
-			log.Println("can't initialize stop query", err)
-			apiErr(w, err)
-			return
-		}
-
-		stops, err := models.GetStopsByQuery(etc.DBConn, sq)
-		if err != nil {
-			log.Println("can't get stops", err)
-			apiErr(w, err)
-			return
-		}
-
-		// assumes agency_id + route_id is unique across agencies
-		// ok for now until we build a routequery
-		distinctRoutes := map[string]bool{}
-
-		for _, v := range stops {
-			if !distinctRoutes[v.AgencyID+v.RouteID] {
-				route, err := models.GetRoute(v.AgencyID, v.RouteID, true)
-				if err != nil {
-					log.Println("can't get route", err)
-					apiErr(w, err)
-					return
-				}
-				routes = append(routes, route)
-			}
-
-			distinctRoutes[v.AgencyID+v.RouteID] = true
-		}
-	}
-
-	rr := routesResp{
-		Routes: routes,
-	}
-
-	b, err := json.Marshal(rr)
+	route.RouteShapes, err = models.GetSavedRouteShapes(
+		etc.DBConn, route.AgencyID, route.RouteID,
+	)
 	if err != nil {
-		log.Println("can't marshal to json", err)
+		log.Println("can't append shapes", err)
+		return
+	}
+
+	b, err := json.Marshal(route)
+	if err != nil {
+		log.Println("can't marshal route to json", err)
 		apiErr(w, err)
 		return
 	}

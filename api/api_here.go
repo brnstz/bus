@@ -215,7 +215,7 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 	for _, s := range stops {
 
 		// Get the route for this stop and add to our list (may include dupes)
-		route, err := models.GetRouteV2(etc.DBConn, s.AgencyID, s.RouteID)
+		route, err := models.GetRoute(etc.DBConn, s.AgencyID, s.RouteID)
 		if err != nil {
 			log.Println("can't get route", err)
 			apiErr(w, err)

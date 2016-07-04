@@ -5,6 +5,7 @@ import (
 
 	"github.com/brnstz/bus/internal/etc"
 	"github.com/brnstz/upsert"
+	"github.com/jmoiron/sqlx"
 )
 
 type Trip struct {
@@ -115,7 +116,7 @@ func GetAnyTrip(agencyID, routeID string) (t Trip, err error) {
 }
 
 // GetTrip returns the trip for this agency and trip ID
-func GetTrip(agencyID, routeID, tripID string) (t Trip, err error) {
+func GetTrip(db sqlx.Ext, agencyID, routeID, tripID string) (t Trip, err error) {
 
 	// Get the trip
 	q := `
@@ -126,7 +127,7 @@ func GetTrip(agencyID, routeID, tripID string) (t Trip, err error) {
 			  route_id = $3
 	`
 
-	err = etc.DBConn.Get(&t, q, agencyID, tripID, routeID)
+	err = sqlx.Get(db, &t, q, agencyID, tripID, routeID)
 	if err != nil {
 		//log.Println("can't get trip", q, agencyID, tripID, routeID, err)
 		return
