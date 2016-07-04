@@ -116,15 +116,16 @@ func stopWorker() {
 }
 
 // hereResponse is the value returned by getHere
-type stopResponse struct {
+type hereResponse struct {
 	Stops  []*models.Stop     `json:"stops"`
 	Routes []*models.Route    `json:"routes"`
+	Trips  []*models.Trip     `json:"trips"`
 	Filter *bloom.BloomFilter `json:"filter"`
 }
 
 func getHere(w http.ResponseWriter, r *http.Request) {
 	var err error
-	var resp stopResponse
+	var resp hereResponse
 	var routes []*models.Route
 
 	// Read values incoming from http request
@@ -269,6 +270,30 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 
 			resp.Routes = append(resp.Routes, route)
 		}
+	}
+
+	// Add the first trip of each stop response that is not already in our
+	// bloom filter
+	for _, stop := range stops {
+		if len(stop.Departures) < 1 {
+			continue
+		}
+
+		tripID := stop.Departures[0].TripID
+		uniqueID := stop.AgencyID + "|" + tripID
+
+		exists := resp.Filter.TestAndAddString(uniqueID)
+		if !exists {
+			trip, err := models.GetTrip(etc.DBConn, stop.AgencyID, stop.RouteID, tripID)
+			if err != nil {
+				log.Println("can't get trip")
+				apiErr(w, err)
+			}
+
+			resp.Trips = append(resp.Trips, &trip)
+
+		}
+
 	}
 
 	b, err := json.Marshal(resp)

@@ -221,7 +221,7 @@ func GetStopsByTrip(db sqlx.Ext, t *Trip) (stops []*Stop, err error) {
 	`
 
 	err = sqlx.Select(db, &stops, q,
-		t.AgencyID, t.RouteID, t.ID, t.DirectionID,
+		t.AgencyID, t.RouteID, t.TripID, t.DirectionID,
 	)
 
 	if err != nil {
