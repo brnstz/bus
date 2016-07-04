@@ -16,7 +16,7 @@ var (
 )
 
 type routesResp struct {
-	routes []*models.Route `json:"routes"`
+	Routes []*models.Route `json:"routes"`
 }
 
 func InitRouteCache() error {
@@ -29,7 +29,7 @@ func InitRouteCache() error {
 	}
 
 	rr := routesResp{
-		routes: routes,
+		Routes: routes,
 	}
 
 	b, err := json.Marshal(rr)
