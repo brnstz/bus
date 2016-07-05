@@ -80,7 +80,7 @@ func (_ mtaNYCSubway) Live(route models.Route, stop models.Stop) (d models.Depar
 			var event interface{}
 
 			// Get the NYC extension so we can see if the Trip is "assigned"
-			// yet If it's assigned, we'll put the vehicle on the map.
+			// yet. If it's assigned, we'll put the vehicle on the map.
 			event, err = proto.GetExtension(
 				trip, nyct_subway.E_NyctTripDescriptor,
 			)
