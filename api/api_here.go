@@ -255,7 +255,7 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 
 	// Add any routes to the response that the bloom filter says we don't have
 	for _, route := range routes {
-		exists := resp.Filter.TestAndAddString(route.UniqueID)
+		exists := resp.Filter.TestString(route.UniqueID)
 		// If the route doesn't exist in our filter, then we want to pull
 		// the shapes and also append it to our response list.
 		if !exists {
@@ -263,11 +263,14 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 				etc.DBConn, route.AgencyID, route.RouteID,
 			)
 			if err != nil {
-				log.Println("can't get route shapes", err)
+				// This is a fatal error because the front end code
+				// assumes the route will be there
+				log.Println("can't get route shapes", route, err)
 				apiErr(w, err)
 				return
 			}
 
+			resp.Filter.AddString(route.UniqueID)
 			resp.Routes = append(resp.Routes, route)
 		}
 	}
@@ -286,10 +289,12 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 		if !exists {
 			trip, err := models.GetTrip(etc.DBConn, stop.AgencyID, stop.RouteID, tripID)
 			if err != nil {
-				log.Println("can't get trip")
-				apiErr(w, err)
+				// FIXME: Can this be a non-fatal error? Let's see.
+				log.Println("can't get trip", uniqueID, err)
+				continue
 			}
 
+			resp.Filter.AddString(uniqueID)
 			resp.Trips = append(resp.Trips, &trip)
 
 		}

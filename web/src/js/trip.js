@@ -70,9 +70,6 @@ Trip.prototype.createMarkers = function(stop, route) {
 Trip.prototype.createLines = function(stop, route) {
     var self = this;
     var lines = [];
-    console.log(self);
-    console.log(stop);
-    console.log(route);
 
     // Create a list of before and after latlons (different drawing 
     // style before and after our stop)
