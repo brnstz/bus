@@ -87,8 +87,8 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-// stopResponse is the response to /api/stops
-type stopResponse struct {
+// hereResponse is the response to /api/here
+type hereResponse struct {
 	Stops []struct {
 		Lat          float64
 		Lon          float64
@@ -128,7 +128,7 @@ func getJSON(v interface{}, u string) error {
 
 // TestScheduledSubway tests for scheduled subway times
 func TestScheduledSubway(t *testing.T) {
-	var resp stopResponse
+	var resp hereResponse
 	var err error
 
 	params := url.Values{}
@@ -138,12 +138,14 @@ func TestScheduledSubway(t *testing.T) {
 	expectedRoute := "G"
 
 	// Manhattan Av. and Greenpoint Av. in Brooklyn
-	params.Set("lat", "40.730202")
-	params.Set("lon", "-73.9564682")
-	params.Set("meters", "260")
-	params.Set("filter", "subway")
+	params.Set("lat", "40.731324619044514")
+	params.Set("lon", "-73.95446261823963")
+	params.Set("sw_lat", "40.73059087592777")
+	params.Set("sw_lon", "-73.95548990429234")
+	params.Set("ne_lat", "40.73205835407014")
+	params.Set("ne_lon", "-73.95343533218693")
 
-	err = getJSON(&resp, serverURL+"/api/stops?"+params.Encode())
+	err = getJSON(&resp, serverURL+"/api/here?"+params.Encode())
 	if err != nil {
 		t.Fatal("can't get API response for G train test", err)
 	}
@@ -177,7 +179,7 @@ func TestScheduledSubway(t *testing.T) {
 
 // TestLiveSubway checks for live subway times
 func TestLiveSubway(t *testing.T) {
-	var resp stopResponse
+	var resp hereResponse
 	var err error
 
 	params := url.Values{}
@@ -225,7 +227,7 @@ func TestLiveSubway(t *testing.T) {
 
 // TestLiveBus checks for live bus results
 func TestLiveBus(t *testing.T) {
-	var resp stopResponse
+	var resp hereResponse
 	var err error
 
 	params := url.Values{}
@@ -268,7 +270,7 @@ func TestLiveBus(t *testing.T) {
 
 // TestScheduledBus checks for scheduled bus results
 func TestScheduledBus(t *testing.T) {
-	var resp stopResponse
+	var resp hereResponse
 	var err error
 
 	params := url.Values{}
