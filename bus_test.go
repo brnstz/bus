@@ -189,27 +189,31 @@ func TestLiveSubway(t *testing.T) {
 	expectedRoute := "L"
 
 	// Bedford Av. and N. 7th St. in Brooklyn
-	params.Set("lat", "40.717304")
-	params.Set("lon", "-73.956872")
-	params.Set("meters", "16")
+	params.Set("lat", "40.71736129085624")
+	params.Set("lon", "-73.95682848743489")
+	params.Set("sw_lat", "40.71662739378481")
+	params.Set("sw_lon", "-73.9578557734876")
+	params.Set("ne_lat", "40.71809517983715")
+	params.Set("ne_lon", "-73.95580120138219")
 
-	err = getJSON(&resp, serverURL+"/api/stops?"+params.Encode())
+	err = getJSON(&resp, serverURL+"/api/here?"+params.Encode())
 	if err != nil {
 		t.Fatal("can't get API response for L train test", err)
 	}
 
-	if len(resp.Stops) != 2 {
-		t.Fatalf("expected %v results but got %v", 2, len(resp.Stops))
-	}
-
 	// Check each result
+	count := 0
 	for _, v := range resp.Stops {
-		if v.Stop_Name != expectedStop {
-			t.Errorf("expected %v stop_name but got %v", expectedStop, v.Stop_Name)
+		// ignore results not for our expected route
+		if v.Route_ID != expectedRoute {
+			continue
 		}
 
-		if v.Route_ID != expectedRoute {
-			t.Errorf("expected %v route_id but got %v", expectedRoute, v.Route_ID)
+		// Count how many stops we get for our expected route
+		count++
+
+		if v.Stop_Name != expectedStop {
+			t.Errorf("expected %v stop_name but got %v", expectedStop, v.Stop_Name)
 		}
 
 		if len(v.Departures) < 1 {
@@ -223,6 +227,11 @@ func TestLiveSubway(t *testing.T) {
 			}
 		}
 	}
+
+	if count != 2 {
+		t.Fatalf("expected %v results but got %v", 2, len(resp.Stops))
+	}
+
 }
 
 // TestLiveBus checks for live bus results
