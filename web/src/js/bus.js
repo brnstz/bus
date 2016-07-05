@@ -250,10 +250,11 @@ Bus.prototype.clickHandler = function(stop) {
 
     return function(e) {
 
-        // If it's the current stop, then just recenter
         if (self.current_stop && self.current_stop.id == stop.id) {
+            // If it's the current stop, then just recenter
             self.map.setView([stop.api.lat, stop.api.lon]);
             return;
+
         } else if (self.current_stop) {
             $(self.rows[self.current_stop.id]).css({
                 "opacity": self.current_stop.table_bg_opacity

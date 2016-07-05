@@ -12,12 +12,12 @@ function Trip(api) {
     // a stop can be from the polyline to say that it hit the stop
     self.stop_line_dist = 10;
 
-    self.stop_radius = 15;
+    self.stop_radius = 20;
 
     self.first_stop_radius = 20;
 
-    self.weight = 4;
-    self.before_opacity = 1.0;
+    self.weight = 10;
+    self.before_opacity = 0.5;
     self.after_opacity = 1.0;
 }
 
@@ -26,30 +26,26 @@ function Trip(api) {
 Trip.prototype.createMarkers = function(stop, route) {
     var self = this;
     var markers = [];
+    var foundStop = false;
 
     for (var i = 0; i < self.api.stops.length; i++) {
         var tripStop = self.api.stops[i];
         var radius = 0;
 
-        // Ignore stops that aren't going our direction
-        // FIXME: this should not be necessary?
-        if (tripStop.direction_id != stop.direction_id) {
-            continue;
-        }
-
-        // ignore stops before our stop
-        if (tripStop.stop_sequence < stop.stop_sequence) {
-            continue;
-        }
-
         // The first stop gets a bigger radius
         if (tripStop.stop_id == stop.stop_id) {
             radius = self.first_stop_radius;
+            foundStop = true;
         } else {
             radius = self.stop_radius;
         }
 
-        var circle = L.circle([stop.lat, stop.lon],
+        // Ignore stops until we find our current stop.
+        if (!foundStop) {
+            continue;
+        }
+
+        var circle = L.circle([tripStop.lat, tripStop.lon],
             radius, {
                 width: 1,
                 color: route.route_color,
