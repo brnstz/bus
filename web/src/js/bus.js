@@ -241,7 +241,6 @@ Bus.prototype.createRow = function(stop, i) {
     $(datatd).append(departures);
     $(row).append(datatd);
 
-
     return row;
 };
 
@@ -265,14 +264,17 @@ Bus.prototype.clickHandler = function(stop) {
         var trip = self.trips[stop.api.agency_id + "|" + stop.api.departures[0].trip_id]
         var row = self.rows[stop.id];
 
-        var markers = trip.createMarkers(stop, route);
-        var lines = trip.createLines(stop, route);
+        var markers = trip.createMarkers(stop.api, route.api);
+        var lines = trip.createLines(stop.api, route.api);
         var vehicles = stop.createVehicles();
         $(row).css({
             "opacity": stop.table_fg_opacity
         });
 
+        // Clear previous layer elements
         self.clickedTripLayer.clearLayers();
+
+        // Add new elements
 
         // Draw lines 
         for (var i = 0; i < lines.length; i++) {
@@ -288,13 +290,6 @@ Bus.prototype.clickHandler = function(stop) {
         for (var key in vehicles) {
             self.clickedTripLayer.addLayer(vehicles[key]);
         }
-
-        console.log(markers);
-        console.log(vehicles);
-        console.log(lines);
-
-        // Clear the "clicked layer"
-        self.clickedTripLayer.addTo(self.map);
 
         self.current_stop = stop;
     };
