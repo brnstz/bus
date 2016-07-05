@@ -242,22 +242,28 @@ func TestLiveBus(t *testing.T) {
 	params := url.Values{}
 
 	// Jackson Av. and 11th St. in Queens
-	params.Set("lat", "40.7422511")
-	params.Set("lon", "-73.9515471")
-	params.Set("meters", "160")
+	params.Set("lat", "40.74235145797162")
+	params.Set("lon", "-73.95134031772612")
+	params.Set("sw_lat", "40.74088420686416")
+	params.Set("sw_lon", "-73.95339488983153")
+	params.Set("ne_lat", "40.7438186767128")
+	params.Set("ne_lon", "-73.94928574562073")
 
-	err = getJSON(&resp, serverURL+"/api/stops?"+params.Encode())
+	err = getJSON(&resp, serverURL+"/api/here?"+params.Encode())
 	if err != nil {
 		t.Fatal("can't get API response for B62, B32 bus test", err)
 	}
 
-	// We should get results for at lesat the B62
+	// We should get results for at least the B62
 	if len(resp.Stops) < 2 {
 		t.Fatalf("expected at least %v results but got %v", 2, len(resp.Stops))
 	}
 
-	// Check each result
+	// Check each bus result
 	for _, v := range resp.Stops {
+		if v.Route_ID != "B62" && v.Route_ID != "B32" {
+			continue
+		}
 
 		// FIXME: some bus routes won't always have live departures, may need to
 		// pick different bus or make this a warning
