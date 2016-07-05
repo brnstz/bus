@@ -433,6 +433,13 @@ Bus.prototype.getHere = function() {
     });
 };
 
+// initbus should be called by the windows to initialize the bus object
 window.initbus = function() {
     bus.init();
+};
+
+// getbus allows you to retrieve the core bus object in the console for
+// debugging
+window.getbus = function() {
+    return bus;
 };
