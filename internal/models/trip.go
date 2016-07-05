@@ -163,3 +163,23 @@ func GetTrip(db sqlx.Ext, agencyID, routeID, tripID string) (t Trip, err error) 
 
 	return
 }
+
+// GetPartialTripIDMatch returns the first trip_id that is "like" the
+// partialTripID sent in
+// Hack for MTA NYCT train API: https://github.com/brnstz/bus/issues/63
+func GetPartialTripIDMatch(db sqlx.Ext, agencyID, routeID, partialTripID string) (tripID string, err error) {
+
+	partialTripID = "%" + partialTripID + "%"
+
+	q := `
+		SELECT trip_id 
+		FROM trip
+		WHERE agency_id    = $1 AND
+			  route_id     = $2 AND
+			  trip_id   LIKE $3
+	`
+
+	err = sqlx.Get(db, &tripID, q, agencyID, routeID, partialTripID)
+
+	return
+}
