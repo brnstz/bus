@@ -295,11 +295,14 @@ func TestScheduledBus(t *testing.T) {
 	expectedRoute := "B43"
 
 	// Box St. and Manhattan Av. in Brooklyn
-	params.Set("lat", "40.7373215")
-	params.Set("lon", "-73.9563212")
-	params.Set("meters", "160")
+	params.Set("lat", "40.73712490501606")
+	params.Set("lon", "-73.95574549209414")
+	params.Set("sw_lat", "40.735657538620636")
+	params.Set("sw_lon", "-73.95780006419955")
+	params.Set("ne_lat", "40.73859223904608")
+	params.Set("ne_lon", "-73.95369091998873")
 
-	err = getJSON(&resp, serverURL+"/api/stops?"+params.Encode())
+	err = getJSON(&resp, serverURL+"/api/here?"+params.Encode())
 	if err != nil {
 		t.Fatal("can't get API response for B43 bus test", err)
 	}
