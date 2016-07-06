@@ -2,7 +2,6 @@ var util = require("./util.js");
 
 var stopIcon = L.icon({
     iconUrl: 'img/stop1.svg',
-    //iconSize: [30, 30]
     iconSize: [15, 15]
 });
 
@@ -22,7 +21,7 @@ function Trip(api) {
 
     self.first_stop_radius = 20;
 
-    self.weight = 10;
+    self.weight = 8;
     self.before_opacity = 0.5;
     self.after_opacity = 1.0;
 }
