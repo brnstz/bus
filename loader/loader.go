@@ -618,9 +618,15 @@ func (l *Loader) updateRouteShapes() {
 	}
 	defer func() {
 		if err == nil {
-			tx.Commit()
+			err = tx.Commit()
+			if err != nil {
+				log.Println("can't commit route shapes", err)
+			}
 		} else {
 			tx.Rollback()
+			if err != nil {
+				log.Println("can't rollback oute shapes", err)
+			}
 		}
 	}()
 
@@ -636,12 +642,15 @@ func (l *Loader) updateRouteShapes() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Printf("got %d route shapes", len(routeShapes))
 
 	for _, rs := range routeShapes {
 		// upsert each route so we end up with the most common
 		err = rs.Save(tx)
 		if err != nil {
 			log.Fatal(err)
+		} else {
+			log.Printf("saved %v", rs)
 		}
 	}
 }
