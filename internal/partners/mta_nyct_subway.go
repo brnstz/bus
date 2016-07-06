@@ -121,7 +121,7 @@ func (_ mtaNYCSubway) Live(route models.Route, stop models.Stop) (d models.Depar
 		tripID, err := models.GetPartialTripIDMatch(etc.DBConn, route.AgencyID, route.RouteID, trip.GetTripId())
 		if err != nil {
 			// FIXME: what to do here?
-			log.Println("can't get tripID", err)
+			log.Println("can't get tripID", route, tripID, err)
 		}
 
 		// Go through all updates to check for our stop ID's departure
