@@ -228,7 +228,7 @@ Bus.prototype.createRow = function(stop, i) {
     // with colored background
     var routeID = null;
     if (stop.live == true) {
-        routeID = $("<td class='rowroute'>" + stop.api.route_id + "<br><img src='img/radio.png' width=20 height=20></td>");
+        routeID = $("<td class='rowroute'>" + stop.api.route_id + "<br><img src='img/radio1.svg' width=20 height=20></td>");
     } else {
         routeID = $("<td class='rowroute'>" + stop.api.route_id + "</td>");
     }
