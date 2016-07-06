@@ -1,11 +1,11 @@
 var trainIcon = L.icon({
-    iconUrl: 'img/traincircle.svg',
-    iconSize: [27, 27]
+    iconUrl: 'img/train1_circle.svg',
+    iconSize: [30, 30]
 });
 
 var busIcon = L.icon({
-    iconUrl: 'img/buscircle.svg',
-    iconSize: [27, 27]
+    iconUrl: 'img/bus1_circle.svg',
+    iconSize: [30, 30]
 });
 
 function getIcon(route_type_name) {
