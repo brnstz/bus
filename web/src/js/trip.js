@@ -1,5 +1,11 @@
 var util = require("./util.js");
 
+var stopIcon = L.icon({
+    iconUrl: 'img/stop1.svg',
+    //iconSize: [30, 30]
+    iconSize: [15, 15]
+});
+
 // Trip is a single instance of a trip
 function Trip(api) {
     var self = this;
@@ -45,17 +51,9 @@ Trip.prototype.createMarkers = function(stop, route) {
             continue;
         }
 
-        var circle = L.circle([tripStop.lat, tripStop.lon],
-            radius, {
-                width: 1,
-                color: route.route_color,
-                fillColor: route.route_color,
-                opacity: self.after_opacity,
-                fillOpacity: self.after_opacity
-            }
-        );
-
-        markers.push(circle);
+        markers.push(L.marker([tripStop.lat, tripStop.lon], {
+            icon: stopIcon
+        }));
     }
 
     return markers;
