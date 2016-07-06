@@ -28,6 +28,7 @@ var refreshControl = L.Control.extend({
 });
 */
 
+
 function Bus() {
     var self = this;
 
@@ -267,7 +268,7 @@ Bus.prototype.clickHandler = function(stop) {
 
         var markers = trip.createMarkers(stop.api, route.api);
         var lines = trip.createLines(stop.api, route.api);
-        var vehicles = stop.createVehicles();
+        var vehicles = stop.createVehicles(route.api);
         $(row).css({
             "opacity": stop.table_fg_opacity
         });

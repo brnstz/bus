@@ -1,3 +1,32 @@
+var trainIcon = L.icon({
+    iconUrl: 'img/traincircle.svg',
+    iconSize: [27, 27]
+});
+
+var busIcon = L.icon({
+    iconUrl: 'img/buscircle.svg',
+    iconSize: [27, 27]
+});
+
+function getIcon(route_type_name) {
+    var icon = null;
+
+    switch (route_type_name) {
+        case "train", "subway":
+            icon = trainIcon;
+            break;
+
+        case "bus":
+            icon = busIcon;
+            break;
+
+        default:
+            icon = trainIcon;
+    }
+
+    return icon;
+}
+
 // Stop is a single instance of a stop
 function Stop(api) {
     var self = this;
@@ -82,30 +111,19 @@ Stop.prototype.createDepartures = function() {
     return text;
 };
 
-Stop.prototype.createVehicles = function() {
+Stop.prototype.createVehicles = function(route) {
     var self = this;
     var vehicles = [];
 
     for (var i = 0; i < self.api.vehicles.length; i++) {
         var v = self.api.vehicles[i];
-        /* FIXME
-        var opts = {
-            color: self.api.route_color
-        };
-        var bounds = [
-            [v.lat, v.lon],
-            [v.lat + .000001, v.lon + 000001]
-        ];
-        var square = L.rectangle(bounds, opts);
-        vehicles.push(square);
-        */
+        var icon;
 
         var opts = {
-            color: '#000000'
+            icon: getIcon(route.route_type_name)
         };
 
-        var black = L.circleMarker([v.lat, v.lon], opts);
-        vehicles.push(black);
+        vehicles.push(L.marker([v.lat, v.lon], opts));
     }
 
     return vehicles;
