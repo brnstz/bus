@@ -10,7 +10,7 @@ function Trip(api) {
 
     // stop_line_dist is the number of meters we assume
     // a stop can be from the polyline to say that it hit the stop
-    self.stop_line_dist = 10;
+    self.stop_line_dist = 50;
 
     self.stop_radius = 20;
 
