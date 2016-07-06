@@ -5,6 +5,7 @@ var util = require("./util.js");
 var Stop = require("./stop.js");
 var Route = require("./route.js");
 var Trip = require("./trip.js");
+var LayerZoom = require("./layer_zoom.js");
 
 /*
 var homeControl = L.Control.extend({
@@ -27,6 +28,8 @@ var refreshControl = L.Control.extend({
     }
 });
 */
+
+
 
 
 function Bus() {
@@ -77,41 +80,32 @@ function Bus() {
     self.current_stop = null;
 
     // The current clicked trip
-    self.clickedTripLayer = L.layerGroup();
+    self.clickedTripLayer = L.featureGroup();
+
+    // Layer of stops on the current clicked trip
+    self.stopLayer = L.featureGroup();
+
+    // Layer of vehicles on the current clicked trip
+    self.vehicleLayer = L.featureGroup();
 
     // Train route shapes
-    self.trainRouteLayer = L.layerGroup();
+    self.trainRouteLayer = L.featureGroup();
 
     // Bus route shapes
-    self.busRouteLayer = L.layerGroup();
+    self.busRouteLayer = L.featureGroup();
 
-    // The zoom level at which busRouteLayer is visible
-    self.minBusZoom = 13;
+    // layerZooms is a list of LayerZoom objects for each layer on our map.
+    // Layers will also be brought to front in order, so "back" layers should
+    // go toward the beginning of the list and "front" layers toward the end.
+    self.layerZooms = [];
 
     // true while updating
     self.updating = false;
-
-    // Avoid weird iPhone bouncing: http://stackoverflow.com/a/26853900
-    //self.firstMove = false;
 }
 
 // init is run when the page initially loads
 Bus.prototype.init = function() {
     var self = this;
-
-    // Avoid weird iPhone bouncing: http://stackoverflow.com/a/26853900
-    /*
-    window.addEventListener('touchstart', function(e) {
-        self.firstMove = true;
-    });
-    window.addEventListener('touchmove', function(e) {
-        if (self.firstMove) {
-            e.preventDefault();
-
-            self.firstMove = false;
-        }
-    });
-    */
 
     self.map = L.map('map', self.mapOptions);
 
@@ -120,28 +114,15 @@ Bus.prototype.init = function() {
 
     // Create "you are here" marker
     self.marker = L.marker([0, 0]);
-
-    // Set up event handler
-    self.map.on("moveend", function() {
-        self.getHere();
-
-        // Add/remove bus layer at the appropriate zoom levels
-        if (self.map.getZoom() >= self.minBusZoom) {
-            if (!self.map.hasLayer(self.busRouteLayer)) {
-                self.map.addLayer(self.busRouteLayer);
-            }
-        } else {
-            if (self.map.hasLayer(self.busRouteLayer)) {
-                self.map.removeLayer(self.busRouteLayer);
-            }
-        }
-
-    });
-
     self.marker.addTo(self.map);
-    self.clickedTripLayer.addTo(self.map);
-    self.trainRouteLayer.addTo(self.map);
-    self.busRouteLayer.addTo(self.map);
+
+    // Add layers to map
+    self.layerZooms.push(new LayerZoom(self.busRouteLayer, 13));
+    self.layerZooms.push(new LayerZoom(self.trainRouteLayer, 0));
+    self.layerZooms.push(new LayerZoom(self.stopLayer, 14));
+    self.layerZooms.push(new LayerZoom(self.vehicleLayer, 12));
+    self.layerZooms.push(new LayerZoom(self.clickedTripLayer, 0));
+    self.updateLayers();
 
     /*
     self.map.addControl(new homeControl());
@@ -150,7 +131,23 @@ Bus.prototype.init = function() {
 
     self.getInitialRoutes();
 
+    // Set up event handler
+    self.map.on("moveend", function() {
+        self.getHere();
+        self.updateLayers();
+    });
+
     self.geolocate();
+};
+
+// updateLayers set the visibility and order of layers on each update
+Bus.prototype.updateLayers = function() {
+    var self = this;
+
+    for (var i = 0; i < self.layerZooms.length; i++) {
+        var lz = self.layerZooms[i];
+        lz.setVisibility(self.map);
+    }
 };
 
 // geolocate requests the location from the browser and sets the location
@@ -275,6 +272,8 @@ Bus.prototype.clickHandler = function(stop) {
 
         // Clear previous layer elements
         self.clickedTripLayer.clearLayers();
+        self.stopLayer.clearLayers();
+        self.vehicleLayer.clearLayers();
 
         // Add new elements
 
@@ -285,12 +284,12 @@ Bus.prototype.clickHandler = function(stop) {
 
         // Draw marker stops
         for (var key in markers) {
-            self.clickedTripLayer.addLayer(markers[key]);
+            self.stopLayer.addLayer(markers[key]);
         }
 
         // Draw vehicles
         for (var key in vehicles) {
-            self.clickedTripLayer.addLayer(vehicles[key]);
+            self.vehicleLayer.addLayer(vehicles[key]);
         }
 
         self.current_stop = stop;

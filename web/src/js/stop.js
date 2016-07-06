@@ -120,7 +120,8 @@ Stop.prototype.createVehicles = function(route) {
         var icon;
 
         var opts = {
-            icon: getIcon(route.route_type_name)
+            icon: getIcon(route.route_type_name),
+            zIndexOffset: 1000
         };
 
         vehicles.push(L.marker([v.lat, v.lon], opts));
