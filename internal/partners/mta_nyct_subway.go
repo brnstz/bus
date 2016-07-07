@@ -59,6 +59,13 @@ func (p mtaNYCSubway) getURL(routeID string) (string, bool) {
 }
 
 func (p mtaNYCSubway) Precache(agencyID, routeID string, directionID int) error {
+
+	// Since the URL we call is the same no matter which direction, arbirarily
+	// decide to ignore one of the directions.
+	if directionID == 1 {
+		return nil
+	}
+
 	u, exists := p.getURL(routeID)
 	if !exists {
 		return nil
