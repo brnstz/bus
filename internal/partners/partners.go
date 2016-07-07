@@ -11,6 +11,7 @@ var ErrNoPartner = errors.New("no partner for this route")
 
 // P is an interface that can pull extra info from partners
 type P interface {
+	//Precache(models.Route) error
 	Live(models.Route, models.Stop) (models.Departures, []models.Vehicle, error)
 }
 

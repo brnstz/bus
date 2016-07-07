@@ -24,7 +24,7 @@ func (_ mtaNYCBus) Live(route models.Route, stop models.Stop) (d models.Departur
 	stopPointRef := fmt.Sprint("MTA_", stop.ID)
 
 	q := url.Values{}
-	q.Set("key", conf.API.BustimeAPIKey)
+	q.Set("key", conf.Partner.BustimeAPIKey)
 	q.Set("DirectionRef", strconv.Itoa(stop.DirectionID))
 	q.Set("VehicleMonitoringDetailLevel", "calls")
 	q.Set("LineRef", lineRef)
