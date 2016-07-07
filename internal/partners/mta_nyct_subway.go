@@ -48,7 +48,7 @@ func (_ mtaNYCSubway) Live(route models.Route, stop models.Stop) (d models.Depar
 	// Construct URL and call external API, possibly getting cached
 	// value.
 	q := url.Values{}
-	q.Set("key", conf.API.DatamineAPIKey)
+	q.Set("key", conf.Partner.DatamineAPIKey)
 	q.Set("feed_id", feed)
 	u := fmt.Sprint(esiURL, "?", q.Encode())
 

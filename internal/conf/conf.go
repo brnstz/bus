@@ -6,15 +6,51 @@ var (
 	// DB is current database config
 	DB DBSpec
 
+	// Cache is current cache config
+	Cache CacheSpec
+
 	// API is the current API config
 	API APISpec
 
 	// Loader is the current loader config
 	Loader LoaderSpec
 
-	// Precache is the current precache
-	Precache PrecacheSpec
+	// Partner is the current partner config
+	Partner PartnerSpec
 )
+
+// CacheSpec is our redis config, used by busprecache and busapi
+type CacheSpec struct {
+	// RedisAddr is the "host:port" we use for connecting to redis
+	// Default: "localhost:6379"
+	// Environment variable: $BUS_REDIS_ADDR
+	RedisAddr string `envconfig:"redis_addr" default:"localhost:6379"`
+
+	// RedisTTL is the number of seconds we save things in Redis
+	// Default: "90"
+	// Environment variable: $BUS_REDIS_TTL
+	RedisTTL int `envconfig:"redis_ttl" default:"90"`
+}
+
+// PartnerSpec includes config values specific to certain live partner
+// APIs, used by busprecache and busapi
+type PartnerSpec struct {
+	// BusAPIKey is the API key for accessing http://bustime.mta.info/
+	// Default: None
+	// Environment variable: $BUS_MTA_BUSTIME_API_KEY
+	BustimeAPIKey string `envconfig:"mta_bustime_api_key" required:"true"`
+
+	// DatamineAPIKey is the API key for accessing http://datamine.mta.info/
+	// Default: None
+	// Environment variable: $BUS_MTA_DATAMINE_API_KEY
+	DatamineAPIKey string `envconfig:"mta_datamine_api_key" required:"true"`
+
+	// AgencyIDs is a comma-delimited list of agencies that
+	// precacher should be hitting
+	// Default: None
+	// Environment variable: $BUS_AGENCY_IDS (comma-delimited list)
+	AgencyIDs []string `envconfig:"agency_ids"`
+}
 
 // DBSpec is our database config used by both busapi and busloader
 type DBSpec struct {
@@ -42,21 +78,6 @@ type APISpec struct {
 	// Default: "0.0.0.0:8000"
 	// Environment variable: $BUS_API_ADDR
 	Addr string `envconfig:"api_addr" default:"0.0.0.0:8000"`
-
-	// RedisAddr is the "host:port" we use for connecting to redis
-	// Default: "localhost:6379"
-	// Environment variable: $BUS_REDIS_ADDR
-	RedisAddr string `envconfig:"redis_addr" default:"localhost:6379"`
-
-	// BusAPIKey is the API key for accessing http://bustime.mta.info/
-	// Default: None
-	// Environment variable: $BUS_MTA_BUSTIME_API_KEY
-	BustimeAPIKey string `envconfig:"mta_bustime_api_key" required:"true"`
-
-	// DatamineAPIKey is the API key for accessing http://datamine.mta.info/
-	// Default: None
-	// Environment variable: $BUS_MTA_DATAMINE_API_KEY
-	DatamineAPIKey string `envconfig:"mta_datamine_api_key" required:"true"`
 
 	// WebDir is the location of the static web assets
 	// Default: ../../web/dist
@@ -100,28 +121,4 @@ type LoaderSpec struct {
 	// Default: true
 	// Environment variable: $BUS_LOAD_FOREVER
 	LoadForever bool `envconfig:"load_forever" default:"false"`
-}
-
-// PrecacheSpec is our config spec used by busprecache
-type PrecacheSpec struct {
-	// RedisAddr is the "host:port" we use for connecting to redis
-	// Default: "localhost:6379"
-	// Environment variable: $BUS_REDIS_ADDR
-	RedisAddr string `envconfig:"redis_addr" default:"localhost:6379"`
-
-	// BusAPIKey is the API key for accessing http://bustime.mta.info/
-	// Default: None
-	// Environment variable: $BUS_MTA_BUSTIME_API_KEY
-	BustimeAPIKey string `envconfig:"mta_bustime_api_key" required:"true"`
-
-	// DatamineAPIKey is the API key for accessing http://datamine.mta.info/
-	// Default: None
-	// Environment variable: $BUS_MTA_DATAMINE_API_KEY
-	DatamineAPIKey string `envconfig:"mta_datamine_api_key" required:"true"`
-
-	// AgencyIDs is a comma-delimited list of agencies that this
-	// precacher should be hitting
-	// Default: None
-	// Environment variable: $BUS_AGENCY_IDS (comma-delimited list)
-	AgencyIDs []string `envconfig:"agency_ids"`
 }

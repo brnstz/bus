@@ -17,9 +17,6 @@ import (
 )
 
 const (
-	// redisTTL is how many seconds we cache things in redis
-	redisTTL = 30
-
 	// redisConnectTimeout is how long we wait to connect to redis
 	// before giving up
 	redisConnectTimeout = 1 * time.Second
@@ -71,7 +68,7 @@ func SecsToTimeStr(secs int) string {
 // GET on that URL. Responses are cached for redisTTL seconds. If Redis
 // is not available, an error is logged and we hit the URL directly.
 func RedisCache(u string) (b []byte, err error) {
-	c, err := redis.DialTimeout("tcp", conf.API.RedisAddr, redisConnectTimeout)
+	c, err := redis.DialTimeout("tcp", conf.Cache.RedisAddr, redisConnectTimeout)
 	if err != nil {
 		// Log redis errors and then ignore. We may still be able to get
 		// our data even without redis.
@@ -105,7 +102,7 @@ func RedisCache(u string) (b []byte, err error) {
 
 	// If we have a redis connection, save the value.
 	if c != nil {
-		err = c.Cmd("set", u, b, "ex", strconv.Itoa(redisTTL)).Err
+		err = c.Cmd("set", u, b, "ex", strconv.Itoa(conf.Cache.RedisTTL)).Err
 
 		if err != nil {
 			// Log redis errors and then ignore. We still have our bytes

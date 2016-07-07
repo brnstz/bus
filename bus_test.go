@@ -50,6 +50,11 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 
+	err = envconfig.Process("bus", &conf.Cache)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	time.Local, err = time.LoadLocation("America/New_York")
 	if err != nil {
 		log.Fatal(err)
