@@ -362,3 +362,27 @@ func TestTrip(t *testing.T) {
 		}
 	}
 }
+
+func TestStopSpeed(t *testing.T) {
+
+	resp := hereResponse{}
+	params := url.Values{}
+
+	// Large area in midtown east
+	params.Set("lat", "40.75245875985305")
+	params.Set("lon", "-73.97781372070312")
+	params.Set("sw_lat", "40.74657419673222")
+	params.Set("sw_lon", "-73.99798393249512")
+	params.Set("ne_lat", "40.758342802212724")
+	params.Set("ne_lon", "-73.95764350891112")
+
+	t1 := time.Now()
+	err := getJSON(&resp, serverURL+"/api/here?"+params.Encode())
+	if err != nil {
+		t.Fatal("can't get API response for speed test", err, resp)
+	}
+	totalTime := time.Now().Sub(t1)
+	if totalTime > 1*time.Second {
+		t.Fatal("too slow")
+	}
+}
