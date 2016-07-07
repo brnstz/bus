@@ -15,6 +15,9 @@ type P interface {
 	// Precache is called by the precacher binary and saves raw bytes of
 	// response into redis. Doing precache prevents clients from hammering
 	// partner serves and also ensures our own responses are fast.
+	// The precacher will call this function for every valid
+	// agency / route / direction combo that returns a partner with
+	// Find().
 	Precache(agencyID, routeID string, directionID int) error
 
 	// Live reads the data saved into redis by Precache, parses it and
