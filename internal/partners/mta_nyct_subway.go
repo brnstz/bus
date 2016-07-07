@@ -36,13 +36,16 @@ var (
 
 type mtaNYCSubway struct{}
 
-func (_ mtaNYCSubway) Live(route models.Route, stop models.Stop) (d models.Departures, v []models.Vehicle, err error) {
+// getURL returns the URL for getting this routeID's feed. Second return
+// value is false if there is no feed to get.
+func (p mtaNYCSubway) getURL(routeID string) (string, bool) {
+	var u string
 
 	// Get the feed for this route, if there is one. Otherwise, nothing
 	// to return.
-	feed, exists := routeToFeed[stop.RouteID]
+	feed, exists := routeToFeed[routeID]
 	if !exists {
-		return
+		return "", false
 	}
 
 	// Construct URL and call external API, possibly getting cached
@@ -50,9 +53,33 @@ func (_ mtaNYCSubway) Live(route models.Route, stop models.Stop) (d models.Depar
 	q := url.Values{}
 	q.Set("key", conf.Partner.DatamineAPIKey)
 	q.Set("feed_id", feed)
-	u := fmt.Sprint(esiURL, "?", q.Encode())
+	u = fmt.Sprint(esiURL, "?", q.Encode())
 
-	b, err := etc.RedisCache(u)
+	return u, true
+}
+
+func (p mtaNYCSubway) Precache(agencyID, routeID string, directionID int) error {
+	u, exists := p.getURL(routeID)
+	if !exists {
+		return nil
+	}
+
+	_, err := etc.RedisCache(u)
+	if err != nil {
+		log.Println("can't cache live subway response", err)
+		return err
+	}
+
+	return nil
+}
+
+func (p mtaNYCSubway) Live(agencyID, routeID, stopID string, directionID int) (d models.Departures, v []models.Vehicle, err error) {
+	u, exists := p.getURL(routeID)
+	if !exists {
+		return
+	}
+
+	b, err := etc.RedisGet(u)
 	if err != nil {
 		log.Println("can't get live subways", err)
 		return
@@ -103,9 +130,9 @@ func (_ mtaNYCSubway) Live(route models.Route, stop models.Stop) (d models.Depar
 				// Get a "vehicle" with the lat/lon of the update's stop
 				// (*not* the stop of our request)
 				vehicle, err = models.GetVehicle(
-					route.AgencyID, route.RouteID,
+					agencyID, routeID,
 					stopTimeUpdates[0].GetStopId(),
-					stop.DirectionID,
+					directionID,
 				)
 				if err != nil {
 					// FIXME: identify not found error vs. others
@@ -118,17 +145,18 @@ func (_ mtaNYCSubway) Live(route models.Route, stop models.Stop) (d models.Depar
 			}
 		}
 
-		tripID, err := models.GetPartialTripIDMatch(etc.DBConn, route.AgencyID, route.RouteID, trip.GetTripId())
+		// FIXME: we should probably do this in api_here
+		tripID, err := models.GetPartialTripIDMatch(etc.DBConn, agencyID, routeID, trip.GetTripId())
 		if err != nil {
 			// FIXME: what to do here?
-			log.Println("can't get tripID", route, tripID, err)
+			log.Println("can't get tripID", routeID, tripID, err)
 		}
 
 		// Go through all updates to check for our stop ID's departure
 		// time.
 		for _, u := range stopTimeUpdates {
 			// If this is our stop, then get the departure time.
-			if u.GetStopId() == stop.ID {
+			if u.GetStopId() == stopID {
 				d = append(d,
 					&models.Departure{
 						Time:   time.Unix(u.GetDeparture().GetTime(), 0),
