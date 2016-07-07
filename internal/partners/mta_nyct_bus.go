@@ -19,18 +19,37 @@ var (
 
 type mtaNYCBus struct{}
 
-func (_ mtaNYCBus) Live(route models.Route, stop models.Stop) (d models.Departures, v []models.Vehicle, err error) {
-	lineRef := fmt.Sprint("MTA NYCT_", stop.RouteID)
-	stopPointRef := fmt.Sprint("MTA_", stop.ID)
+func (p mtaNYCBus) getURL(routeID string, directionID int) string {
+	lineRef := fmt.Sprint("MTA NYCT_", routeID)
 
 	q := url.Values{}
 	q.Set("key", conf.Partner.BustimeAPIKey)
-	q.Set("DirectionRef", strconv.Itoa(stop.DirectionID))
+	q.Set("DirectionRef", strconv.Itoa(directionID))
 	q.Set("VehicleMonitoringDetailLevel", "calls")
 	q.Set("LineRef", lineRef)
-	u := fmt.Sprint(vmURL, "?", q.Encode())
 
-	b, err := etc.RedisCache(u)
+	return vmURL + "?" + q.Encode()
+}
+
+func (p mtaNYCBus) Precache(agencyID, routeID string, directionID int) error {
+	u := p.getURL(routeID, directionID)
+
+	_, err := etc.RedisCache(u)
+	if err != nil {
+		log.Println("can't cache live buses", err)
+		return err
+	}
+
+	return nil
+}
+
+func (p mtaNYCBus) Live(agencyID, routeID, stopID string, directionID int) (d models.Departures, v []models.Vehicle, err error) {
+
+	stopPointRef := fmt.Sprint("MTA_", stopID)
+
+	u := p.getURL(routeID, directionID)
+
+	b, err := etc.RedisGet(u)
 	if err != nil {
 		log.Println("can't get live buses", err)
 		return

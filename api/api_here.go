@@ -49,7 +49,12 @@ func init() {
 // req.stop.Live
 func stopWorker() {
 	for req := range stopChan {
-		liveDepartures, liveVehicles, err := req.partner.Live(*req.route, *req.stop)
+		err := req.partner.Precache(req.route.AgencyID, req.route.RouteID, req.stop.DirectionID)
+		if err != nil {
+			log.Println("got an error precaching", err)
+			return
+		}
+		liveDepartures, liveVehicles, err := req.partner.Live(req.route.AgencyID, req.route.RouteID, req.stop.ID, req.stop.DirectionID)
 		if err != nil {
 			req.response <- err
 			continue
