@@ -11,6 +11,9 @@ var (
 
 	// Loader is the current loader config
 	Loader LoaderSpec
+
+	// Precache is the current precache
+	Precache PrecacheSpec
 )
 
 // DBSpec is our database config used by both busapi and busloader
@@ -97,4 +100,28 @@ type LoaderSpec struct {
 	// Default: true
 	// Environment variable: $BUS_LOAD_FOREVER
 	LoadForever bool `envconfig:"load_forever" default:"false"`
+}
+
+// PrecacheSpec is our config spec used by busprecache
+type PrecacheSpec struct {
+	// RedisAddr is the "host:port" we use for connecting to redis
+	// Default: "localhost:6379"
+	// Environment variable: $BUS_REDIS_ADDR
+	RedisAddr string `envconfig:"redis_addr" default:"localhost:6379"`
+
+	// BusAPIKey is the API key for accessing http://bustime.mta.info/
+	// Default: None
+	// Environment variable: $BUS_MTA_BUSTIME_API_KEY
+	BustimeAPIKey string `envconfig:"mta_bustime_api_key" required:"true"`
+
+	// DatamineAPIKey is the API key for accessing http://datamine.mta.info/
+	// Default: None
+	// Environment variable: $BUS_MTA_DATAMINE_API_KEY
+	DatamineAPIKey string `envconfig:"mta_datamine_api_key" required:"true"`
+
+	// AgencyIDs is a comma-delimited list of agencies that this
+	// precacher should be hitting
+	// Default: None
+	// Environment variable: $BUS_AGENCY_IDS (comma-delimited list)
+	AgencyIDs []string `envconfig:"agency_ids"`
 }
