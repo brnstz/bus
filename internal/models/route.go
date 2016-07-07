@@ -131,8 +131,28 @@ func NewRoute(id string, rtype int, color, textColor, agencyID string) (r *Route
 	return
 }
 
-// test func for static json file
 func GetAllRoutes(db sqlx.Ext, agencyID string) (routes []*Route, err error) {
+
+	err = sqlx.Select(db, &routes,
+		`SELECT * FROM route WHERE agency_id = $1`,
+		agencyID,
+	)
+	if err != nil {
+		return
+	}
+
+	for _, r := range routes {
+		err = r.init()
+		if err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// test func for static json file
+func GetPreloadRoutes(db sqlx.Ext, agencyID string) (routes []*Route, err error) {
 	err = sqlx.Select(db, &routes,
 		`SELECT * FROM route WHERE agency_id = $1 AND route_type != $2`,
 		agencyID, Bus,

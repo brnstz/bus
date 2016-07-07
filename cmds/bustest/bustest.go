@@ -40,7 +40,7 @@ func main() {
 
 	etc.DBConn = etc.MustDB()
 
-	routes, err := models.GetAllRoutes(etc.DBConn, "MTA NYCT")
+	routes, err := models.GetPreloadRoutes(etc.DBConn, "MTA NYCT")
 	if err != nil {
 		log.Fatal(err)
 	}

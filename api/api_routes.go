@@ -22,7 +22,7 @@ type routesResp struct {
 func InitRouteCache() error {
 	// getAll subway/train routes so we can pre-render them. Including
 	// buses would be too much
-	routes, err := models.GetAllRoutes(etc.DBConn, "MTA NYCT")
+	routes, err := models.GetPreloadRoutes(etc.DBConn, "MTA NYCT")
 	if err != nil {
 		log.Println("can't get routes", err)
 		return err
