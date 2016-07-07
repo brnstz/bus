@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"sort"
+	"time"
 
 	"github.com/brnstz/bus/internal/etc"
 	"github.com/brnstz/bus/internal/models"
@@ -49,11 +50,6 @@ func init() {
 // req.stop.Live
 func stopWorker() {
 	for req := range stopChan {
-		err := req.partner.Precache(req.route.AgencyID, req.route.RouteID, req.stop.DirectionID)
-		if err != nil {
-			log.Println("got an error precaching", err)
-			return
-		}
 		liveDepartures, liveVehicles, err := req.partner.Live(req.route.AgencyID, req.route.RouteID, req.stop.ID, req.stop.DirectionID)
 		if err != nil {
 			req.response <- err
@@ -207,19 +203,21 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get stops that match this query
+	t1 := time.Now()
 	stops, err := models.GetStopsByQuery(etc.DBConn, sq)
 	if err != nil {
 		log.Println("can't get stops", err)
 		apiErr(w, err)
 		return
 	}
+	log.Println("time getting stops", time.Now().Sub(t1))
 
 	// Create a channel for receiving responses to stopLiveRequest values
 	respch := make(chan error, len(stops))
 	count := 0
 
+	t3 := time.Now()
 	for _, s := range stops {
-
 		// Get the route for this stop and add to our list (may include dupes)
 		route, err := models.GetRoute(etc.DBConn, s.AgencyID, s.RouteID)
 		if err != nil {
@@ -254,6 +252,7 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 	}
+	log.Println("time spent getting routes and partners", time.Now().Sub(t3))
 
 	// Set stop value of the response
 	resp.Stops = stops

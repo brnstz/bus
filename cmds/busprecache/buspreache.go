@@ -9,6 +9,7 @@ import (
 
 	"github.com/brnstz/bus/internal/conf"
 	"github.com/brnstz/bus/internal/etc"
+	"github.com/brnstz/bus/precache"
 	"github.com/kelseyhightower/envconfig"
 )
 
@@ -42,4 +43,5 @@ func main() {
 
 	etc.DBConn = etc.MustDB()
 
+	precache.Precache()
 }
