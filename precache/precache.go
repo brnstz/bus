@@ -12,16 +12,14 @@ import (
 
 var (
 
-	// total simultaneous network connections
-	maxWorkers = 200
-
 	// max workers per a single agency
-	maxWorkersAgency = 20
+	maxWorkersAgency = 10
 
 	// delay is the time to wait between requests for the same route
 	delay = time.Duration(60) * time.Second
 
-	// error delay
+	// error delay is the time we wait before hitting the API again
+	// if we get an error
 	errDelay = time.Duration(10) * time.Second
 
 	// size of each precacheRequest's channel
@@ -36,11 +34,17 @@ type precacheRequest struct {
 	result      chan error
 }
 
-// routeWorker is
+// routeWorker runs forever for this partner/agency/route/direction, sending
+// a new precacheRequest to the channel ch, delaying between each request.
+// The goal is to make a request from the partner before the TTL
+// runs out.
 func routeWorker(ch chan precacheRequest, p partners.P, agencyID string, routeID string, directionID int) {
 	var err error
 
+	// Assume last success was now
 	lastSuccess := time.Now()
+
+	// Convert RedisTTL to a duration
 	ttlDur := time.Duration(conf.Cache.RedisTTL) * time.Second
 
 	// Loop forever, constantly getting new updates
@@ -55,15 +59,13 @@ func routeWorker(ch chan precacheRequest, p partners.P, agencyID string, routeID
 			result:      make(chan error, 1),
 		}
 
-		log.Println("sending req", req)
 		// Send it to an agencyWorker
 		ch <- req
-		log.Println("sent req", req)
 
 		// Wait for the response
 		err = <-req.result
-		log.Println("got response", req)
 
+		// Record current time and difference
 		now := time.Now()
 		diff := now.Sub(lastSuccess)
 
@@ -87,11 +89,8 @@ func routeWorker(ch chan precacheRequest, p partners.P, agencyID string, routeID
 
 // agencyWorker calls Precache on each incoming request
 func agencyWorker(ch chan precacheRequest) {
-	log.Println("ready for work sarge")
 	for req := range ch {
-		log.Println("i got one")
 		req.result <- req.partner.Precache(req.agencyID, req.routeID, req.directionID)
-		log.Println("i did it")
 	}
 }
 
@@ -115,17 +114,25 @@ func Precache() {
 		}
 
 		for _, route := range routes {
+
+			// Get the partner for each route
+			p, err := partners.Find(*route)
+			if err == partners.ErrNoPartner {
+				// If there's no partner, just ignore it
+				continue
+			}
+			if err != nil {
+				// It's a fatal error the precacher if it can't
+				// one of its configured partners
+				log.Fatal("error getting partner", err)
+			}
+
 			for dir := 0; dir <= 1; dir++ {
+				// Create a routeWorker for every combination of
+				// route / direction. For some APIs, the response for each
+				// direction is no different. It's up to the partner to ignore
+				// one of the requests.
 
-				p, err := partners.Find(*route)
-				if err == partners.ErrNoPartner {
-					continue
-				}
-				if err != nil {
-					log.Fatal("error getting partner", err)
-				}
-
-				// Create a routeWorker for every combination
 				// FIXME: problem with this is... we'll never
 				// create new goroutines when they are updated in db
 				go routeWorker(ch, p, route.AgencyID, route.RouteID, dir)
