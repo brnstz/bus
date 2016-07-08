@@ -1,0 +1,37 @@
+- hosts: precache
+  become: yes
+  become_user: root
+  vars_files:
+    - "group_vars/defaults.yml"
+    - "group_vars/{{ inventory }}.yml"
+  vars:
+    busprecache_bin_path: "/usr/local/bin/busprecache"
+    busprecache_conf_path: "/etc/init/busprecache.conf"
+    busprecache_user: "bus"
+
+  tasks:
+    - name: Install needed packages
+      apt: update_cache=yes pkg="{{ item }}" state=installed
+      with_items:
+        - monit
+
+    - name: Create bus user
+      user: name="{{ busprecache_user }}"
+
+    - name: Install busprecache binary
+      copy: src=bin/busprecache dest="{{ busprecache_bin_path }}" mode=755
+
+    - name: Install busprecache upstart config
+      template: src=templates/busprecache_upstart.conf.j2 dest="{{ busprecache_conf_path }}" owner=root group=root mode=644
+
+    - name: Reload upstart config
+      command: initctl reload-configuration
+
+    - name: Install busprecache monit config
+      template: src=templates/precache_monit.conf.j2 dest=/etc/monit/conf.d/precache_monit.conf owner=root group=root mode=644
+
+    - name: Reload monit config
+      service: name=monit state=reloaded
+
+    - name: Restart busprecache
+      service: name=busprecache state=restarted
