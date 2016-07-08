@@ -4,7 +4,7 @@ description "Bus Loader"
 
 console log
 
-env BUS_GTFS_URLS="{% for url in gts_urls %}{{ url }}{% if not loop.last %},{% endif %}{% endfor %}"
+env BUS_GTFS_URLS="{% for url in gtfs_urls %}{{ url }}{% if not loop.last %},{% endif %}{% endfor %}"
 env BUS_ROUTE_FILTER="{% for rf in route_filter %}{{ rf }}{% if not loop.last %},{% endif %}{% endfor %}"
 env BUS_LOAD_FOREVER="{{ load_forever }}"
 
