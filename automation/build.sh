@@ -41,6 +41,7 @@ go get $CODE_ROOT/... || error
 # Install our binaries
 go build -o $BIN_DIR/busapi $CODE_ROOT/cmds/busapi || error
 go build -o $BIN_DIR/busloader $CODE_ROOT/cmds/busloader || error
+go build -o $BIN_DIR/busprecache $CODE_ROOT/cmds/busprecache || error
 
 # Run web build
 cd ../web || error
