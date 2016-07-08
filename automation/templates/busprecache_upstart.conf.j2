@@ -1,0 +1,11 @@
+#!upstart
+
+description "Bus Precache"
+
+console log
+
+env BUS_AGENCY_IDS="{{ agency_ids }}"
+env BUS_MTA_BUSTIME_API_KEY="{{ mta_bustime_api_key }}"
+env BUS_MTA_DATAMINE_API_KEY="{{ mta_datamine_api_key }}"
+
+exec start-stop-daemon --start --make-pidfile --pidfile /var/run/busprecache.pid --exec {{ busprecache_bin_path }} --user {{ busprecache_user }}
