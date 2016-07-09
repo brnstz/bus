@@ -1,53 +1,37 @@
+# db.yml is a playbook to run during a typical deploy. It will run any 
+# new migrations, etc.  
+
+- include: db_common.yml
+
 - hosts: db
   become: yes
   become_user: root
   vars:
-    - postgresql_version: 9.4
+    - flyway_version: 4.0.3
+    - flyway_url: "https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/{{ flyway_version }}/flyway-commandline-{{ flyway_version }}-linux-x64.tar.gz"
+    - flyway_file: "flyway-commandline-{{ flyway_version }}-linux-x64.tar.gz"
+    - flyway_dir: "/usr/local/flyway-{{ flyway_version }}"
+
   vars_files:
     - "group_vars/defaults.yml"
     - "group_vars/{{ inventory }}.yml"
+
+
   tasks:
-    - name: Add PostgreSQL key to apt
-      apt_key: url='https://www.postgresql.org/media/keys/ACCC4CF8.asc'
 
-    - name: Add PostgreSQL repo to apt
-      apt_repository: repo='deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main' state=present
+    - name: Get Flyway
+      get_url: url="{{ flyway_url }}" dest="/tmp/{{ flyway_file }}"
 
-    - name: Install needed packages
-      apt: update_cache=yes pkg="{{ item }}" state=installed
-      with_items:
-        - "postgresql-{{ postgresql_version }}"
-        - "postgresql-contrib-{{ postgresql_version }}"
-        - "postgresql-{{ postgresql_version }}-postgis-2.2"
-        - monit
+    - name: Unarchive Flyway
+      unarchive: src="/tmp/{{ flyway_file }}" dest="/usr/local" copy=no 
 
-    - name: Install pg_hba.conf
-      template: src=templates/pg_hba.conf.j2 dest="/etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf" owner=postgres group=postgres mode=640
+    - name: Allow all to execute Flyway
+      file: mode=0755 path="{{ flyway_dir }}/flyway"
 
-    - name: Reload PostgreSQL config
-      service: name=postgresql state=reloaded
+    - name: Copy migrations
+      copy: src=../migrations dest=/usr/local
 
-    # If there is no backup, then create a blank schema
-    - name: Copy schema file
-      copy: src=../schema/schema.sql dest=/tmp/schema.sql
-      when: initial_db_backup is undefined or initial_db_backup == ""
+    - name: Execute migrations
+      command: "{{ flyway_dir }}/flyway -user=postgres -password= -url='jdbc:postgresql://localhost/postgres' -locations=filesystem:/usr/local/migrations migrate"
 
-    - name: Load schema
-      shell: psql -U postgres < /tmp/schema.sql
-      when: initial_db_backup is undefined or initial_db_backup == ""
 
-    # If there is a backup, then empty the db and use the backup
-    - name: Get the db backup file
-      get_url: url="{{ initial_db_backup }}" dest=/tmp/initial_db_backup.sql.gz force=yes
-      when: initial_db_backup is defined and initial_db_backup != ""
-
-    # Clear the database and load the backup file
-    - name: Load db backup
-      shell: echo "DROP SCHEMA PUBLIC CASCADE; CREATE SCHEMA PUBLIC;" | psql -U postgres && gunzip --stdout /tmp/initial_db_backup.sql.gz | psql -U postgres
-      when: initial_db_backup is defined and initial_db_backup != ""
-
-    - name: Install db monit config
-      template: src=templates/db_monit.conf.j2 dest=/etc/monit/conf.d/db_monit.conf owner=root group=root mode=644
-
-    - name: Reload monit config
-      service: name=monit state=reloaded

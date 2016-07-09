@@ -1,6 +1,3 @@
-DROP schema PUBLIC cascade;
-CREATE schema PUBLIC;
-
 CREATE EXTENSION IF NOT EXISTS postgis;
 
 -- route contains selected fields from 
