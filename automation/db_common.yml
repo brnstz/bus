@@ -1,0 +1,37 @@
+# db_common.yml includes tasks to run for either db.yml or db_restore.yml. It
+# just installs Postgres, doesn't know anything about our schema / backups /
+# etc.
+- hosts: db
+  become: yes
+  become_user: root
+
+  vars:
+    - postgresql_version: 9.4
+
+  vars_files:
+    - "group_vars/defaults.yml"
+    - "group_vars/{{ inventory }}.yml"
+
+  tasks:
+    - name: Add PostgreSQL key to apt
+      apt_key: url='https://www.postgresql.org/media/keys/ACCC4CF8.asc'
+
+    - name: Add PostgreSQL repo to apt
+      apt_repository: repo='deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main' state=present
+
+    - name: Install needed packages
+      apt: update_cache=yes pkg="{{ item }}" state=installed
+      with_items:
+        - "postgresql-{{ postgresql_version }}"
+        - "postgresql-contrib-{{ postgresql_version }}"
+        - "postgresql-{{ postgresql_version }}-postgis-2.2"
+        - monit
+
+    - name: Install pg_hba.conf
+      template: src=templates/pg_hba.conf.j2 dest="/etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf" owner=postgres group=postgres mode=640
+
+    - name: Reload PostgreSQL config
+      service: name=postgresql state=reloaded
+
+    - name: Install db monit config
+      template: src=templates/db_monit.conf.j2 dest=/etc/monit/conf.d/db_monit.conf owner=root group=root mode=644
