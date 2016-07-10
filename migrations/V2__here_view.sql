@@ -39,4 +39,4 @@ INNER JOIN trip ON
     sst.trip_id   = trip.trip_id;
 
 CREATE INDEX idx_location_here ON here USING gist(location);
-CREATE INDEX idx_service_id_here ON here USING service_id;
+CREATE INDEX idx_service_id_here ON here (service_id);
