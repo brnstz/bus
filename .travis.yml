@@ -9,6 +9,7 @@ services:
 env:
   - BUS_API_ADDR=":8000" BUS_DB_ADDR="localhost:5432" BUS_DB_USER="postgres" BUS_DB_NAME="postgres" BUS_REDIS_ADDR="localhost:6379" BUS_LOAD_FOREVER="false" BUS_GTFS_URLS="http://pub.brnstz.com.s3-website-us-east-1.amazonaws.com/bus/testdata/google_transit.zip,http://pub.brnstz.com.s3-website-us-east-1.amazonaws.com/bus/testdata/google_transit_brooklyn.zip" BUS_ROUTE_FILTER="G,L,B62,B32,B43"
 
-before_script: psql -U $BUS_DB_USER -d $BUS_DB_NAME < schema/schema.sql
+before_script: 
+  - psql -U $BUS_DB_USER -d $BUS_DB_NAME < migrations/*.sql
 
 script: go test -v ./
