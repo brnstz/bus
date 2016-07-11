@@ -66,8 +66,8 @@ func (t *Trip) addShapes(db sqlx.Ext, agencyID, shapeID string) (err error) {
 	// Try to get the shapes specific to this trip
 	q := `
 		SELECT 
-			ST_X(location::geometry) AS lat, 
-			ST_Y(location::geometry) AS lon
+			ST_X(location) AS lat, 
+			ST_Y(location) AS lon
 		FROM shape
 		WHERE agency_id = $1 AND
 		      shape_id  = $2

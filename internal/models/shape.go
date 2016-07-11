@@ -31,7 +31,7 @@ func GetShapes(db sqlx.Ext, agencyID, shapeID string) ([]*Shape, error) {
 	}
 
 	q := `
-		SELECT ST_X(location::geometry) AS lat, ST_Y(location::geometry) AS lon
+		SELECT ST_X(location) AS lat, ST_Y(location) AS lon
 		FROM shape
 		WHERE 
 			agency_id = $1 AND

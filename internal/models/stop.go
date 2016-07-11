@@ -202,8 +202,8 @@ func GetStopsByTrip(db sqlx.Ext, t *Trip) (stops []*Stop, err error) {
 
 	q := `
 		SELECT stop.*, 
-			ST_X(location::geometry) AS lat, 
-			ST_Y(location::geometry) AS lon,
+			ST_X(location) AS lat, 
+			ST_Y(location) AS lon,
 			sst.stop_sequence
 
 		FROM stop
@@ -244,8 +244,8 @@ func GetStop(db sqlx.Ext, agencyID, routeID, stopID string, appendInfo bool) (*S
 
 	err := sqlx.Get(db, &s, `
 		 SELECT stop.*, 
-				ST_X(location::geometry) AS lat, 
-				ST_Y(location::geometry) AS lon
+				ST_X(location) AS lat, 
+				ST_Y(location) AS lon
 
 		 FROM stop
 		 WHERE stop.agency_id = $1 AND
