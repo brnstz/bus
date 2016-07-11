@@ -701,10 +701,14 @@ func LoadOnce() {
 	}
 
 	for _, refreshView := range refreshViews {
+		log.Println("running: ", refreshView)
+
 		_, err = etc.DBConn.Exec(refreshView)
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		log.Println("finished")
 	}
 }
 

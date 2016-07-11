@@ -35,7 +35,7 @@ func NewTrip(id, routeID, agencyID, serviceID, shapeID, headsign string, directi
 		DirectionID: direction,
 	}
 
-	err = t.init()
+	err = t.Initialize()
 	if err != nil {
 		log.Println("can't init", err)
 		return
@@ -48,9 +48,9 @@ func (t *Trip) Table() string {
 	return "trip"
 }
 
-// init ensures any derived values are correct after creating/loading
+// Initialize ensures any derived values are correct after creating/loading
 // an object
-func (t *Trip) init() (err error) {
+func (t *Trip) Initialize() (err error) {
 	t.UniqueID = t.AgencyID + "|" + t.TripID
 
 	return nil
@@ -143,7 +143,7 @@ func GetTrip(db sqlx.Ext, agencyID, routeID, tripID string) (t Trip, err error) 
 		return
 	}
 
-	err = t.init()
+	err = t.Initialize()
 	if err != nil {
 		log.Println("can't init", err)
 		return
