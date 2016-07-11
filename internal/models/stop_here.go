@@ -26,6 +26,12 @@ func getNewServiceIDs(db sqlx.Ext, agencyID string, day string, now time.Time) (
 	// in this time window or just the max start date (most recent one)
 	// Experience with MTA data suggests we only want one.
 
+	// Previously we deduped this by route_id, but with bus / train data mixed
+	// the agency_id is not unique enough to dedupe in same way. The main
+	// problem is when we get updated files for services that haven't started yet
+	// and these dates overlap with the previous service. We should probably
+	// make the fix in the loader / materialized view.
+
 	// Select the service_id that:
 	//   * matches our agencyID, day
 	//   * has an end_date after now
@@ -39,8 +45,6 @@ func getNewServiceIDs(db sqlx.Ext, agencyID string, day string, now time.Time) (
 			   end_date >= $2 AND
 			   start_date <= $3 AND 
 			   agency_id = $4
-		ORDER BY start_date DESC
-		LIMIT 1
 	`
 
 	err = sqlx.Select(db, &normalIDs, q, day, now, now, agencyID)
@@ -149,18 +153,21 @@ func GetStopsByHereQuery(db sqlx.Ext, hq HereQuery) (stops []*Stop, err error) {
 
 	defer rows.Close()
 
+	count := 0
 	log.Println("gettin rows", hq.Query, hq)
 	for rows.Next() {
+		count++
 		log.Println("do i got a row?")
-		var result map[string]interface{}
+		result := map[string]interface{}{}
 
-		err = rows.Scan(&result)
+		err = rows.MapScan(result)
 		if err != nil {
-			log.Println("can't scan row")
+			log.Println("can't scan row", err)
 		}
 
 		log.Println(result)
 	}
+	log.Println("total count", count)
 
 	return
 }

@@ -18,7 +18,7 @@ const (
 		FROM here
 
 		WHERE
-			ST_CONTAINS(ST_SETSRID(ST_MAKEPOLYGON(:line_string), :srid), GEOMETRY(location)) AND
+			ST_CONTAINS(ST_SETSRID(ST_MAKEPOLYGON(:line_string), :srid), location) AND
 
 			(
 				(   
