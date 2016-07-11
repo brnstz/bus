@@ -665,6 +665,8 @@ func (l *Loader) updateRouteShapes() {
 // routes specified in conf.Loader.RouteFilter. If no filter is defined,
 // it loads all data in the specified URLs.
 func LoadOnce() {
+	var err error
+
 	for _, url := range conf.Loader.GTFSURLs {
 		log.Printf("starting %v", url)
 

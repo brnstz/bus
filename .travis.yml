@@ -11,4 +11,4 @@ env:
 
 before_script: cat migrations/*.sql | psql -U $BUS_DB_USER -d $BUS_DB_NAME 
 
-script: go test -v ./
+script: go test -v ./...
