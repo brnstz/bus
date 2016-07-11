@@ -1,8 +1,6 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -11,7 +9,6 @@ import (
 
 	"github.com/brnstz/bus/internal/conf"
 	"github.com/brnstz/bus/internal/etc"
-	"github.com/brnstz/bus/internal/models"
 	"github.com/kelseyhightower/envconfig"
 )
 
@@ -40,15 +37,17 @@ func main() {
 
 	etc.DBConn = etc.MustDB()
 
-	routes, err := models.GetPreloadRoutes(etc.DBConn, "MTA NYCT")
-	if err != nil {
-		log.Fatal(err)
+	refreshViews := []string{
+		//		"REFRESH MATERIALIZED VIEW here;",
+		"REFRESH MATERIALIZED VIEW service;",
+		"REFRESH MATERIALIZED VIEW service_exception;",
 	}
 
-	b, err := json.Marshal(routes)
-	if err != nil {
-		log.Fatal(err)
+	for _, refreshView := range refreshViews {
+		_, err = etc.DBConn.Exec(refreshView)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
-	fmt.Printf("%s", b)
 }
