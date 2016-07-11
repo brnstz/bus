@@ -3,16 +3,13 @@
 -- test out a possible final solution in the loader later.
 
 CREATE MATERIALIZED VIEW service AS
-    SELECT agency_id, service_id, day, start_date, end_date
-    FROM 
-        SELECT DISTINCT ON (agency_id, service_id, day) 
-            agency_id,
-            service_id, 
-            day, 
-            start_date,
-            end_date
-
-        FROM service_route_day;
+	SELECT DISTINCT ON (agency_id, service_id, day)
+        agency_id,
+        service_id,
+        day,
+        start_date,
+        end_date
+    FROM service_route_day;
 CREATE INDEX idx_service ON service (agency_id, service_id, day);
 
 CREATE MATERIALIZED VIEW service_exception AS
