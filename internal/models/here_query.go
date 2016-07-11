@@ -48,7 +48,8 @@ type HereQuery struct {
 	MidLat float64 `db:"mid_lat"`
 	MidLon float64 `db:"mid_lon"`
 
-	LineString string `db:"line_string"`
+	LineString  string `db:"line_string"`
+	PointString string `db:"point_string"`
 
 	TodayServiceIDs     []string
 	YesterdayServiceIDs []string
@@ -58,6 +59,8 @@ type HereQuery struct {
 
 	YesterdayDepartureMin int `db:"yesterday_departure_min"`
 	YesterdayDepartureMax int `db:"yesterday_departure_max"`
+
+	SRID int `db:"srid"`
 
 	Query string
 }
@@ -101,6 +104,8 @@ func escape(serviceID string) string {
 
 func (hq *HereQuery) Initialize() error {
 
+	hq.SRID = 4326
+
 	hq.LineString = fmt.Sprintf(
 		`LINESTRING(%f %f, %f %f, %f %f, %f %f, %f %f)`,
 		hq.SWLat, hq.SWLon,
@@ -108,6 +113,11 @@ func (hq *HereQuery) Initialize() error {
 		hq.NELat, hq.NELon,
 		hq.NELat, hq.SWLon,
 		hq.SWLat, hq.SWLon,
+	)
+
+	hq.PointString = fmt.Sprintf(
+		`POINT(%f %f)`,
+		hq.MidLat, hq.MidLon,
 	)
 
 	hq.Query = fmt.Sprintf(hereQuery,

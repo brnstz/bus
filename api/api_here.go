@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"sort"
-	"time"
 
 	"github.com/brnstz/bus/internal/etc"
 	"github.com/brnstz/bus/internal/models"
@@ -127,7 +126,7 @@ type hereResponse struct {
 func getHere(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var resp hereResponse
-	var routes []*models.Route
+	//var routes []*models.Route
 
 	// Read values incoming from http request
 	lat, err := floatOrDie(r.FormValue("lat"))
@@ -185,132 +184,147 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create a query for stops
-	sq := models.StopQuery{
-		MidLat:     lat,
-		MidLon:     lon,
-		SWLat:      SWLat,
-		SWLon:      SWLon,
-		NELat:      NELat,
-		NELon:      NELon,
-		Distinct:   true,
-		Departures: true,
-	}
-	err = sq.Initialize()
-	if err != nil {
-		log.Println("can't init stop query", err)
-		apiErr(w, err)
-		return
+	hq := models.HereQuery{
+		MidLat: lat,
+		MidLon: lon,
+		SWLat:  SWLat,
+		SWLon:  SWLon,
+		NELat:  NELat,
+		NELon:  NELon,
 	}
 
-	// Get stops that match this query
-	t1 := time.Now()
-	stops, err := models.GetStopsByQuery(etc.DBConn, sq)
-	if err != nil {
-		log.Println("can't get stops", err)
-		apiErr(w, err)
-		return
-	}
-	log.Println("time getting stops", time.Now().Sub(t1))
+	models.GetStopsByHereQuery(etc.DBConn, hq)
 
-	// Create a channel for receiving responses to stopLiveRequest values
-	respch := make(chan error, len(stops))
-	count := 0
-
-	t3 := time.Now()
-	for _, s := range stops {
-		// Get the route for this stop and add to our list (may include dupes)
-		route, err := models.GetRoute(etc.DBConn, s.AgencyID, s.RouteID)
+	/*
+		// Create a query for stops
+		sq := models.StopQuery{
+			MidLat:     lat,
+			MidLon:     lon,
+			SWLat:      SWLat,
+			SWLon:      SWLon,
+			NELat:      NELat,
+			NELon:      NELon,
+			Distinct:   true,
+			Departures: true,
+		}
+		err = sq.Initialize()
 		if err != nil {
-			log.Println("can't get route", err)
+			log.Println("can't init stop query", err)
 			apiErr(w, err)
 			return
 		}
-		routes = append(routes, route)
 
-		// Get a live partner or skip it
-		partner, err := partners.Find(*route)
+		// Get stops that match this query
+		t1 := time.Now()
+		stops, err := models.GetStopsByQuery(etc.DBConn, sq)
 		if err != nil {
-			log.Println(err)
-			continue
+			log.Println("can't get stops", err)
+			apiErr(w, err)
+			return
 		}
+		log.Println("time getting stops", time.Now().Sub(t1))
 
-		// Create a request to get live info and send it on the channel
-		req := &stopLiveRequest{
-			route:    route,
-			stop:     s,
-			partner:  partner,
-			response: respch,
-		}
-		stopChan <- req
-		count++
-	}
+		// Create a channel for receiving responses to stopLiveRequest values
+		respch := make(chan error, len(stops))
+		count := 0
 
-	// Wait for all responses
-	for i := 0; i < count; i++ {
-		err = <-respch
-		if err != nil {
-			log.Println(err)
-		}
-	}
-	log.Println("time spent getting routes and partners", time.Now().Sub(t3))
-
-	// Set stop value of the response
-	resp.Stops = stops
-
-	// Add any routes to the response that the bloom filter says we don't have
-	for _, route := range routes {
-		exists := resp.Filter.TestString(route.UniqueID)
-		// If the route doesn't exist in our filter, then we want to pull
-		// the shapes and also append it to our response list.
-		if !exists {
-			route.RouteShapes, err = models.GetSavedRouteShapes(
-				etc.DBConn, route.AgencyID, route.RouteID,
-			)
+		t3 := time.Now()
+		for _, s := range stops {
+			// Get the route for this stop and add to our list (may include dupes)
+			route, err := models.GetRoute(etc.DBConn, s.AgencyID, s.RouteID)
 			if err != nil {
-				// This is a fatal error because the front end code
-				// assumes the route will be there
-				log.Println("can't get route shapes", route, err)
+				log.Println("can't get route", err)
 				apiErr(w, err)
 				return
 			}
+			routes = append(routes, route)
 
-			resp.Filter.AddString(route.UniqueID)
-			resp.Routes = append(resp.Routes, route)
-		}
-	}
-
-	// Add the first trip of each stop response that is not already in our
-	// bloom filter
-	for _, stop := range stops {
-		if len(stop.Departures) < 1 {
-			continue
-		}
-
-		tripID := stop.Departures[0].TripID
-		uniqueID := stop.AgencyID + "|" + tripID
-
-		exists := resp.Filter.TestAndAddString(uniqueID)
-		if !exists {
-			trip, err := models.GetTrip(etc.DBConn, stop.AgencyID, stop.RouteID, tripID)
+			// Get a live partner or skip it
+			partner, err := partners.Find(*route)
 			if err != nil {
-				// FIXME: Can this be a non-fatal error? Let's see.
-				log.Println("can't get trip", uniqueID, err)
+				log.Println(err)
 				continue
 			}
 
-			resp.Filter.AddString(uniqueID)
-			resp.Trips = append(resp.Trips, &trip)
+			// Create a request to get live info and send it on the channel
+			req := &stopLiveRequest{
+				route:    route,
+				stop:     s,
+				partner:  partner,
+				response: respch,
+			}
+			stopChan <- req
+			count++
+		}
+
+		// Wait for all responses
+		for i := 0; i < count; i++ {
+			err = <-respch
+			if err != nil {
+				log.Println(err)
+			}
+		}
+		log.Println("time spent getting routes and partners", time.Now().Sub(t3))
+
+		// Set stop value of the response
+		resp.Stops = stops
+
+		// Add any routes to the response that the bloom filter says we don't have
+		for _, route := range routes {
+			exists := resp.Filter.TestString(route.UniqueID)
+			// If the route doesn't exist in our filter, then we want to pull
+			// the shapes and also append it to our response list.
+			if !exists {
+				route.RouteShapes, err = models.GetSavedRouteShapes(
+					etc.DBConn, route.AgencyID, route.RouteID,
+				)
+				if err != nil {
+					// This is a fatal error because the front end code
+					// assumes the route will be there
+					log.Println("can't get route shapes", route, err)
+					apiErr(w, err)
+					return
+				}
+
+				resp.Filter.AddString(route.UniqueID)
+				resp.Routes = append(resp.Routes, route)
+			}
+		}
+
+		// Add the first trip of each stop response that is not already in our
+		// bloom filter
+		for _, stop := range stops {
+			if len(stop.Departures) < 1 {
+				continue
+			}
+
+			tripID := stop.Departures[0].TripID
+			uniqueID := stop.AgencyID + "|" + tripID
+
+			exists := resp.Filter.TestAndAddString(uniqueID)
+			if !exists {
+				trip, err := models.GetTrip(etc.DBConn, stop.AgencyID, stop.RouteID, tripID)
+				if err != nil {
+					// FIXME: Can this be a non-fatal error? Let's see.
+					log.Println("can't get trip", uniqueID, err)
+					continue
+				}
+
+				resp.Filter.AddString(uniqueID)
+				resp.Trips = append(resp.Trips, &trip)
+
+			}
 
 		}
 
-	}
+		b, err := json.Marshal(resp)
+		if err != nil {
+			log.Println("can't marshal to json", err)
+			apiErr(w, err)
+			return
+		}
 
-	b, err := json.Marshal(resp)
-	if err != nil {
-		log.Println("can't marshal to json", err)
-		apiErr(w, err)
-		return
-	}
+		w.Write(b)
 
-	w.Write(b)
+	*/
 }
