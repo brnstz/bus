@@ -154,18 +154,16 @@ func GetStopsByHereQuery(db sqlx.Ext, hq HereQuery) (stops []*Stop, err error) {
 	defer rows.Close()
 
 	count := 0
-	log.Println("gettin rows", hq.Query, hq)
 	for rows.Next() {
 		count++
-		log.Println("do i got a row?")
-		result := map[string]interface{}{}
+		here := HereResult{}
 
-		err = rows.MapScan(result)
+		err = rows.StructScan(&here)
 		if err != nil {
 			log.Println("can't scan row", err)
 		}
 
-		log.Println(result)
+		log.Printf("%+v", here)
 	}
 	log.Println("total count", count)
 
