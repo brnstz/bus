@@ -28,10 +28,12 @@ const (
 // stop serves more than one route, there are multiple distinct
 // entries for that stop.
 type Stop struct {
-	ID       string `json:"stop_id" db:"stop_id" upsert:"key"`
+	StopID   string `json:"stop_id" db:"stop_id" upsert:"key"`
 	RouteID  string `json:"route_id" db:"route_id" upsert:"key"`
 	AgencyID string `json:"agency_id" db:"agency_id" upsert:"key"`
 	Name     string `json:"stop_name" db:"stop_name"`
+
+	UniqueID string `json:"unique_id" db:"-" upsert:"omit"`
 
 	DirectionID int    `json:"direction_id" db:"direction_id"`
 	Headsign    string `json:"headsign" db:"headsign"`
@@ -50,6 +52,12 @@ type Stop struct {
 	Vehicles   []Vehicle    `json:"vehicles,omitempty" db:"-" upsert:"omit"`
 }
 
+func (s *Stop) Initialize() error {
+	s.UniqueID = s.AgencyID + "|" + s.StopID
+
+	return nil
+}
+
 // Table implements the upsert.Upserter interface, returning the table
 // where we save stops.
 func (s *Stop) Table() string {
@@ -65,14 +73,14 @@ func (s *Stop) Save() error {
 // String returns a descriptive string for this stop.
 func (s Stop) String() string {
 	return fmt.Sprintf("{%v %v %v %v %v @ (%v,%v)}",
-		s.ID, s.Name, s.RouteID, s.Headsign, s.DirectionID, s.Lat, s.Lon,
+		s.StopID, s.Name, s.RouteID, s.Headsign, s.DirectionID, s.Lat, s.Lon,
 	)
 }
 
 // Key() returns the unique string for this stop, so we can identify
 // unique stops in the loader.
 func (s Stop) Key() string {
-	return fmt.Sprintf("%v%v", s.ID, s.RouteID)
+	return fmt.Sprintf("%v%v", s.StopID, s.RouteID)
 }
 
 // setDepartures checks the database and any relevant APIs to set the scheduled
@@ -116,7 +124,7 @@ func (s *Stop) setDepartures(now time.Time, db sqlx.Ext) (err error) {
 
 			for _, yesterdayID := range yesterdayIDs {
 				departures, err := getDepartures(
-					s.AgencyID, s.RouteID, s.ID, yesterdayID,
+					s.AgencyID, s.RouteID, s.StopID, yesterdayID,
 					nowSecs-departurePreSec, yesterday)
 				if err != nil {
 					log.Println("can't get departures", err)
@@ -151,7 +159,7 @@ func (s *Stop) setDepartures(now time.Time, db sqlx.Ext) (err error) {
 
 		for _, todayID := range todayIDs {
 			departures, err := getDepartures(
-				s.AgencyID, s.RouteID, s.ID, todayID,
+				s.AgencyID, s.RouteID, s.StopID, todayID,
 				nowSecs-departurePreSec, today)
 			if err != nil {
 				log.Println("can't get departures", err)

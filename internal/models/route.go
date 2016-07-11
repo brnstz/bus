@@ -70,7 +70,7 @@ func (r *Route) Table() string {
 
 // init ensures any derived values are correct after creating/loading
 // an object
-func (r *Route) init() (err error) {
+func (r *Route) Initialize() (err error) {
 	var ok bool
 
 	// Load the string name of the route type, also checking that the incoming
@@ -122,7 +122,7 @@ func NewRoute(id string, rtype int, color, textColor, agencyID string) (r *Route
 		AgencyID:  agencyID,
 	}
 
-	err = r.init()
+	err = r.Initialize()
 	if err != nil {
 		log.Println(err)
 		return
@@ -142,7 +142,7 @@ func GetAllRoutes(db sqlx.Ext, agencyID string) (routes []*Route, err error) {
 	}
 
 	for _, r := range routes {
-		err = r.init()
+		err = r.Initialize()
 		if err != nil {
 			return
 		}
@@ -162,7 +162,7 @@ func GetPreloadRoutes(db sqlx.Ext, agencyID string) (routes []*Route, err error)
 	}
 
 	for _, r := range routes {
-		err = r.init()
+		err = r.Initialize()
 		if err != nil {
 			return
 		}
@@ -193,7 +193,7 @@ func GetRoute(db sqlx.Ext, agencyID, routeID string) (r *Route, err error) {
 		return
 	}
 
-	err = r.init()
+	err = r.Initialize()
 	if err != nil {
 		return
 	}

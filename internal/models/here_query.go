@@ -30,9 +30,9 @@ type HereResult struct {
 	StopName     string  `db:"stop_name"`
 	StopHeadsign string  `db:"stop_headsign"`
 	DirectionID  int     `db:"direction_id"`
-	Latitude     float64 `db:"latitude"`
-	Longitude    float64 `db:"longitude"`
-	Distance     float64 `db:"dist"`
+	Lat          float64 `db:"lat"`
+	Lon          float64 `db:"lon"`
+	Dist         float64 `db:"dist"`
 
 	// Route
 	RouteType      int    `db:"route_type"`
@@ -55,8 +55,8 @@ const (
 			stop_name,
 			direction_id,
 			stop_headsign,
-			ST_X(location) AS latitude,
-			ST_Y(location) AS longitude,
+			ST_X(location) AS lat,
+			ST_Y(location) AS lon,
 
 			route_type,
 			route_color,
@@ -83,7 +83,7 @@ const (
 					departure_sec < :yesterday_departure_max
 				)
 			)
-		ORDER BY dist ASC
+		ORDER BY dist ASC, departure_sec ASC
 	`
 )
 
