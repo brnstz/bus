@@ -35,8 +35,7 @@ CREATE TABLE stop (
     -- the name of the route, e.g., "B62" or "G"
     route_id    TEXT NOT NULL,
 
-    -- lat and lon converted into an earthdistance type
-    location    GEOGRAPHY(POINT, 4326) NOT NULL,
+    location    GEOMETRY NOT NULL,
 
     UNIQUE(agency_id, route_id, stop_id)
 );
@@ -70,7 +69,7 @@ CREATE TABLE trip (
 CREATE TABLE shape (
     agency_id   TEXT NOT NULL,
     shape_id    TEXT NOT NULL,
-    location    GEOGRAPHY(POINT, 4326) NOT NULL,
+    location    GEOMETRY NOT NULL,
     seq         INT NOT NULL,
 
     UNIQUE(agency_id, shape_id, seq)
