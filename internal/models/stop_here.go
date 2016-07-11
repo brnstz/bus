@@ -97,6 +97,13 @@ func getNewServiceIDs(db sqlx.Ext, agencyID string, day string, now time.Time) (
 }
 
 func GetStopsByHereQuery(db sqlx.Ext, hq HereQuery) (stops []*Stop, err error) {
+
+	// mapping of stop.UniqueID to stop
+	//sm := map[string]*Stop{}
+
+	// mapping of route.UniqueID to route
+	//rm := map[string]*Route{}
+
 	// overall function timing
 	if conf.API.LogTiming {
 		t1 := time.Now()
@@ -161,9 +168,31 @@ func GetStopsByHereQuery(db sqlx.Ext, hq HereQuery) (stops []*Stop, err error) {
 		err = rows.StructScan(&here)
 		if err != nil {
 			log.Println("can't scan row", err)
+			continue
 		}
 
-		log.Printf("%+v", here)
+		stop := Stop{
+			StopID:      here.StopID,
+			RouteID:     here.RouteID,
+			AgencyID:    here.AgencyID,
+			Name:        here.StopName,
+			DirectionID: here.DirectionID,
+			Headsign:    here.StopHeadsign,
+			Lat:         here.Lat,
+			Lon:         here.Lon,
+			Dist:        here.Dist,
+
+			// FIXME: is seq even needed?
+			Seq: here.StopSequence,
+		}
+		err = stop.Initialize()
+		if err != nil {
+			log.Println("can't init stop", err)
+			continue
+		}
+
+		//		oldStop, exists := sm[stop.UniqueID]
+
 	}
 	log.Println("total count", count)
 

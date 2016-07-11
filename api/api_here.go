@@ -49,7 +49,7 @@ func init() {
 // req.stop.Live
 func stopWorker() {
 	for req := range stopChan {
-		liveDepartures, liveVehicles, err := req.partner.Live(req.route.AgencyID, req.route.RouteID, req.stop.ID, req.stop.DirectionID)
+		liveDepartures, liveVehicles, err := req.partner.Live(req.route.AgencyID, req.route.RouteID, req.stop.StopID, req.stop.DirectionID)
 		if err != nil {
 			req.response <- err
 			continue
