@@ -27,7 +27,7 @@ func GetVehicle(agencyID, routeID, stopID string, directionID int) (vehicle Vehi
 	}
 
 	q := `
-		SELECT ST_X(location::geometry) AS lat, ST_Y(location::geometry) AS lon	
+		SELECT ST_X(location) AS lat, ST_Y(location) AS lon	
 		FROM   stop
 		WHERE  agency_id    = $1 AND
 			   route_id     = $2 AND
