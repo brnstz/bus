@@ -26,7 +26,7 @@ type Departure struct {
 	baseTime time.Time `json:"-" db:"-"`
 }
 
-func (d *Departure) init() error {
+func (d *Departure) Initialize() error {
 	d.Time = d.baseTime.Add(time.Second * time.Duration(d.DepartureSec))
 
 	return nil
@@ -71,7 +71,7 @@ func getDepartures(agencyID, routeID, stopID, serviceID string, minSec int, base
 
 	for _, departure := range d {
 		departure.baseTime = base
-		err = departure.init()
+		err = departure.Initialize()
 		if err != nil {
 			log.Println("can't init departure", err)
 			return
