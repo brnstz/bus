@@ -10,10 +10,61 @@ var (
 	defaultMaxResults = 1000
 )
 
+type HereResult struct {
+	// shared fields
+	AgencyID  string `db:"agency_id"`
+	RouteID   string `db:"route_id"`
+	StopID    string `db:"stop_id"`
+	TripID    string `db:"trip_id"`
+	ServiceID string `db:"service_id"`
+
+	// Departure
+	ArrivalSec  int `db:"arrival_sec"`
+	DepatureSec int `db:"departure_sec"`
+
+	// Trip
+	StopSequence int    `db:"stop_sequence"`
+	TripHeadsign string `db:"trip_headsign"`
+
+	// Stop
+	StopName     string  `db:"stop_name"`
+	StopHeadsign string  `db:"stop_headsign"`
+	DirectionID  int     `db:"direction_id"`
+	Latitude     float64 `db:"latitude"`
+	Longitude    float64 `db:"longitude"`
+	Distance     float64 `db:"dist"`
+
+	// Route
+	RouteType      int    `db:"route_type"`
+	RouteColor     string `db:"route_color"`
+	RouteTextColor string `db:"route_text_color"`
+}
+
 const (
 	hereQuery = `
 		SELECT
-			here.*, ST_DISTANCE(ST_GEOMFROMTEXT(:point_string, :srid), location) AS dist
+			agency_id,
+			route_id,
+			stop_id,
+			service_id,
+			trip_id,
+			arrival_sec,
+			departure_sec,
+			stop_sequence,
+
+			stop_name,
+			direction_id,
+			stop_headsign,
+			ST_X(location) AS latitude,
+			ST_Y(location) AS longitude,
+
+			route_type,
+			route_color,
+			route_text_color,
+
+			trip_headsign,
+
+			ST_DISTANCE(ST_GEOMFROMTEXT(:point_string, :srid), location) AS dist
 
 		FROM here
 
