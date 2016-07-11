@@ -396,7 +396,7 @@ func (l *Loader) loadUniqueStop() {
 					continue
 				}
 				obj := models.Stop{
-					ID:      rec[stopIdx],
+					StopID:  rec[stopIdx],
 					Name:    rec[stopNameIdx],
 					Lat:     stopLat,
 					Lon:     stopLon,
