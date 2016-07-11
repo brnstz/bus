@@ -339,6 +339,8 @@ func GetStopsByQuery(db sqlx.Ext, sq StopQuery) (stops []*Stop, err error) {
 	return
 }
 
+func GetStopsByHereQuery()
+
 func getServiceIDsByDay(db sqlx.Ext, agencyID, routeID, day string, now time.Time) (serviceIDs []string, err error) {
 	var normalIDs []string
 	var addedIDs []string
