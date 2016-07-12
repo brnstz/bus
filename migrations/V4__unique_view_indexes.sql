@@ -67,6 +67,9 @@ BEGIN;
     CREATE INDEX idx_service_concur ON service_new (agency_id, service_id, day);
     CREATE UNIQUE INDEX idx_unique_service ON service_new (id);
 
+    DROP MATERIALIZED VIEW service;
+    ALTER MATERIALIZED VIEW service_new RENAME TO service;
+
     CREATE MATERIALIZED VIEW service_exception_new AS
         SELECT DISTINCT ON (agency_id, service_id, exception_date)
             nextval('service_exception_seq') AS id,
@@ -78,5 +81,8 @@ BEGIN;
         FROM service_route_exception;
     CREATE INDEX idx_service_exception_concur ON service_exception_new (agency_id, service_id, exception_date);
     CREATE UNIQUE INDEX idx_unique_service_exception ON service_exception_new (id);
+
+    DROP MATERIALIZED VIEW service_exception;
+    ALTER MATERIALIZED VIEW service_exception_new RENAME TO service_exception;
 
 COMMIT;
