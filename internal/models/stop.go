@@ -53,7 +53,7 @@ type Stop struct {
 }
 
 func (s *Stop) Initialize() error {
-	s.UniqueID = s.AgencyID + "|" + s.StopID
+	s.UniqueID = s.AgencyID + "|" + s.RouteID + "|" + s.StopID
 
 	return nil
 }

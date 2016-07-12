@@ -23,9 +23,9 @@ var (
 	loaderBreak = time.Hour * 24
 
 	refreshViews = []string{
-		"REFRESH MATERIALIZED VIEW here;",
-		"REFRESH MATERIALIZED VIEW service;",
-		"REFRESH MATERIALIZED VIEW service_exception;",
+		"REFRESH MATERIALIZED VIEW CONCURRENTLY here;",
+		"REFRESH MATERIALIZED VIEW CONCURRENTLY service;",
+		"REFRESH MATERIALIZED VIEW CONCURRENTLY service_exception;",
 	}
 
 	logp = 1000
