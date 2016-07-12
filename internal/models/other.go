@@ -1,9 +1,10 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
-// This file contains transient types that aren't stored in the db
-
+// Service is used by the Loader to map service IDs to route IDs
 type Service struct {
 	ID      string
 	RouteID string

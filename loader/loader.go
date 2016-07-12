@@ -719,20 +719,18 @@ func LoadOnce() {
 			}()
 
 			statements := []string{
-				fmt.Sprintf("DROP MATERIALIZED VIEW IF EXISTS %s_temp", view),
-				fmt.Sprintf("ALTER MATERIALIZED VIEW %s RENAME TO %s_temp",
-					view, view),
-				fmt.Sprintf("REFRESH MATERIALIZED VIEW %s_temp", view),
-				fmt.Sprintf("ALTER MATERIALIZED VIEW %s_temp RENAME TO %s",
-					view, view),
+				fmt.Sprintf("ALTER SEQUENCE %s_seq RESTART WITH 1", view),
+				fmt.Sprintf("REFRESH MATERIALIZED VIEW CONCURRENTLY %s", view),
 			}
 
 			for _, statement := range statements {
+				log.Println(statement)
 				_, err = tx.Exec(statement)
 				if err != nil {
 					log.Println("can't exec", statement, err)
 					return
 				}
+				log.Println("complete")
 			}
 		}()
 	}
