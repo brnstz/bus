@@ -115,6 +115,10 @@ Stop.prototype.createVehicles = function(route) {
     var self = this;
     var vehicles = [];
 
+    if (!self.api.vehicles) {
+        return vehicles;
+    }
+
     for (var i = 0; i < self.api.vehicles.length; i++) {
         var v = self.api.vehicles[i];
         var icon;
