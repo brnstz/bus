@@ -2,6 +2,7 @@ package loader
 
 import (
 	"encoding/csv"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -22,11 +23,7 @@ var (
 	datefmt     = "20060102"
 	loaderBreak = time.Hour * 24
 
-	refreshViews = []string{
-		"REFRESH MATERIALIZED VIEW CONCURRENTLY here;",
-		"REFRESH MATERIALIZED VIEW CONCURRENTLY service;",
-		"REFRESH MATERIALIZED VIEW CONCURRENTLY service_exception;",
-	}
+	views = []string{"here", "service", "service_exception"}
 
 	logp = 1000
 )
@@ -665,8 +662,6 @@ func (l *Loader) updateRouteShapes() {
 // routes specified in conf.Loader.RouteFilter. If no filter is defined,
 // it loads all data in the specified URLs.
 func LoadOnce() {
-	var err error
-
 	for _, url := range conf.Loader.GTFSURLs {
 		log.Printf("starting %v", url)
 
@@ -700,15 +695,46 @@ func LoadOnce() {
 		}()
 	}
 
-	for _, refreshView := range refreshViews {
-		log.Println("running: ", refreshView)
+	for _, view := range views {
+		func() {
+			var err error
 
-		_, err = etc.DBConn.Exec(refreshView)
-		if err != nil {
-			log.Fatal(err)
-		}
+			tx, err := etc.DBConn.Beginx()
+			if err != nil {
+				log.Fatal("can't create tx to update view", view, err)
+			}
 
-		log.Println("finished")
+			defer func() {
+				if err == nil {
+					commitErr := tx.Commit()
+					if commitErr != nil {
+						log.Fatal("error committing update to view", view, err)
+					}
+				} else {
+					rollbackErr := tx.Rollback()
+					if rollbackErr != nil {
+						log.Fatal("error rolling back update to view", view, err)
+					}
+				}
+			}()
+
+			statements := []string{
+				fmt.Sprintf("DROP MATERIALIZED VIEW IF EXISTS %s_temp", view),
+				fmt.Sprintf("ALTER MATERIALIZED VIEW %s RENAME TO %s_temp",
+					view, view),
+				fmt.Sprintf("REFRESH MATERIALIZED VIEW %s_temp", view),
+				fmt.Sprintf("ALTER MATERIALIZED VIEW %s_temp RENAME TO %s",
+					view, view),
+			}
+
+			for _, statement := range statements {
+				_, err = tx.Exec(statement)
+				if err != nil {
+					log.Println("can't exec", statement, err)
+					return
+				}
+			}
+		}()
 	}
 }
 
