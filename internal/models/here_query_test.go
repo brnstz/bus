@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func makehq(todayIDs, ydayIDs []string) HereQuery {
+func makehq(serviceIDs []string) HereQuery {
 	return HereQuery{
 		MidLat: 40.75245875985305,
 		MidLon: -73.97781372070312,
@@ -15,24 +15,19 @@ func makehq(todayIDs, ydayIDs []string) HereQuery {
 		NELat: 40.758342802212724,
 		NELon: -73.95764350891112,
 
-		TodayServiceIDs:     todayIDs,
-		YesterdayServiceIDs: ydayIDs,
+		ServiceIDs: serviceIDs,
 
 		// Between midnight and 3am let's say
-		TodayDepartureMin: 0,
-		TodayDepartureMax: 10800,
-
-		YesterdayDepartureMin: 82800,
-		YesterdayDepartureMax: 99999,
+		DepartureMin: 0,
+		DepartureMax: 10800,
 	}
 
 }
 
 func TestHereQuery(t *testing.T) {
 	todayIDs := []string{"CA_C6-Saturday", "B20160612SAT"}
-	ydayIDs := []string{"A20160612WKD", "CH_C6-Weekday-SDon"}
 
-	hq := makehq(todayIDs, ydayIDs)
+	hq := makehq(todayIDs)
 
 	err := hq.Initialize()
 	if err != nil {
@@ -44,19 +39,14 @@ func TestHereQuery(t *testing.T) {
 		t.Fatal("can't find today service ids in clause in string", hq.Query)
 	}
 
-	if !strings.Contains(hq.Query, "service_id IN ('A20160612WKD','CH_C6-Weekday-SDon')") {
-		t.Fatal("service_ids don't appear to be correct")
-	}
-
 }
 
 // TestHereQueryBlank ensures that a blank list of service ids is encoded correctly
 func TestHereQueryBlank(t *testing.T) {
 
-	todayIDs := []string{"CA_C6-Saturday", "B20160612SAT"}
 	ydayIDs := []string{}
 
-	hq := makehq(todayIDs, ydayIDs)
+	hq := makehq(ydayIDs)
 
 	err := hq.Initialize()
 	if err != nil {
@@ -72,9 +62,8 @@ func TestHereQueryBlank(t *testing.T) {
 func TestHereQueryEscape(t *testing.T) {
 
 	todayIDs := []string{"CA'_C6-Satur'''day", "B20''''160612SAT", ""}
-	ydayIDs := []string{}
 
-	hq := makehq(todayIDs, ydayIDs)
+	hq := makehq(todayIDs)
 
 	err := hq.Initialize()
 	if err != nil {

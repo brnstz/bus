@@ -3,7 +3,9 @@ package models
 import (
 	"bytes"
 	"fmt"
+	"log"
 	"strings"
+	"time"
 )
 
 var (
@@ -38,6 +40,96 @@ type HereResult struct {
 	RouteType      int    `db:"route_type"`
 	RouteColor     string `db:"route_color"`
 	RouteTextColor string `db:"route_text_color"`
+
+	DepartureBase time.Time
+
+	Stop      *Stop
+	Route     *Route
+	Departure *Departure
+}
+
+func (h *HereResult) createStop() (stop *Stop, err error) {
+	stop = &Stop{
+		StopID:      h.StopID,
+		RouteID:     h.RouteID,
+		AgencyID:    h.AgencyID,
+		Name:        h.StopName,
+		DirectionID: h.DirectionID,
+		Headsign:    h.StopHeadsign,
+		Lat:         h.Lat,
+		Lon:         h.Lon,
+		Dist:        h.Dist,
+
+		// FIXME: is seq even needed?
+		Seq: h.StopSequence,
+	}
+	err = stop.Initialize()
+	if err != nil {
+		log.Println("can't init stop", err)
+		return
+	}
+
+	return
+}
+
+func (h *HereResult) createRoute() (route *Route, err error) {
+	route = &Route{
+		RouteID:   h.RouteID,
+		AgencyID:  h.AgencyID,
+		Type:      h.RouteType,
+		Color:     h.RouteColor,
+		TextColor: h.RouteTextColor,
+	}
+
+	err = route.Initialize()
+	if err != nil {
+		log.Println("can't init route", err)
+		return
+	}
+
+	return
+}
+
+func (h *HereResult) createDeparture() (departure *Departure, err error) {
+	departure = &Departure{
+		DepartureSec: h.DepatureSec,
+		TripID:       h.TripID,
+		ServiceID:    h.ServiceID,
+		baseTime:     h.DepartureBase,
+	}
+
+	err = departure.Initialize()
+	if err != nil {
+		log.Println("can't init departure", err)
+		return
+	}
+
+	return
+}
+
+func (h *HereResult) Initialize() error {
+	var err error
+
+	h.Stop, err = h.createStop()
+	if err != nil {
+		log.Println("can't init here stop", err)
+		return err
+	}
+
+	h.Route, err = h.createRoute()
+	if err != nil {
+		log.Println("can't init here route", err)
+		return err
+	}
+
+	h.Departure, err = h.createDeparture()
+	if err != nil {
+		log.Println("can't init here departure", err)
+		return err
+	}
+
+	return nil
+
 }
 
 const (
@@ -74,13 +166,8 @@ const (
 			(
 				(   
 					service_id IN (%s) AND
-					departure_sec > :today_departure_min AND
-					departure_sec < :today_departure_max
-				) OR
-
-				(   service_id IN (%s) AND
-					departure_sec > :yesterday_departure_min AND
-					departure_sec < :yesterday_departure_max
+					departure_sec > :departure_min AND
+					departure_sec < :departure_max
 				)
 			)
 		ORDER BY dist ASC, departure_sec ASC
@@ -102,14 +189,10 @@ type HereQuery struct {
 	LineString  string `db:"line_string"`
 	PointString string `db:"point_string"`
 
-	TodayServiceIDs     []string
-	YesterdayServiceIDs []string
+	ServiceIDs []string
 
-	TodayDepartureMin int `db:"today_departure_min"`
-	TodayDepartureMax int `db:"today_departure_max"`
-
-	YesterdayDepartureMin int `db:"yesterday_departure_min"`
-	YesterdayDepartureMax int `db:"yesterday_departure_max"`
+	DepartureMin int `db:"departure_min"`
+	DepartureMax int `db:"departure_max"`
 
 	SRID int `db:"srid"`
 
@@ -172,8 +255,7 @@ func (hq *HereQuery) Initialize() error {
 	)
 
 	hq.Query = fmt.Sprintf(hereQuery,
-		createIDs(hq.TodayServiceIDs),
-		createIDs(hq.YesterdayServiceIDs),
+		createIDs(hq.ServiceIDs),
 	)
 
 	return nil

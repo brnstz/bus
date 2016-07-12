@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -99,10 +100,10 @@ func getNewServiceIDs(db sqlx.Ext, agencyID string, day string, now time.Time) (
 func GetStopsByHereQuery(db sqlx.Ext, hq HereQuery) (stops []*Stop, err error) {
 
 	// mapping of stop.UniqueID to stop
-	//sm := map[string]*Stop{}
+	sm := map[string]*Stop{}
 
-	// mapping of route.UniqueID to route
-	//rm := map[string]*Route{}
+	// mapping of route.UniqueID + DirectionID to route
+	rm := map[string]*Route{}
 
 	// overall function timing
 	if conf.API.LogTiming {
@@ -112,10 +113,10 @@ func GetStopsByHereQuery(db sqlx.Ext, hq HereQuery) (stops []*Stop, err error) {
 
 	now := time.Now()
 
-	yesterday := baseTime(now.Add(-time.Hour * 12))
+	//yesterday := baseTime(now.Add(-time.Hour * 12))
 	today := baseTime(now)
 
-	yesterdayName := strings.ToLower(yesterday.Format("Monday"))
+	//yesterdayName := strings.ToLower(yesterday.Format("Monday"))
 	todayName := strings.ToLower(now.Format("Monday"))
 
 	// FIXME: hard coded, we need a region to agency mapping
@@ -126,20 +127,25 @@ func GetStopsByHereQuery(db sqlx.Ext, hq HereQuery) (stops []*Stop, err error) {
 		log.Println("can't get today IDs", err)
 		return
 	}
+
+	/* FIXME
 	yesterdayIDs, err := getNewServiceIDs(db, agencyID, yesterdayName, yesterday)
 	if err != nil {
 		log.Println("can't get yesterday IDs", err)
 		return
 	}
+	*/
 
-	hq.TodayServiceIDs = todayIDs
-	hq.YesterdayServiceIDs = yesterdayIDs
+	hq.ServiceIDs = todayIDs
+	//hq.YesterdayServiceIDs = yesterdayIDs
 
-	hq.YesterdayDepartureMin = now.Hour()*3600 + now.Minute()*60 + now.Second() + midnightSecs
-	hq.YesterdayDepartureMax = hq.YesterdayDepartureMin + 60*60*3
+	/*
+		hq.YesterdayDepartureMin = now.Hour()*3600 + now.Minute()*60 + now.Second() + midnightSecs
+		hq.YesterdayDepartureMax = hq.YesterdayDepartureMin + 60*60*3
+	*/
 
-	hq.TodayDepartureMin = now.Hour()*3600 + now.Minute()*60 + now.Second()
-	hq.TodayDepartureMax = hq.TodayDepartureMin + 60*60*3
+	hq.DepartureMin = now.Hour()*3600 + now.Minute()*60 + now.Second()
+	hq.DepartureMax = hq.DepartureMin + 60*60*3
 
 	err = hq.Initialize()
 	if err != nil {
@@ -163,7 +169,7 @@ func GetStopsByHereQuery(db sqlx.Ext, hq HereQuery) (stops []*Stop, err error) {
 	count := 0
 	for rows.Next() {
 		count++
-		here := HereResult{}
+		here := HereResult{DepartureBase: today}
 
 		err = rows.StructScan(&here)
 		if err != nil {
@@ -171,30 +177,51 @@ func GetStopsByHereQuery(db sqlx.Ext, hq HereQuery) (stops []*Stop, err error) {
 			continue
 		}
 
-		stop := Stop{
-			StopID:      here.StopID,
-			RouteID:     here.RouteID,
-			AgencyID:    here.AgencyID,
-			Name:        here.StopName,
-			DirectionID: here.DirectionID,
-			Headsign:    here.StopHeadsign,
-			Lat:         here.Lat,
-			Lon:         here.Lon,
-			Dist:        here.Dist,
-
-			// FIXME: is seq even needed?
-			Seq: here.StopSequence,
-		}
-		err = stop.Initialize()
+		err = here.Initialize()
 		if err != nil {
-			log.Println("can't init stop", err)
+			log.Println("can't initialize here", err)
 			continue
 		}
 
-		//		oldStop, exists := sm[stop.UniqueID]
+		routeDir := fmt.Sprintf("%v|%v", here.Route.UniqueID, here.Stop.DirectionID)
 
+		oldStop, stopExists := sm[here.Stop.UniqueID]
+		//oldRoute, routeExists := rm[routeDir]
+		_, routeExists := rm[routeDir]
+
+		// Ignore when the route / direction already exists, but stop is not
+		// the same
+		if routeExists && !stopExists {
+			continue
+		}
+
+		// Ignore if it's our stop but we already have too many departures
+		if stopExists && len(oldStop.Departures) > MaxDepartures {
+			continue
+		}
+
+		if !stopExists {
+			sm[here.Stop.UniqueID] = here.Stop
+		}
+		if !routeExists {
+			rm[routeDir] = here.Route
+		}
+
+		stop := sm[here.Stop.UniqueID]
+		//route := rm[routeDir]
+
+		stop.Departures = append(stop.Departures, here.Departure)
 	}
 	log.Println("total count", count)
+
+	for _, s := range sm {
+		stops = append(stops, s)
+		log.Println("what is the stop?", s)
+	}
+
+	for _, r := range rm {
+		log.Println("what is the route?", r)
+	}
 
 	return
 }
