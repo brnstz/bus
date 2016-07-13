@@ -171,6 +171,7 @@ const (
 				)
 			)
 		ORDER BY dist ASC, departure_sec ASC
+		LIMIT :limit
 	`
 )
 
@@ -194,7 +195,8 @@ type HereQuery struct {
 	DepartureMin int `db:"departure_min"`
 	DepartureMax int `db:"departure_max"`
 
-	SRID int `db:"srid"`
+	SRID  int `db:"srid"`
+	Limit int `db:"limit"`
 
 	Query string
 }
@@ -257,6 +259,10 @@ func (hq *HereQuery) Initialize() error {
 	hq.Query = fmt.Sprintf(hereQuery,
 		createIDs(hq.ServiceIDs),
 	)
+
+	if hq.Limit < 1 {
+		hq.Limit = defaultMaxResults
+	}
 
 	return nil
 }
