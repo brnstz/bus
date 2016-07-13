@@ -3,12 +3,30 @@ package models
 import (
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 	"time"
 
 	"github.com/brnstz/bus/internal/conf"
 	"github.com/jmoiron/sqlx"
 )
+
+type sortableStops []*Stop
+
+func (ss sortableStops) Len() int {
+	return len(ss)
+}
+
+func (ss sortableStops) Less(i, j int) bool {
+	s1 := ss[i]
+	s2 := ss[j]
+
+	return s1.Dist < s2.Dist
+}
+
+func (ss sortableStops) Swap(i, j int) {
+	ss[i], ss[j] = ss[j], ss[i]
+}
 
 func getNewServiceIDs(db sqlx.Ext, agencyID string, day string, now time.Time) (serviceIDs []string, err error) {
 
@@ -98,6 +116,7 @@ func getNewServiceIDs(db sqlx.Ext, agencyID string, day string, now time.Time) (
 }
 
 func GetStopsByHereQuery(db sqlx.Ext, hq HereQuery) (stops []*Stop, err error) {
+	ss := sortableStops{}
 
 	// mapping of stop.UniqueID to stop
 	sm := map[string]*Stop{}
@@ -212,12 +231,16 @@ func GetStopsByHereQuery(db sqlx.Ext, hq HereQuery) (stops []*Stop, err error) {
 
 		stop.Departures = append(stop.Departures, here.Departure)
 	}
-	log.Println("total count", count)
 
+	// Add all stops to sortableStops list
 	for _, s := range sm {
-		stops = append(stops, s)
-		log.Println("what is the stop?", s)
+		ss = append(ss, s)
 	}
+
+	// sort stops by distance
+	sort.Sort(ss)
+
+	stops = []*Stop(ss)
 
 	for _, r := range rm {
 		log.Println("what is the route?", r)
