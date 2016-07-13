@@ -695,6 +695,8 @@ func LoadOnce() {
 		}()
 	}
 
+	// Update materialized views. Use a transaction for each one, because
+	// we reset each view's primary ID sequence in a separate statement.
 	for _, view := range views {
 		func() {
 			var err error
