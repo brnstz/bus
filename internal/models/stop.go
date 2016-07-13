@@ -1,27 +1,14 @@
 package models
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
-	"sort"
-	"strings"
 	"time"
 
 	"github.com/brnstz/bus/internal/conf"
 	"github.com/brnstz/bus/internal/etc"
 	"github.com/brnstz/upsert"
 	"github.com/jmoiron/sqlx"
-)
-
-const (
-	// minFirstDepartureSec is the minimum amount of time the first
-	// departure must occur (2 hours)
-	minFirstDepartureSec float64 = 60 * 60 * 2
-
-	// departurePreWindow is how far in the past to look departures
-	// that have already passed
-	departurePreSec = 60 * 2
 )
 
 // Stop is a single transit stop for a particular route. If a
@@ -83,129 +70,6 @@ func (s Stop) Key() string {
 	return fmt.Sprintf("%v%v", s.StopID, s.RouteID)
 }
 
-// setDepartures checks the database and any relevant APIs to set the scheduled
-// and live departures for this stop
-func (s *Stop) setDepartures(now time.Time, db sqlx.Ext) (err error) {
-	var yesterdayVehicles []Vehicle
-	var todayVehicles []Vehicle
-
-	if conf.API.LogTiming {
-		t1 := time.Now()
-		defer func() { log.Println(time.Now().Sub(t1)) }()
-	}
-
-	allDepartures := Departures{}
-
-	yesterday := baseTime(now.Add(-time.Hour * 12))
-	today := baseTime(now)
-
-	yesterdayName := strings.ToLower(yesterday.Format("Monday"))
-	todayName := strings.ToLower(now.Format("Monday"))
-
-	func() {
-		if yesterdayName != todayName {
-			var yesterdayIDs []string
-			// Looks for trips starting yesterday that arrive here
-			// after midnight
-			yesterdayIDs, err = getServiceIDsByDay(
-				db, s.AgencyID, s.RouteID, yesterdayName, yesterday,
-			)
-			if err == sql.ErrNoRows {
-				err = nil
-				log.Println("no rows, ok, moving on")
-				return
-			}
-			if err != nil {
-				log.Println("can't get yesterday id", err)
-				return
-			}
-
-			nowSecs := now.Hour()*3600 + now.Minute()*60 + now.Second() + midnightSecs
-
-			for _, yesterdayID := range yesterdayIDs {
-				departures, err := getDepartures(
-					s.AgencyID, s.RouteID, s.StopID, yesterdayID,
-					nowSecs-departurePreSec, yesterday)
-				if err != nil {
-					log.Println("can't get departures", err)
-					return
-				}
-
-				allDepartures = append(allDepartures, departures...)
-			}
-
-			yesterdayVehicles, err = getVehicles(s.AgencyID, s.RouteID, s.DirectionID, yesterdayIDs, nowSecs)
-			if err != nil {
-				log.Println("can't get vehicles", err)
-				return
-			}
-		}
-	}()
-
-	func() {
-		var todayIDs []string
-		todayIDs, err = getServiceIDsByDay(db, s.AgencyID, s.RouteID, todayName, today)
-		if err == sql.ErrNoRows {
-			err = nil
-			log.Println("no rows there", err)
-			return
-		}
-		if err != nil {
-			log.Println("can't get today id", err)
-			return
-		}
-
-		nowSecs := now.Hour()*3600 + now.Minute()*60 + now.Second()
-
-		for _, todayID := range todayIDs {
-			departures, err := getDepartures(
-				s.AgencyID, s.RouteID, s.StopID, todayID,
-				nowSecs-departurePreSec, today)
-			if err != nil {
-				log.Println("can't get departures", err)
-				return
-			}
-
-			allDepartures = append(allDepartures, departures...)
-		}
-
-		todayVehicles, err = getVehicles(s.AgencyID, s.RouteID, s.DirectionID, todayIDs, nowSecs)
-		if err != nil {
-			log.Println("can't get vehicles", err)
-			return
-		}
-
-	}()
-
-	s.Vehicles = append(s.Vehicles, yesterdayVehicles...)
-	s.Vehicles = append(s.Vehicles, todayVehicles...)
-
-	// If there are no departures, we can return now
-	if len(allDepartures) < 1 {
-		return
-	}
-
-	// Sort departures by time
-	sort.Sort(allDepartures)
-
-	// Calculate the difference between now and the first
-	// scheduled departure. Return if it's not soon enough.
-	diff := allDepartures[0].Time.Sub(now)
-	if diff.Seconds() > minFirstDepartureSec {
-		return
-	}
-
-	// Add up to MaxDepartures to our scheduled list
-	for i, d := range allDepartures {
-		if i > MaxDepartures {
-			break
-		}
-		s.Departures = append(s.Departures, d)
-	}
-
-	return
-}
-
 func GetStopsByTrip(db sqlx.Ext, t *Trip) (stops []*Stop, err error) {
 
 	q := `
@@ -238,43 +102,6 @@ func GetStopsByTrip(db sqlx.Ext, t *Trip) (stops []*Stop, err error) {
 	}
 
 	return
-}
-
-// GetStop returns a single stop by its unique id
-func GetStop(db sqlx.Ext, agencyID, routeID, stopID string, appendInfo bool) (*Stop, error) {
-	var s Stop
-	now := time.Now()
-
-	if conf.API.LogTiming {
-		t1 := time.Now()
-		defer func() { log.Println(time.Now().Sub(t1)) }()
-	}
-
-	err := sqlx.Get(db, &s, `
-		 SELECT stop.*, 
-				ST_X(location) AS lat, 
-				ST_Y(location) AS lon
-
-		 FROM stop
-		 WHERE stop.agency_id = $1 AND
-			   stop.route_id  = $2 AND
-			   stop.stop_id   = $3
-		`, agencyID, routeID, stopID,
-	)
-	if err != nil {
-		log.Println("can't get stop", err, agencyID, routeID, stopID)
-		return nil, err
-	}
-
-	if appendInfo {
-		err = s.setDepartures(now, db)
-		if err != nil {
-			log.Println("can't set departures", err)
-			return nil, err
-		}
-	}
-
-	return &s, nil
 }
 
 func getServiceIDsByDay(db sqlx.Ext, agencyID, routeID, day string, now time.Time) (serviceIDs []string, err error) {
