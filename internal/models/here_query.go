@@ -169,7 +169,7 @@ const (
 		FROM here
 
 		WHERE
-			ST_CONTAINS(ST_SETSRID(ST_MAKEPOLYGON(:line_string), :srid), location) AND
+			ST_CONTAINS(ST_SETSRID(ST_MAKEPOLYGON(:line_string), 4326), location) AND
 
 			(
 				(   
@@ -203,7 +203,6 @@ type HereQuery struct {
 	DepartureMin int `db:"departure_min"`
 	DepartureMax int `db:"departure_max"`
 
-	SRID  int `db:"srid"`
 	Limit int `db:"limit"`
 
 	Query string
@@ -247,8 +246,6 @@ func escape(serviceID string) string {
 }
 
 func (hq *HereQuery) Initialize() error {
-
-	hq.SRID = 4326
 
 	hq.LineString = fmt.Sprintf(
 		`LINESTRING(%f %f, %f %f, %f %f, %f %f, %f %f)`,
