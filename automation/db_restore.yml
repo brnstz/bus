@@ -1,5 +1,8 @@
 # db_restore.yml is a special playbook for creating a new database from
 # a backup file. You should usually be running db.yml
+
+- include: db_common.yml
+
 - hosts: db
   become: yes
   become_user: root
@@ -9,14 +12,11 @@
     - "group_vars/{{ inventory }}.yml"
 
   tasks:
-    - include: db_common.yml
 
     # If there is a backup, then empty the db and use the backup
     - name: Get the db backup file
       get_url: url="{{ initial_db_backup }}" dest=/tmp/initial_db_backup.sql.gz force=yes
-      when: initial_db_backup is defined and initial_db_backup != ""
 
     # Clear the database and load the backup file
     - name: Load db backup
       shell: echo "DROP SCHEMA PUBLIC CASCADE; CREATE SCHEMA PUBLIC;" | psql -U postgres && gunzip --stdout /tmp/initial_db_backup.sql.gz | psql -U postgres
-      when: initial_db_backup is defined and initial_db_backup != ""
