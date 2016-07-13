@@ -196,7 +196,7 @@ func GetStopsByHereQuery(db sqlx.Ext, hq HereQuery) (stops []*Stop, err error) {
 		}
 
 		// Ignore if it's our stop but we already have too many departures
-		if stopExists && len(oldStop.Departures) > MaxDepartures {
+		if stopExists && len(oldStop.Departures) >= MaxDepartures {
 			continue
 		}
 
