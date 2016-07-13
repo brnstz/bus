@@ -72,7 +72,7 @@ func routeWorker(ch chan precacheRequest, p partners.P, agencyID string, routeID
 		// If the time between successes is greater than cache duration,
 		// we should warn that we have a problem
 		if diff > ttlDur {
-			log.Println("%v %v %v worker took %v to run, longer than ttl of %v",
+			log.Printf("%v %v %v worker took %v to run, longer than ttl of %v",
 				agencyID, routeID, directionID, diff, ttlDur,
 			)
 		}
