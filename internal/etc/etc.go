@@ -64,6 +64,12 @@ func SecsToTimeStr(secs int) string {
 	return fmt.Sprintf("%02d:%02d:%02d", hr, min, secs)
 }
 
+// TimeToDepartureSecs takes a time value and converts it to the number
+// of seconds since the start of the day
+func TimeToDepartureSecs(t time.Time) int {
+	return t.Hour()*3600 + t.Minute()*60 + t.Second()
+}
+
 // RedisGet retrieves a cached version of the incoming URL or returns an
 // error if there is no cached version or there's another error.
 func RedisGet(u string) (b []byte, err error) {
