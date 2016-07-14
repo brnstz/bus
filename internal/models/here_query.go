@@ -68,6 +68,10 @@ func (h *HereResult) createStop() (stop *Stop, err error) {
 		Lon:         h.Lon,
 		Dist:        h.Dist,
 
+		RouteType:      h.RouteType,
+		RouteColor:     h.RouteColor,
+		RouteTextColor: h.RouteTextColor,
+
 		// FIXME: is seq even needed?
 		Seq: h.StopSequence,
 	}
@@ -164,7 +168,7 @@ const (
 
 			trip_headsign,
 
-			ST_DISTANCE(ST_GEOMFROMTEXT(:point_string, :srid), location) AS dist
+			ST_DISTANCE(ST_GEOMFROMTEXT(:point_string, 4326), location) AS dist
 
 		FROM here
 
