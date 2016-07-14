@@ -2,7 +2,6 @@ package partners
 
 import (
 	"errors"
-	"log"
 	"net/http"
 	"time"
 
@@ -44,19 +43,22 @@ func Find(route models.Route) (P, error) {
 		switch route.Type {
 
 		case models.Subway, models.Rail:
-			return mtaNYCSubway{}, nil
+			_, exists := mtaSubwayRouteToFeed[route.RouteID]
+			if exists {
+				return mtaNYCSubway{}, nil
+			} else {
+				return static{}, nil
+			}
 
 		case models.Bus:
 			return mtaNYCBus{}, nil
 
 		default:
-			log.Println("no partner for", route)
-			return nil, ErrNoPartner
+			return static{}, nil
 		}
 
 	default:
-		log.Println("no partner for", route)
-		return nil, ErrNoPartner
+		return static{}, nil
 	}
 
 }

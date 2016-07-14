@@ -34,9 +34,16 @@ func (p mtaNYCBus) getURL(routeID string, directionID int) string {
 func (p mtaNYCBus) Precache(agencyID, routeID string, directionID int) error {
 	u := p.getURL(routeID, directionID)
 
-	_, err := etc.RedisCache(u)
+	_, err := etc.RedisCacheURL(u)
 	if err != nil {
 		log.Println("can't cache live buses", err)
+		return err
+	}
+
+	// attempt to parse response to ensure it is valid
+	_, _, err = p.Live(agencyID, routeID, "", directionID)
+	if err != nil {
+		log.Println("can't parse response", err)
 		return err
 	}
 
