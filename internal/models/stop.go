@@ -34,6 +34,12 @@ type Stop struct {
 	// field.
 	Location interface{} `json:"-" db:"location" upsert_value:"ST_SetSRID(ST_MakePoint(:lat, :lon),4326)"`
 
+	// info we steal from route when doing a here query
+	RouteType      int    `json:"route_type" db:"-" upsert:"omit"`
+	RouteTypeName  string `json:"route_type_name" db:"-" upsert:"omit"`
+	RouteColor     string `json:"route_color" db:"-" upsert:"omit"`
+	RouteTextColor string `json:"route_text_color" db:"-" upsert:"omit"`
+
 	Seq int `json:"seq" db:"stop_sequence" upsert:"omit"`
 
 	Dist       float64      `json:"dist,omitempty" db:"-" upsert:"omit"`
@@ -43,6 +49,9 @@ type Stop struct {
 
 func (s *Stop) Initialize() error {
 	s.UniqueID = s.AgencyID + "|" + s.RouteID + "|" + s.StopID
+
+	// If there is a route type defined, then load its name. Ignore errors.
+	s.RouteTypeName = routeTypeString[s.RouteType]
 
 	return nil
 }
@@ -106,21 +115,41 @@ func GetStopsByTrip(db sqlx.Ext, t *Trip) (stops []*Stop, err error) {
 	return
 }
 
-type sortableStops []*Stop
+// we want to sort stops first by their type, then by dist (i.e.,
+// show subways before buses even if bus is closer)
+const (
+	byDist = 0
+	byType = 1
+)
+
+type sortableStops struct {
+	stops []*Stop
+	by    int
+}
 
 func (ss sortableStops) Len() int {
-	return len(ss)
+	return len(ss.stops)
 }
 
 func (ss sortableStops) Less(i, j int) bool {
-	s1 := ss[i]
-	s2 := ss[j]
+	s1 := ss.stops[i]
+	s2 := ss.stops[j]
 
-	return s1.Dist < s2.Dist
+	switch ss.by {
+
+	case byDist:
+		return s1.Dist < s2.Dist
+
+	case byType:
+		return s1.RouteType < s2.RouteType
+
+	default:
+		return s1.Dist < s2.Dist
+	}
 }
 
 func (ss sortableStops) Swap(i, j int) {
-	ss[i], ss[j] = ss[j], ss[i]
+	ss.stops[i], ss.stops[j] = ss.stops[j], ss.stops[i]
 }
 
 func GetStopsByHereQuery(db sqlx.Ext, hq HereQuery) (stops []*Stop, err error) {
@@ -242,13 +271,18 @@ func GetStopsByHereQuery(db sqlx.Ext, hq HereQuery) (stops []*Stop, err error) {
 
 	// Add all stops to sortableStops list
 	for _, s := range sm {
-		ss = append(ss, s)
+		ss.stops = append(ss.stops, s)
 	}
 
-	// sort stops by distance
+	// sort stops by distance first
+	ss.by = byDist
 	sort.Sort(ss)
 
-	stops = []*Stop(ss)
+	// then sort by type to put subways first
+	ss.by = byType
+	sort.Sort(ss)
+
+	stops = []*Stop(ss.stops)
 
 	for _, r := range rm {
 		log.Println("what is the route?", r)
