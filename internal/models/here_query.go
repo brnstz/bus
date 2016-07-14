@@ -123,7 +123,7 @@ func NewHereQuery(lat, lon, swlat, swlon, nelat, nelon float64, serviceIDs []str
 		NELat:         nelat,
 		NELon:         nelon,
 		ServiceIDs:    serviceIDs,
-		Limit:         1000,
+		Limit:         2000,
 		DepartureMin:  minSec,
 		DepartureMax:  minSec + 60*60*6,
 		DepartureBase: departureBase,

@@ -19,7 +19,7 @@ import (
 var (
 	esiURL = "http://datamine.mta.info/mta_esi.php"
 
-	routeToFeed = map[string]string{
+	mtaSubwayRouteToFeed = map[string]string{
 		"1":  "1",
 		"2":  "1",
 		"3":  "1",
@@ -43,7 +43,7 @@ func (p mtaNYCSubway) getURL(routeID string) (string, bool) {
 
 	// Get the feed for this route, if there is one. Otherwise, nothing
 	// to return.
-	feed, exists := routeToFeed[routeID]
+	feed, exists := mtaSubwayRouteToFeed[routeID]
 	if !exists {
 		return "", false
 	}
@@ -59,6 +59,10 @@ func (p mtaNYCSubway) getURL(routeID string) (string, bool) {
 }
 
 func (p mtaNYCSubway) Precache(agencyID, routeID string, directionID int) error {
+	u, exists := p.getURL(routeID)
+	if !exists {
+		return nil
+	}
 
 	// Since the URL we call is the same no matter which direction, arbirarily
 	// decide to ignore one of the directions.
@@ -66,14 +70,16 @@ func (p mtaNYCSubway) Precache(agencyID, routeID string, directionID int) error 
 		return nil
 	}
 
-	u, exists := p.getURL(routeID)
-	if !exists {
-		return nil
-	}
-
-	_, err := etc.RedisCache(u)
+	_, err := etc.RedisCacheURL(u)
 	if err != nil {
 		log.Println("can't cache live subway response", err)
+		return err
+	}
+
+	// attempt to parse response to ensure it is valid
+	_, _, err = p.Live(agencyID, routeID, "", directionID)
+	if err != nil {
+		log.Println("can't parse response", err)
 		return err
 	}
 
@@ -156,7 +162,8 @@ func (p mtaNYCSubway) Live(agencyID, routeID, stopID string, directionID int) (d
 		tripID, err := models.GetPartialTripIDMatch(etc.DBConn, agencyID, routeID, trip.GetTripId())
 		if err != nil {
 			// FIXME: what to do here?
-			log.Println("can't get tripID", routeID, tripID, err)
+			tripID = trip.GetTripId()
+			log.Println("can't get tripID", routeID, tripID, trip.GetTripId(), err)
 		}
 
 		// Go through all updates to check for our stop ID's departure

@@ -52,7 +52,7 @@ type vehicleRes struct {
 	DepartureSec int    `db:"departure_sec"`
 }
 
-func getVehicles(agencyID, routeID string, directionID int, serviceIDs []string, minSec int) (vehicles []Vehicle, err error) {
+func GetVehicles(agencyID, routeID string, directionID int, serviceIDs []string, minSec int) (vehicles []Vehicle, err error) {
 	var vehicle Vehicle
 
 	if conf.API.LogTiming {

@@ -70,16 +70,16 @@ func TimeToDepartureSecs(t time.Time) int {
 	return t.Hour()*3600 + t.Minute()*60 + t.Second()
 }
 
-// RedisGet retrieves a cached version of the incoming URL or returns an
-// error if there is no cached version or there's another error.
-func RedisGet(u string) (b []byte, err error) {
+// RedisGet retrieves the data cached at k or returns an error if there is no
+// cached version or there's another error.
+func RedisGet(k string) (b []byte, err error) {
 	c, err := redis.DialTimeout("tcp", conf.Cache.RedisAddr, redisConnectTimeout)
 	if err != nil {
 		log.Println("can't connect to redis", err)
 		return
 	}
 
-	b, err = c.Cmd("get", u).Bytes()
+	b, err = c.Cmd("get", k).Bytes()
 	if err != nil {
 		log.Println("can't get from redis", err)
 		return
@@ -88,10 +88,28 @@ func RedisGet(u string) (b []byte, err error) {
 	return
 }
 
-// RedisCache takes a URL and returns the bytes of the response from running a
-// GET on that URL. Responses are cached for redisTTL seconds. If Redis
+// RedisCache saves bytes to redis using key k.
+func RedisCache(k string, b []byte) (err error) {
+	c, err := redis.DialTimeout("tcp", conf.Cache.RedisAddr, redisConnectTimeout)
+	if err != nil {
+		log.Println("can't connect to redis", err)
+		return
+	}
+
+	// Save the data to redis
+	err = c.Cmd("set", k, b, "ex", strconv.Itoa(conf.Cache.RedisTTL)).Err
+	if err != nil {
+		log.Println("can't set value in redis")
+		return
+	}
+
+	return
+}
+
+// RedisCacheURL takes a URL and returns the bytes of the response from running
+// a GET on that URL. Responses are cached for redisTTL seconds. If Redis
 // is not available, an error is logged and we hit the URL directly.
-func RedisCache(u string) (b []byte, err error) {
+func RedisCacheURL(u string) (b []byte, err error) {
 	// Get the value from the URL. If we can't do this, it's an error
 	// we should return.
 	resp, err := http.Get(u)
@@ -109,8 +127,6 @@ func RedisCache(u string) (b []byte, err error) {
 
 	c, err := redis.DialTimeout("tcp", conf.Cache.RedisAddr, redisConnectTimeout)
 	if err != nil {
-		// Log redis errors and then ignore. We may still be able to get
-		// our data even without redis.
 		log.Println("can't connect to redis", err)
 		return
 	}
@@ -118,8 +134,6 @@ func RedisCache(u string) (b []byte, err error) {
 	// Save the data to redis
 	err = c.Cmd("set", u, b, "ex", strconv.Itoa(conf.Cache.RedisTTL)).Err
 	if err != nil {
-		// Log redis errors and then ignore. We still have our bytes
-		// that we can return, so it's not an error for the client.
 		log.Println("can't set value in redis")
 		return
 	}
