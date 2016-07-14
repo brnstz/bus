@@ -3,11 +3,7 @@ package models
 import (
 	"fmt"
 	"log"
-	"sort"
-	"strings"
-	"time"
 
-	"github.com/brnstz/bus/internal/conf"
 	"github.com/brnstz/bus/internal/etc"
 	"github.com/brnstz/upsert"
 	"github.com/jmoiron/sqlx"
@@ -152,20 +148,8 @@ func (ss sortableStops) Swap(i, j int) {
 	ss.stops[i], ss.stops[j] = ss.stops[j], ss.stops[i]
 }
 
-func GetStopsByHereQuery(db sqlx.Ext, hq HereQuery) (stops []*Stop, err error) {
-	ss := sortableStops{}
-
-	// mapping of stop.UniqueID to stop
-	sm := map[string]*Stop{}
-
-	// mapping of route.UniqueID + DirectionID to route
-	rm := map[string]*Route{}
-
-	// overall function timing
-	if conf.API.LogTiming {
-		t1 := time.Now()
-		defer func() { log.Println(time.Now().Sub(t1)) }()
-	}
+// FIXME:
+/*
 
 	now := time.Now()
 
@@ -190,15 +174,12 @@ func GetStopsByHereQuery(db sqlx.Ext, hq HereQuery) (stops []*Stop, err error) {
 		log.Println("can't get yesterday IDs", err)
 		return
 	}
-	*/
 
 	hq.ServiceIDs = todayIDs
 	//hq.YesterdayServiceIDs = yesterdayIDs
 
-	/*
 		hq.YesterdayDepartureMin = now.Hour()*3600 + now.Minute()*60 + now.Second() + midnightSecs
 		hq.YesterdayDepartureMax = hq.YesterdayDepartureMin + 60*60*3
-	*/
 
 	hq.DepartureMin = now.Hour()*3600 + now.Minute()*60 + now.Second()
 	hq.DepartureMax = hq.DepartureMin + 60*60*3
@@ -209,84 +190,4 @@ func GetStopsByHereQuery(db sqlx.Ext, hq HereQuery) (stops []*Stop, err error) {
 		return
 	}
 
-	t3 := time.Now()
-	rows, err := sqlx.NamedQuery(db, hq.Query, hq)
-	if err != nil {
-		log.Println("can't get stops", err)
-		log.Printf("%s %+v", hq.Query, hq)
-		return
-	}
-	if conf.API.LogTiming {
-		log.Println(time.Now().Sub(t3))
-	}
-
-	defer rows.Close()
-
-	count := 0
-	for rows.Next() {
-		count++
-		here := HereResult{DepartureBase: today}
-
-		err = rows.StructScan(&here)
-		if err != nil {
-			log.Println("can't scan row", err)
-			continue
-		}
-
-		err = here.Initialize()
-		if err != nil {
-			log.Println("can't initialize here", err)
-			continue
-		}
-
-		routeDir := fmt.Sprintf("%v|%v", here.Route.UniqueID, here.Stop.DirectionID)
-
-		oldStop, stopExists := sm[here.Stop.UniqueID]
-		//oldRoute, routeExists := rm[routeDir]
-		_, routeExists := rm[routeDir]
-
-		// Ignore when the route / direction already exists, but stop is not
-		// the same
-		if routeExists && !stopExists {
-			continue
-		}
-
-		// Ignore if it's our stop but we already have too many departures
-		if stopExists && len(oldStop.Departures) >= MaxDepartures {
-			continue
-		}
-
-		if !stopExists {
-			sm[here.Stop.UniqueID] = here.Stop
-		}
-		if !routeExists {
-			rm[routeDir] = here.Route
-		}
-
-		stop := sm[here.Stop.UniqueID]
-		//route := rm[routeDir]
-
-		stop.Departures = append(stop.Departures, here.Departure)
-	}
-
-	// Add all stops to sortableStops list
-	for _, s := range sm {
-		ss.stops = append(ss.stops, s)
-	}
-
-	// sort stops by distance first
-	ss.by = byDist
-	sort.Sort(ss)
-
-	// then sort by type to put subways first
-	ss.by = byType
-	sort.Sort(ss)
-
-	stops = []*Stop(ss.stops)
-
-	for _, r := range rm {
-		log.Println("what is the route?", r)
-	}
-
-	return
-}
+*/

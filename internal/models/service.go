@@ -14,7 +14,7 @@ type Service struct {
 	RouteID string
 }
 
-func getNewServiceIDs(db sqlx.Ext, agencyID string, day string, now time.Time) (serviceIDs []string, err error) {
+func GetNewServiceIDs(db sqlx.Ext, agencyID string, day string, now time.Time) (serviceIDs []string, err error) {
 
 	var normalIDs []string
 	var addedIDs []string

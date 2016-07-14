@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/willf/bloom"
@@ -130,6 +131,8 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 	var resp hereResponse
 	var routes []*models.Route
 
+	now := time.Now()
+
 	// Read values incoming from http request
 	lat, err := floatOrDie(r.FormValue("lat"))
 	if err != nil {
@@ -185,17 +188,28 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Create a query for stops
-	hq := models.HereQuery{
-		MidLat: lat,
-		MidLon: lon,
-		SWLat:  SWLat,
-		SWLon:  SWLon,
-		NELat:  NELat,
-		NELon:  NELon,
+	today := etc.BaseTime(now)
+	todayName := strings.ToLower(now.Format("Monday"))
+	// FIXME: hard coded, we need a region to agency mapping
+	agencyID := "MTA NYCT"
+	todayIDs, err := models.GetNewServiceIDs(etc.DBConn, agencyID, todayName, today)
+	if err != nil {
+		log.Println("can't get serviceIDs", err)
+		apiErr(w, err)
+		return
 	}
 
-	stops, err := models.GetStopsByHereQuery(etc.DBConn, hq)
+	hq, err := models.NewHereQuery(
+		lat, lon, SWLat, SWLon, NELat, NELon,
+		todayIDs, etc.TimeToDepartureSecs(now), today,
+	)
+
+	stops, err := models.GetHereResults(etc.DBConn, hq)
+	if err != nil {
+		log.Println("can't get here results", err)
+		apiErr(w, err)
+		return
+	}
 
 	// Create a channel for receiving responses to stopLiveRequest values
 	respch := make(chan error, len(stops))
@@ -270,7 +284,6 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 	// Add the first trip of each stop response that is not already in our
 	// bloom filter
 	for _, stop := range stops {
-		log.Printf("%+v", stop.Departures)
 		if len(stop.Departures) < 1 {
 			continue
 		}

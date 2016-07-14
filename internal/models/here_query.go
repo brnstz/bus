@@ -3,146 +3,9 @@ package models
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 )
-
-var (
-	defaultMaxResults = 1000
-
-	// minFirstDepartureSec is the minimum amount of time the first
-	// departure must occur (2 hours)
-	//minFirstDepartureSec float64 = 60 * 60 * 2
-
-	// departurePreWindow is how far in the past to look departures
-	// that have already passed
-	//departurePreSec = 60 * 2
-)
-
-type HereResult struct {
-	// shared fields
-	AgencyID  string `db:"agency_id"`
-	RouteID   string `db:"route_id"`
-	StopID    string `db:"stop_id"`
-	TripID    string `db:"trip_id"`
-	ServiceID string `db:"service_id"`
-
-	// Departure
-	ArrivalSec  int `db:"arrival_sec"`
-	DepatureSec int `db:"departure_sec"`
-
-	// Trip
-	StopSequence int    `db:"stop_sequence"`
-	TripHeadsign string `db:"trip_headsign"`
-
-	// Stop
-	StopName     string  `db:"stop_name"`
-	StopHeadsign string  `db:"stop_headsign"`
-	DirectionID  int     `db:"direction_id"`
-	Lat          float64 `db:"lat"`
-	Lon          float64 `db:"lon"`
-	Dist         float64 `db:"dist"`
-
-	// Route
-	RouteType      int    `db:"route_type"`
-	RouteColor     string `db:"route_color"`
-	RouteTextColor string `db:"route_text_color"`
-
-	DepartureBase time.Time
-
-	Stop      *Stop
-	Route     *Route
-	Departure *Departure
-}
-
-func (h *HereResult) createStop() (stop *Stop, err error) {
-	stop = &Stop{
-		StopID:      h.StopID,
-		RouteID:     h.RouteID,
-		AgencyID:    h.AgencyID,
-		Name:        h.StopName,
-		DirectionID: h.DirectionID,
-		Headsign:    h.StopHeadsign,
-		Lat:         h.Lat,
-		Lon:         h.Lon,
-		Dist:        h.Dist,
-
-		RouteType:      h.RouteType,
-		RouteColor:     h.RouteColor,
-		RouteTextColor: h.RouteTextColor,
-
-		// FIXME: is seq even needed?
-		Seq: h.StopSequence,
-	}
-	err = stop.Initialize()
-	if err != nil {
-		log.Println("can't init stop", err)
-		return
-	}
-
-	return
-}
-
-func (h *HereResult) createRoute() (route *Route, err error) {
-	route = &Route{
-		RouteID:   h.RouteID,
-		AgencyID:  h.AgencyID,
-		Type:      h.RouteType,
-		Color:     h.RouteColor,
-		TextColor: h.RouteTextColor,
-	}
-
-	err = route.Initialize()
-	if err != nil {
-		log.Println("can't init route", err)
-		return
-	}
-
-	return
-}
-
-func (h *HereResult) createDeparture() (departure *Departure, err error) {
-	departure = &Departure{
-		DepartureSec: h.DepatureSec,
-		TripID:       h.TripID,
-		ServiceID:    h.ServiceID,
-		baseTime:     h.DepartureBase,
-	}
-
-	err = departure.Initialize()
-	if err != nil {
-		log.Println("can't init departure", err)
-		return
-	}
-
-	return
-}
-
-func (h *HereResult) Initialize() error {
-	var err error
-
-	h.Stop, err = h.createStop()
-	if err != nil {
-		log.Println("can't init here stop", err)
-		return err
-	}
-
-	h.Route, err = h.createRoute()
-	if err != nil {
-		log.Println("can't init here route", err)
-		return err
-	}
-
-	h.Departure, err = h.createDeparture()
-	if err != nil {
-		log.Println("can't init here departure", err)
-		return err
-	}
-
-	return nil
-
-}
 
 const (
 	hereQuery = `
@@ -207,6 +70,8 @@ type HereQuery struct {
 	DepartureMin int `db:"departure_min"`
 	DepartureMax int `db:"departure_max"`
 
+	DepartureBase time.Time
+
 	Limit int `db:"limit"`
 
 	Query string
@@ -249,7 +114,20 @@ func escape(serviceID string) string {
 	return b.String()
 }
 
-func (hq *HereQuery) Initialize() error {
+func NewHereQuery(lat, lon, swlat, swlon, nelat, nelon float64, serviceIDs []string, minSec int, departureBase time.Time) (hq *HereQuery, err error) {
+	hq = &HereQuery{
+		MidLat:        lat,
+		MidLon:        lon,
+		SWLat:         swlat,
+		SWLon:         swlon,
+		NELat:         nelat,
+		NELon:         nelon,
+		ServiceIDs:    serviceIDs,
+		Limit:         1000,
+		DepartureMin:  minSec,
+		DepartureMax:  minSec + 60*60*6,
+		DepartureBase: departureBase,
+	}
 
 	hq.LineString = fmt.Sprintf(
 		`LINESTRING(%f %f, %f %f, %f %f, %f %f, %f %f)`,
@@ -269,9 +147,5 @@ func (hq *HereQuery) Initialize() error {
 		createIDs(hq.ServiceIDs),
 	)
 
-	if hq.Limit < 1 {
-		hq.Limit = defaultMaxResults
-	}
-
-	return nil
+	return
 }
