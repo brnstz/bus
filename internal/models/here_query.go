@@ -13,11 +13,11 @@ var (
 
 	// minFirstDepartureSec is the minimum amount of time the first
 	// departure must occur (2 hours)
-	minFirstDepartureSec float64 = 60 * 60 * 2
+	//minFirstDepartureSec float64 = 60 * 60 * 2
 
 	// departurePreWindow is how far in the past to look departures
 	// that have already passed
-	departurePreSec = 60 * 2
+	//departurePreSec = 60 * 2
 )
 
 type HereResult struct {
