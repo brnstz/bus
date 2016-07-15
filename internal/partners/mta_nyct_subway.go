@@ -87,6 +87,8 @@ func (p mtaNYCSubway) Precache(agencyID, routeID string, directionID int) error 
 }
 
 func (p mtaNYCSubway) Live(agencyID, routeID, stopID string, directionID int) (d models.Departures, v []models.Vehicle, err error) {
+	now := time.Now()
+
 	u, exists := p.getURL(routeID)
 	if !exists {
 		return
@@ -159,25 +161,30 @@ func (p mtaNYCSubway) Live(agencyID, routeID, stopID string, directionID int) (d
 		}
 
 		// FIXME: we should probably do this in api_here
-		tripID, err := models.GetPartialTripIDMatch(etc.DBConn, agencyID, routeID, trip.GetTripId())
-		if err != nil {
-			// FIXME: what to do here?
-			tripID = trip.GetTripId()
-			log.Println("can't get tripID", routeID, tripID, trip.GetTripId(), err)
-		}
+		/*
+			tripID, err := models.GetPartialTripIDMatch(etc.DBConn, agencyID, routeID, trip.GetTripId())
+			if err != nil {
+				// FIXME: what to do here?
+				tripID = trip.GetTripId()
+				log.Println("can't get tripID", routeID, tripID, trip.GetTripId(), err)
+			}
+		*/
 
-		// Go through all updates to check for our stop ID's departure
-		// time.
+		// Go through all updates to check for our stop ID's departure time.
 		for _, u := range stopTimeUpdates {
+
 			// If this is our stop, then get the departure time.
 			if u.GetStopId() == stopID {
-				d = append(d,
-					&models.Departure{
-						Time:   time.Unix(u.GetDeparture().GetTime(), 0),
-						TripID: tripID,
-						Live:   true,
-					},
-				)
+				dtime := time.Unix(u.GetDeparture().GetTime(), 0)
+				if dtime.After(now) {
+					d = append(d,
+						&models.Departure{
+							Time:   dtime,
+							TripID: trip.GetTripId(),
+							Live:   true,
+						},
+					)
+				}
 			}
 		}
 	}
