@@ -10,6 +10,11 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+const (
+	maxStops              = 20
+	minFirstDepartureTime = time.Duration(2) * time.Hour
+)
+
 type HereResult struct {
 	// shared fields
 	AgencyID  string `db:"agency_id"`
@@ -100,11 +105,15 @@ func (h *HereResult) createDeparture() (departure *Departure, err error) {
 		baseTime:     h.DepartureBase,
 	}
 
+	log.Printf("departure before: %+v", departure)
+
 	err = departure.Initialize()
 	if err != nil {
 		log.Println("can't init departure", err)
 		return
 	}
+
+	log.Printf("departure after: %+v", departure)
 
 	return
 }
@@ -164,7 +173,6 @@ func GetHereResults(db sqlx.Ext, hq *HereQuery) (stops []*Stop, err error) {
 
 	count := 0
 	for rows.Next() {
-		count++
 		here := HereResult{DepartureBase: hq.DepartureBase}
 
 		err = rows.StructScan(&here)
@@ -195,6 +203,7 @@ func GetHereResults(db sqlx.Ext, hq *HereQuery) (stops []*Stop, err error) {
 			continue
 		}
 
+		// If we didn't have stop or route, put them in our map
 		if !stopExists {
 			sm[here.Stop.UniqueID] = here.Stop
 		}
@@ -202,9 +211,13 @@ func GetHereResults(db sqlx.Ext, hq *HereQuery) (stops []*Stop, err error) {
 			rm[routeDir] = here.Route
 		}
 
-		stop := sm[here.Stop.UniqueID]
+		//
 
+		// Get the stop and append the current departure
+		stop := sm[here.Stop.UniqueID]
 		stop.Departures = append(stop.Departures, here.Departure)
+		count++
+
 	}
 
 	// Add all stops to sortableStops list
@@ -221,7 +234,11 @@ func GetHereResults(db sqlx.Ext, hq *HereQuery) (stops []*Stop, err error) {
 	sort.Stable(ss)
 
 	// Assign stops to our return value
-	stops = []*Stop(ss.stops)
+	if len(ss.stops) > maxStops {
+		stops = []*Stop(ss.stops[0:maxStops])
+	} else {
+		stops = []*Stop(ss.stops)
+	}
 
 	return
 }
