@@ -282,80 +282,100 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 
 	// Add the first trip of each stop response that is not already in our
 	// bloom filter
-	for _, stop := range stops {
+	for i, stop := range stops {
+		var trip models.Trip
+
 		if len(stop.Departures) < 1 {
 			continue
 		}
 
+		// Get info for the trip
 		tripID := stop.Departures[0].TripID
 		uniqueID := stop.AgencyID + "|" + tripID
 
+		// Check if the trip already exists
 		exists := resp.Filter.TestAndAddString(uniqueID)
-		log.Println(uniqueID, "exists", exists)
-		if !exists {
-			trip, err := models.GetTrip(etc.DBConn, stop.AgencyID, stop.RouteID, tripID)
 
-			// If we can't find the trip, try a few backup methods
-			if err == models.ErrNotFound {
+		// If it exists, skip it
+		if exists {
+			continue
+		}
 
-				// Try getting partial match
-				log.Println("trying to get partial id", tripID, stop.RouteID)
-				tripID, err = models.GetPartialTripIDMatch(
-					etc.DBConn, agencyID, stop.RouteID, tripID,
-				)
-				log.Println("retrieved partial ID", tripID, stop.RouteID, err)
+		// Get the full trip with stop and shape details. If we succeed, we can
+		// move onto next trip
+		trip, err = models.GetTrip(etc.DBConn, stop.AgencyID, stop.RouteID, tripID)
+		if err == nil {
+			log.Println("got it normally", uniqueID, stop.RouteID, stop.Headsign)
+			resp.Filter.AddString(uniqueID)
+			resp.Trips = append(resp.Trips, &trip)
+			continue
+		}
 
-				if err == models.ErrNotFound {
-					/*
-						// Get any trip for this route that is close
-						// to our departure time
-						log.Println("trying to get any trip", tripID, stop.RouteID)
+		// If the error is unexpected, we should error out immediately
+		if err != models.ErrNotFound {
+			log.Println("can't get trip", err)
+			apiErr(w, err)
+			return
+		}
 
-						tripID, err = models.GetAnyTripID(etc.DBConn,
-							agencyID, agencyID, stop.RouteID, stop.DirectionID,
-							todayIDs, stop.Departures[0].Time)
+		// Here we weren't able to find the trip ID in the database. This is
+		// typically due to a response from a realtime source which gives us
+		// TripIDs that are not in the static feed or are partial matches.
+		// Let's first look for a partial match. If that fails, let's just get
+		// the use the first scheduled departure instead.
 
-						log.Println("retrieved any trip", tripID, stop.RouteID, err)
-						if err != nil {
-							log.Println("can't get trip", err)
-						}
-					*/
+		// Checking for partial match.
+		tripID, err = models.GetPartialTripIDMatch(
+			etc.DBConn, agencyID, stop.RouteID, tripID,
+		)
 
-					log.Println("using first departure", tripID)
-					tripID = firstDepart[stop.UniqueID].TripID
-					log.Println("got  first departure", tripID)
+		// If we get one, then update the uniqueID and the relevant stop /
+		// departure's ID, adding it to our filter.
+		if err == nil {
+			uniqueID = stop.AgencyID + "|" + tripID
+			resp.Stops[i].Departures[0].TripID = tripID
 
-				} else if err != nil {
-					log.Println("problem getting trip", err)
-					apiErr(w, err)
-					return
-				}
-
-				// Re-get the trip with update ID
-				trip, err = models.GetTrip(etc.DBConn, agencyID, stop.RouteID,
-					tripID)
-				if err != nil {
-					log.Println("can't get trip", err)
-					apiErr(w, err)
-					return
-				}
-
-				// Update uniqueID and tripID
-				log.Println("updating unique id", tripID, stop.RouteID)
-				uniqueID = stop.AgencyID + "|" + tripID
-				stop.Departures[0].TripID = tripID
-
-			} else if err != nil {
-				log.Println("problem getting trip", err)
+			// Re-get the trip with update ID
+			trip, err = models.GetTrip(etc.DBConn, agencyID, stop.RouteID,
+				tripID)
+			if err != nil {
+				log.Println("can't get trip", err)
 				apiErr(w, err)
 				return
 			}
 
-			log.Printf("adding and appending %s %s %s %+v", tripID, stop.RouteID, uniqueID, trip)
+			log.Println("got it partial match", uniqueID, stop.RouteID, stop.Headsign)
 			resp.Filter.AddString(uniqueID)
 			resp.Trips = append(resp.Trips, &trip)
+
+			continue
 		}
 
+		// If the error is unexpected, we should error out immediately
+		if err != models.ErrNotFound {
+			log.Println("can't get trip", err)
+			apiErr(w, err)
+			return
+		}
+
+		// Our last hope is take the first scheduled departure
+		tripID = firstDepart[stop.UniqueID].TripID
+
+		uniqueID = stop.AgencyID + "|" + tripID
+		resp.Stops[i].Departures[0].TripID = tripID
+
+		// Re-get the trip with update ID
+		trip, err = models.GetTrip(etc.DBConn, agencyID, stop.RouteID,
+			tripID)
+		if err != nil {
+			log.Println("can't get trip", err)
+			apiErr(w, err)
+			return
+		}
+
+		log.Println("got it first departure", uniqueID, stop.RouteID, stop.Headsign)
+		resp.Filter.AddString(uniqueID)
+		resp.Trips = append(resp.Trips, &trip)
 	}
 	log.Println("time spent getting trips", time.Now().Sub(t4))
 
