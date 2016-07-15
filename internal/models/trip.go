@@ -1,7 +1,7 @@
 package models
 
 import (
-	"errors"
+	"database/sql"
 	"fmt"
 	"log"
 	"time"
@@ -184,6 +184,9 @@ func GetPartialTripIDMatch(db sqlx.Ext, agencyID, routeID, partialTripID string)
 	`
 
 	err = sqlx.Get(db, &tripID, q, agencyID, routeID, partialTripID)
+	if err == sql.ErrNoRows {
+		err = ErrNotFound
+	}
 
 	return
 }
@@ -236,7 +239,7 @@ func GetAnyTripID(db sqlx.Ext, agencyID, routeID, stopID string, directionID int
 
 	// This might happen if there are no results but that would be weird
 	if tripID == "" {
-		err = errors.New("can't find tripID")
+		err = ErrNotFound
 		return
 	}
 

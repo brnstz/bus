@@ -105,15 +105,11 @@ func (h *HereResult) createDeparture() (departure *Departure, err error) {
 		baseTime:     h.DepartureBase,
 	}
 
-	log.Printf("departure before: %+v", departure)
-
 	err = departure.Initialize()
 	if err != nil {
 		log.Println("can't init departure", err)
 		return
 	}
-
-	log.Printf("departure after: %+v", departure)
 
 	return
 }
