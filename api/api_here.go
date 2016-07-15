@@ -204,7 +204,7 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 		todayIDs, etc.TimeToDepartureSecs(now), today,
 	)
 
-	stops, err := models.GetHereResults(etc.DBConn, hq)
+	stops, stopRoutes, err := models.GetHereResults(etc.DBConn, hq)
 	if err != nil {
 		log.Println("can't get here results", err)
 		apiErr(w, err)
@@ -215,16 +215,15 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 	respch := make(chan error, len(stops))
 	count := 0
 
+	// save the first scheduled departure of each stop, so that we can
+	// use it in case the live tripID cannot be found
+	firstDepart := map[string]*models.Departure{}
+
 	t3 := time.Now()
 	for _, s := range stops {
-		// Get the route for this stop and add to our list (may include dupes)
-		// FIXME: get this from main query
-		route, err := models.GetRoute(etc.DBConn, s.AgencyID, s.RouteID)
-		if err != nil {
-			log.Println("can't get route", err)
-			apiErr(w, err)
-			return
-		}
+
+		firstDepart[s.UniqueID] = s.Departures[0]
+		route := stopRoutes[s.UniqueID]
 		routes = append(routes, route)
 
 		// Get a live partner or skip it
@@ -292,6 +291,7 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 		uniqueID := stop.AgencyID + "|" + tripID
 
 		exists := resp.Filter.TestAndAddString(uniqueID)
+		log.Println(uniqueID, "exists", exists)
 		if !exists {
 			trip, err := models.GetTrip(etc.DBConn, stop.AgencyID, stop.RouteID, tripID)
 
@@ -299,22 +299,35 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 			if err == models.ErrNotFound {
 
 				// Try getting partial match
+				log.Println("trying to get partial id", tripID, stop.RouteID)
 				tripID, err = models.GetPartialTripIDMatch(
 					etc.DBConn, agencyID, stop.RouteID, tripID,
 				)
+				log.Println("retrieved partial ID", tripID, stop.RouteID, err)
 
 				if err == models.ErrNotFound {
-					// Get any trip for this route that is close
-					// to our departure time
-					tripID, err = models.GetAnyTripID(etc.DBConn,
-						agencyID, agencyID, stop.RouteID, stop.DirectionID,
-						todayIDs, stop.Departures[0].Time)
-					if err != nil {
-						log.Println("can't get trip", err)
-					}
+					/*
+						// Get any trip for this route that is close
+						// to our departure time
+						log.Println("trying to get any trip", tripID, stop.RouteID)
+
+						tripID, err = models.GetAnyTripID(etc.DBConn,
+							agencyID, agencyID, stop.RouteID, stop.DirectionID,
+							todayIDs, stop.Departures[0].Time)
+
+						log.Println("retrieved any trip", tripID, stop.RouteID, err)
+						if err != nil {
+							log.Println("can't get trip", err)
+						}
+					*/
+
+					log.Println("using first departure", tripID)
+					tripID = firstDepart[stop.UniqueID].TripID
+					log.Println("got  first departure", tripID)
 
 				} else if err != nil {
 					log.Println("problem getting trip", err)
+					apiErr(w, err)
 					return
 				}
 
@@ -323,18 +336,22 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 					tripID)
 				if err != nil {
 					log.Println("can't get trip", err)
+					apiErr(w, err)
 					return
 				}
 
 				// Update uniqueID and tripID
+				log.Println("updating unique id", tripID, stop.RouteID)
 				uniqueID = stop.AgencyID + "|" + tripID
 				stop.Departures[0].TripID = tripID
 
 			} else if err != nil {
 				log.Println("problem getting trip", err)
+				apiErr(w, err)
 				return
 			}
 
+			log.Printf("adding and appending %s %s %s %+v", tripID, stop.RouteID, uniqueID, trip)
 			resp.Filter.AddString(uniqueID)
 			resp.Trips = append(resp.Trips, &trip)
 		}

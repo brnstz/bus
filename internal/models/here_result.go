@@ -139,8 +139,11 @@ func (h *HereResult) Initialize() error {
 
 }
 
-func GetHereResults(db sqlx.Ext, hq *HereQuery) (stops []*Stop, err error) {
+func GetHereResults(db sqlx.Ext, hq *HereQuery) (stops []*Stop, stopRoutes map[string]*Route, err error) {
 	ss := sortableStops{}
+
+	// mapping of stop.UniqueID to route
+	stopRoutes = map[string]*Route{}
 
 	// mapping of stop.UniqueID to stop
 	sm := map[string]*Stop{}
@@ -210,6 +213,8 @@ func GetHereResults(db sqlx.Ext, hq *HereQuery) (stops []*Stop, err error) {
 		// Get the stop and append the current departure
 		stop := sm[here.Stop.UniqueID]
 		stop.Departures = append(stop.Departures, here.Departure)
+		stopRoutes[here.Stop.UniqueID] = here.Route
+
 		count++
 
 	}

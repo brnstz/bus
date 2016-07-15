@@ -2,9 +2,7 @@ package models
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
-	"time"
 
 	"github.com/brnstz/bus/internal/etc"
 	"github.com/brnstz/upsert"
@@ -194,6 +192,7 @@ func GetPartialTripIDMatch(db sqlx.Ext, agencyID, routeID, partialTripID string)
 // GetAnyTripID is the last recourse for getting a trip ID. We try to get
 // any trip id that matches our agency / route / direction
 // FIXME: what about headsign?
+/*
 func GetAnyTripID(db sqlx.Ext, agencyID, routeID, stopID string, directionID int, serviceIDs []string, departureTime time.Time) (tripID string, err error) {
 
 	// Get trip IDs and departure secs matching our agency / route / dir / stop
@@ -203,7 +202,7 @@ func GetAnyTripID(db sqlx.Ext, agencyID, routeID, stopID string, directionID int
 		INNER JOIN scheduled_stop_time sst
 			ON trip.agency_id = sst.agency_id AND
 			   trip.route_id  = sst.route_id  AND
-		       trip.trip_id   = sst.trip_id 
+		       trip.trip_id   = sst.trip_id
 
 		WHERE trip.agency_id     = $1 AND
 			  trip.route_id      = $2 AND
@@ -246,3 +245,4 @@ func GetAnyTripID(db sqlx.Ext, agencyID, routeID, stopID string, directionID int
 	// We'll return the closest tripID
 	return
 }
+*/
