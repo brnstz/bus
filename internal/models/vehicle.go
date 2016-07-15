@@ -2,9 +2,7 @@ package models
 
 import (
 	"log"
-	"time"
 
-	"github.com/brnstz/bus/internal/conf"
 	"github.com/brnstz/bus/internal/etc"
 	"github.com/jmoiron/sqlx"
 )
@@ -20,11 +18,6 @@ type Vehicle struct {
 }
 
 func GetVehicle(agencyID, routeID, stopID string, directionID int) (vehicle Vehicle, err error) {
-
-	if conf.API.LogTiming {
-		t1 := time.Now()
-		defer func() { log.Println(time.Now().Sub(t1)) }()
-	}
 
 	q := `
 		SELECT ST_X(location) AS lat, ST_Y(location) AS lon	
@@ -54,11 +47,6 @@ type vehicleRes struct {
 
 func GetVehicles(agencyID, routeID string, directionID int, serviceIDs []string, minSec int) (vehicles []Vehicle, err error) {
 	var vehicle Vehicle
-
-	if conf.API.LogTiming {
-		t1 := time.Now()
-		defer func() { log.Println(time.Now().Sub(t1)) }()
-	}
 
 	for _, serviceID := range serviceIDs {
 

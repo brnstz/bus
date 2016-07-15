@@ -4,7 +4,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/brnstz/bus/internal/conf"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -19,11 +18,6 @@ func GetNewServiceIDs(db sqlx.Ext, agencyID string, day string, now time.Time) (
 	var normalIDs []string
 	var addedIDs []string
 	var removedIDs []string
-
-	if conf.API.LogTiming {
-		t1 := time.Now()
-		defer func() { log.Println(time.Now().Sub(t1)) }()
-	}
 
 	removed := map[string]bool{}
 
@@ -104,11 +98,6 @@ func getServiceIDsByDay(db sqlx.Ext, agencyID, routeID, day string, now time.Tim
 	var normalIDs []string
 	var addedIDs []string
 	var removedIDs []string
-
-	if conf.API.LogTiming {
-		t1 := time.Now()
-		defer func() { log.Println(time.Now().Sub(t1)) }()
-	}
 
 	removed := map[string]bool{}
 
