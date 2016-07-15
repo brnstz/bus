@@ -214,11 +214,11 @@ func GetHereResults(db sqlx.Ext, hq *HereQuery) (stops []*Stop, err error) {
 
 	// sort stops by distance first
 	ss.by = byDist
-	sort.Sort(ss)
+	sort.Stable(ss)
 
 	// then sort by type to put subways first
 	ss.by = byType
-	sort.Sort(ss)
+	sort.Stable(ss)
 
 	// Assign stops to our return value
 	stops = []*Stop(ss.stops)
