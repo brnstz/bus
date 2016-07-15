@@ -1,6 +1,7 @@
 package etc
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -171,4 +172,41 @@ func BaseTime(t time.Time) time.Time {
 	t = t.Add(-time.Nanosecond * time.Duration(t.Nanosecond()))
 
 	return t
+}
+
+// CreateIDs turns a slice of strings into a single string suitable
+// for substitution into an IN clause.
+func CreateIDs(ids []string) string {
+	// If there are no ids, we want a single blank value
+	if len(ids) < 1 {
+		return `''`
+	}
+
+	for i, _ := range ids {
+		ids[i] = escape(ids[i])
+	}
+
+	return strings.Join(ids, ",")
+}
+
+// escape ensures any single quotes inside of id are escaped / quoted
+// before creating an ad-hoc string for the IN query
+func escape(id string) string {
+	var b bytes.Buffer
+
+	b.WriteRune('\u0027')
+
+	for _, char := range id {
+		switch char {
+		case '\u0027':
+			b.WriteRune('\u0027')
+			b.WriteRune('\u0027')
+		default:
+			b.WriteRune(char)
+		}
+	}
+
+	b.WriteRune('\u0027')
+
+	return b.String()
 }

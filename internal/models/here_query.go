@@ -1,10 +1,10 @@
 package models
 
 import (
-	"bytes"
 	"fmt"
-	"strings"
 	"time"
+
+	"github.com/brnstz/bus/internal/etc"
 )
 
 const (
@@ -77,43 +77,6 @@ type HereQuery struct {
 	Query string
 }
 
-// createIDs turns a slice of service IDs into a single string suitable
-// for substitution into an IN clause.
-func createIDs(ids []string) string {
-	// If there are no ids, we want a single blank value
-	if len(ids) < 1 {
-		return `''`
-	}
-
-	for i, _ := range ids {
-		ids[i] = escape(ids[i])
-	}
-
-	return strings.Join(ids, ",")
-}
-
-// escape ensures any single quotes inside of serviceID are escaped / quoted
-// before creating an ad-hoc string for the IN query
-func escape(serviceID string) string {
-	var b bytes.Buffer
-
-	b.WriteRune('\u0027')
-
-	for _, char := range serviceID {
-		switch char {
-		case '\u0027':
-			b.WriteRune('\u0027')
-			b.WriteRune('\u0027')
-		default:
-			b.WriteRune(char)
-		}
-	}
-
-	b.WriteRune('\u0027')
-
-	return b.String()
-}
-
 func NewHereQuery(lat, lon, swlat, swlon, nelat, nelon float64, serviceIDs []string, minSec int, departureBase time.Time) (hq *HereQuery, err error) {
 	hq = &HereQuery{
 		MidLat:        lat,
@@ -144,7 +107,7 @@ func NewHereQuery(lat, lon, swlat, swlon, nelat, nelon float64, serviceIDs []str
 	)
 
 	hq.Query = fmt.Sprintf(hereQuery,
-		createIDs(hq.ServiceIDs),
+		etc.CreateIDs(hq.ServiceIDs),
 	)
 
 	return
