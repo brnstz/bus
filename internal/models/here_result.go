@@ -211,8 +211,6 @@ func GetHereResults(db sqlx.Ext, hq *HereQuery) (stops []*Stop, err error) {
 			rm[routeDir] = here.Route
 		}
 
-		//
-
 		// Get the stop and append the current departure
 		stop := sm[here.Stop.UniqueID]
 		stop.Departures = append(stop.Departures, here.Departure)
