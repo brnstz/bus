@@ -143,6 +143,7 @@ func GetTrip(db sqlx.Ext, agencyID, routeID, tripID string) (t Trip, err error) 
 	err = sqlx.Get(db, &t, q, agencyID, tripID, routeID)
 	if err != nil {
 		log.Println("can't get trip", q, agencyID, tripID, routeID, err)
+		err = ErrNotFound
 		return
 	}
 
