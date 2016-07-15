@@ -263,6 +263,10 @@ Bus.prototype.clickHandler = function(stop) {
         var trip = self.trips[stop.api.agency_id + "|" + stop.api.departures[0].trip_id]
         var row = self.rows[stop.id];
 
+        if (!trip) {
+            console.log("can't get trip", self.trips, stop.api.agency_id + "|" + stop.api.departures[0].trip_id);
+        }
+
         var markers = trip.createMarkers(stop.api, route.api);
         var lines = trip.createLines(stop.api, route.api);
         var vehicles = stop.createVehicles(route.api);
