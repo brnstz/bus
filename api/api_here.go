@@ -294,15 +294,49 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 		exists := resp.Filter.TestAndAddString(uniqueID)
 		if !exists {
 			trip, err := models.GetTrip(etc.DBConn, stop.AgencyID, stop.RouteID, tripID)
-			if err != nil {
-				// FIXME: Can this be a non-fatal error? Let's see.
-				log.Println("can't get trip", uniqueID, err)
-				continue
+
+			// If we can't find the trip, try a few backup methods
+			if err == models.ErrNotFound {
+
+				// Try getting partial match
+				tripID, err = models.GetPartialTripIDMatch(
+					etc.DBConn, agencyID, stop.RouteID, tripID,
+				)
+
+				if err == models.ErrNotFound {
+					// Get any trip for this route that is close
+					// to our departure time
+					tripID, err = models.GetAnyTripID(etc.DBConn,
+						agencyID, agencyID, stop.RouteID, stop.DirectionID,
+						todayIDs, stop.Departures[0].Time)
+					if err != nil {
+						log.Println("can't get trip", err)
+					}
+
+				} else if err != nil {
+					log.Println("problem getting trip", err)
+					return
+				}
+
+				// Re-get the trip with update ID
+				trip, err = models.GetTrip(etc.DBConn, agencyID, stop.RouteID,
+					tripID)
+				if err != nil {
+					log.Println("can't get trip", err)
+					return
+				}
+
+				// Update uniqueID and tripID
+				uniqueID = stop.AgencyID + "|" + tripID
+				stop.Departures[0].TripID = tripID
+
+			} else if err != nil {
+				log.Println("problem getting trip", err)
+				return
 			}
 
 			resp.Filter.AddString(uniqueID)
 			resp.Trips = append(resp.Trips, &trip)
-
 		}
 
 	}
