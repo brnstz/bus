@@ -252,9 +252,6 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Set stop value of the response
-	resp.Stops = stops
-
 	// Add any routes to the response that the bloom filter says we don't have
 	for _, route := range routes {
 		exists := resp.Filter.TestString(route.UniqueID)
@@ -282,7 +279,7 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 
 	// Add the first trip of each stop response that is not already in our
 	// bloom filter
-	for i, stop := range stops {
+	for _, stop := range stops {
 		var trip models.Trip
 
 		if len(stop.Departures) < 1 {
@@ -305,7 +302,6 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 		// move onto next trip
 		trip, err = models.GetTrip(etc.DBConn, stop.AgencyID, stop.RouteID, tripID)
 		if err == nil {
-			log.Println("got it normally", uniqueID, stop.RouteID, stop.Headsign)
 			resp.Filter.AddString(uniqueID)
 			resp.Trips = append(resp.Trips, &trip)
 			continue
@@ -325,6 +321,7 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 		// the use the first scheduled departure instead.
 
 		// Checking for partial match.
+		log.Println("trying partial match", tripID)
 		tripID, err = models.GetPartialTripIDMatch(
 			etc.DBConn, agencyID, stop.RouteID, tripID,
 		)
@@ -333,7 +330,8 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 		// departure's ID, adding it to our filter.
 		if err == nil {
 			uniqueID = stop.AgencyID + "|" + tripID
-			resp.Stops[i].Departures[0].TripID = tripID
+			stop.Departures[0].TripID = tripID
+			stop.Initialize()
 
 			// Re-get the trip with update ID
 			trip, err = models.GetTrip(etc.DBConn, agencyID, stop.RouteID,
@@ -359,10 +357,12 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Our last hope is take the first scheduled departure
+		log.Println("trying first departure")
 		tripID = firstDepart[stop.UniqueID].TripID
 
 		uniqueID = stop.AgencyID + "|" + tripID
-		resp.Stops[i].Departures[0].TripID = tripID
+		stop.Departures[0].TripID = tripID
+		stop.Initialize()
 
 		// Re-get the trip with update ID
 		trip, err = models.GetTrip(etc.DBConn, agencyID, stop.RouteID,
@@ -380,6 +380,9 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 	log.Println("time spent getting trips", time.Now().Sub(t4))
 
 	t5 := time.Now()
+
+	// Set stop value of the response
+	resp.Stops = stops
 
 	b, err := json.Marshal(resp)
 	if err != nil {
