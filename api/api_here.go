@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -173,6 +174,16 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 	// Initialize or read incoming bloom filter
 	filter := r.FormValue("filter")
 
+	var routeTypes []int
+	for _, v := range r.Form["route_type"] {
+		intv, err := strconv.Atoi(v)
+		if err != nil {
+			apiErr(w, errBadRequest)
+		}
+
+		routeTypes = append(routeTypes, intv)
+	}
+
 	if len(filter) < 1 {
 		// If there is no filter, then create a new one
 		resp.Filter = bloom.New(bloomM, bloomK)
@@ -200,7 +211,13 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 	}
 
 	hq, err := models.NewHereQuery(
+		// position
 		lat, lon, SWLat, SWLon, NELat, NELon,
+
+		// potential route type filter
+		routeTypes,
+
+		// today
 		todayIDs, etc.TimeToDepartureSecs(now), today,
 	)
 
