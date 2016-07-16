@@ -30,15 +30,15 @@ function Bus() {
 
     // tileOptions is passed to Leatlef JS for drawing the map
     self.tileOptions = {
-        maxZoom: 18,
-        minZoom: 5,
+        maxZoom: 17,
+        minZoom: 10,
         opacity: 0.8,
     };
 
     // mapOptions is the initial options sent on creation of the map
     self.mapOptions = {
-        maxZoom: 18,
-        minZoom: 5,
+        maxZoom: 17,
+        minZoom: 10,
         zoom: 16,
 
         // default to Times Square
@@ -105,7 +105,7 @@ Bus.prototype.init = function() {
     self.layerZooms.push(new LayerZoom(self.busRouteLayer, 13));
     self.layerZooms.push(new LayerZoom(self.trainRouteLayer, 0));
     self.layerZooms.push(new LayerZoom(self.stopLayer, 14));
-    self.layerZooms.push(new LayerZoom(self.vehicleLayer, 12));
+    self.layerZooms.push(new LayerZoom(self.vehicleLayer, 11));
     self.layerZooms.push(new LayerZoom(self.clickedTripLayer, 0));
     self.updateLayers();
 
