@@ -20,6 +20,9 @@ var homeControl = L.Control.extend({
 function Bus() {
     var self = this;
 
+    var nofilter = [];
+    var trainsOnly = [0, 1, 2];
+
     self.defaultZoom = 16;
 
     // JSON-encoded Bloom filter (of routes that we have loaded) as 
@@ -47,9 +50,16 @@ function Bus() {
         center: [40.758895, -73.9873197]
     };
 
-    self.zoomRouteType = {
-
-
+    // zoomRouteTypes maps zoom levels to the route types they should send
+    self.zoomRouteTypes = {
+        10: trainsOnly,
+        11: trainsOnly,
+        12: trainsOnly,
+        13: trainsOnly,
+        14: trainsOnly,
+        15: nofilter,
+        16: nofilter,
+        17: nofilter,
     };
 
     // map is our Leaflet JS map object
@@ -399,6 +409,7 @@ Bus.prototype.getHere = function() {
     var bounds = self.map.getBounds();
     var sw = bounds.getSouthWest();
     var ne = bounds.getNorthEast();
+    var routeTypes = self.zoomRouteTypes[self.map.getZoom()];
 
     var url = '/api/here' +
         '?lat=' + encodeURIComponent(center.lat) +
@@ -408,6 +419,10 @@ Bus.prototype.getHere = function() {
         '&ne_lat=' + encodeURIComponent(ne.lat) +
         '&ne_lon=' + encodeURIComponent(ne.lng) +
         '&filter=' + encodeURIComponent(self.filter);
+
+    for (var i = 0; i < routeTypes.length; i++) {
+        url += '&route_type=' + encodeURIComponent(routeTypes[i]);
+    }
 
     $.ajax(url, {
         dataType: "json",
