@@ -45,6 +45,13 @@ const (
 					departure_sec < :departure_max
 				)
 			)
+	`
+
+	routeTypeFilter = `
+		AND route_type IN (%s)
+	`
+
+	hereOrderLimit = `
 		ORDER BY dist ASC, departure_sec ASC
 		LIMIT :limit
 	`
@@ -77,7 +84,7 @@ type HereQuery struct {
 	Query string
 }
 
-func NewHereQuery(lat, lon, swlat, swlon, nelat, nelon float64, serviceIDs []string, minSec int, departureBase time.Time) (hq *HereQuery, err error) {
+func NewHereQuery(lat, lon, swlat, swlon, nelat, nelon float64, routeTypes []int, serviceIDs []string, minSec int, departureBase time.Time) (hq *HereQuery, err error) {
 	hq = &HereQuery{
 		MidLat:        lat,
 		MidLon:        lon,
@@ -109,6 +116,12 @@ func NewHereQuery(lat, lon, swlat, swlon, nelat, nelon float64, serviceIDs []str
 	hq.Query = fmt.Sprintf(hereQuery,
 		etc.CreateIDs(hq.ServiceIDs),
 	)
+
+	if len(routeTypes) > 0 {
+		hq.Query = hq.Query + fmt.Sprintf(routeTypeFilter, etc.CreateIntIDs(routeTypes))
+	}
+
+	hq.Query = hq.Query + hereOrderLimit
 
 	return
 }

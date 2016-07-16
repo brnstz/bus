@@ -174,6 +174,18 @@ func BaseTime(t time.Time) time.Time {
 	return t
 }
 
+// CreateIntIDs takes  aslice of ints and returns a single sting
+// suitable for substitution into an IN clause
+func CreateIntIDs(ids []int) string {
+	strIDs := make([]string, len(ids))
+
+	for i, _ := range ids {
+		strIDs[i] = strconv.Itoa(ids[i])
+	}
+
+	return strings.Join(strIDs, ",")
+}
+
 // CreateIDs turns a slice of strings into a single string suitable
 // for substitution into an IN clause.
 func CreateIDs(ids []string) string {
