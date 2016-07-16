@@ -279,7 +279,7 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 
 	// Add the first trip of each stop response that is not already in our
 	// bloom filter
-	for _, stop := range stops {
+	for i, stop := range stops {
 		var trip models.Trip
 
 		if len(stop.Departures) < 1 {
@@ -330,8 +330,8 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 		// departure's ID, adding it to our filter.
 		if err == nil {
 			uniqueID = stop.AgencyID + "|" + tripID
-			stop.Departures[0].TripID = tripID
-			stop.Initialize()
+			stops[i].Departures[0].TripID = tripID
+			stops[i].Initialize()
 
 			// Re-get the trip with update ID
 			trip, err = models.GetTrip(etc.DBConn, agencyID, stop.RouteID,
@@ -342,7 +342,7 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			log.Println("got it partial match", uniqueID, stop.RouteID, stop.Headsign)
+			log.Println("got it partial match", uniqueID, stop.RouteID, stop.Headsign, stops[i].Departures[0].TripID, tripID)
 			resp.Filter.AddString(uniqueID)
 			resp.Trips = append(resp.Trips, &trip)
 
@@ -361,8 +361,8 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 		tripID = firstDepart[stop.UniqueID].TripID
 
 		uniqueID = stop.AgencyID + "|" + tripID
-		stop.Departures[0].TripID = tripID
-		stop.Initialize()
+		stops[i].Departures[0].TripID = tripID
+		stops[i].Initialize()
 
 		// Re-get the trip with update ID
 		trip, err = models.GetTrip(etc.DBConn, agencyID, stop.RouteID,
@@ -373,7 +373,7 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		log.Println("got it first departure", uniqueID, stop.RouteID, stop.Headsign)
+		log.Println("got it first departure", uniqueID, stop.RouteID, stop.Headsign, stops[i].Departures[0].TripID, tripID)
 		resp.Filter.AddString(uniqueID)
 		resp.Trips = append(resp.Trips, &trip)
 	}
