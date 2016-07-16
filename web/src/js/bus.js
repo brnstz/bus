@@ -20,6 +20,8 @@ var homeControl = L.Control.extend({
 function Bus() {
     var self = this;
 
+    self.defaultZoom = 16;
+
     // JSON-encoded Bloom filter (of routes that we have loaded) as 
     // returned by "here" API. Send this back to each "here" request
     // for an update.
@@ -39,10 +41,15 @@ function Bus() {
     self.mapOptions = {
         maxZoom: 17,
         minZoom: 10,
-        zoom: 16,
+        zoom: self.defaultZoom,
 
         // default to Times Square
         center: [40.758895, -73.9873197]
+    };
+
+    self.zoomRouteType = {
+
+
     };
 
     // map is our Leaflet JS map object
@@ -140,7 +147,7 @@ Bus.prototype.geolocate = function() {
         navigator.geolocation.getCurrentPosition(function(p) {
             // Set location of "you are here" and map view
             self.marker.setLatLng([p.coords.latitude, p.coords.longitude]);
-            self.map.setView([p.coords.latitude, p.coords.longitude]);
+            self.map.setView([p.coords.latitude, p.coords.longitude], self.defaultZoom);
         });
     }
 };
