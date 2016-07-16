@@ -7,30 +7,15 @@ var Route = require("./route.js");
 var Trip = require("./trip.js");
 var LayerZoom = require("./layer_zoom.js");
 
-/*
 var homeControl = L.Control.extend({
     options: {
         position: 'bottomright'
     },
 
     onAdd: function(map) {
-        return $("<button id='geolocate' type='button' class='btn btn-primary' onclick='bus.geolocate();'><span class='glyphicon glyphicon-screenshot'></span></button>")[0];
+        return $("<button id='geolocate' type='button' class='btn btn-default' onclick='getbus().geolocate();'><span class='glyphicon glyphicon-screenshot'></span></button>")[0];
     }
 });
-
-var refreshControl = L.Control.extend({
-    options: {
-        position: 'bottomright'
-    },
-
-    onAdd: function(map) {
-        return $("<button id='refresh' type='button' class='btn btn-success' onclick='bus.getHere();'><span class='glyphicon glyphicon-refresh'></span></button>")[0];
-    }
-});
-*/
-
-
-
 
 function Bus() {
     var self = this;
@@ -124,10 +109,7 @@ Bus.prototype.init = function() {
     self.layerZooms.push(new LayerZoom(self.clickedTripLayer, 0));
     self.updateLayers();
 
-    /*
     self.map.addControl(new homeControl());
-    self.map.addControl(new refreshControl());
-    */
 
     self.getInitialRoutes();
 
