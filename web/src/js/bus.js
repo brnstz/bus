@@ -119,10 +119,10 @@ Bus.prototype.init = function() {
     self.marker.addTo(self.map);
 
     // Add layers to map
-    self.layerZooms.push(new LayerZoom(self.busRouteLayer, 13));
+    self.layerZooms.push(new LayerZoom(self.busRouteLayer, 15));
     self.layerZooms.push(new LayerZoom(self.trainRouteLayer, 0));
-    self.layerZooms.push(new LayerZoom(self.stopLayer, 14));
-    self.layerZooms.push(new LayerZoom(self.vehicleLayer, 11));
+    self.layerZooms.push(new LayerZoom(self.stopLayer, 13));
+    self.layerZooms.push(new LayerZoom(self.vehicleLayer, 10));
     self.layerZooms.push(new LayerZoom(self.clickedTripLayer, 0));
     self.updateLayers();
 
