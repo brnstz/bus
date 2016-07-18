@@ -245,5 +245,7 @@ func NewHereQuery(lat, lon, swlat, swlon, nelat, nelon float64, routeTypes []int
 
 	hq.Query = hq.Query + hereOrderLimit
 
+	log.Printf("here query: %+v", hq)
+
 	return
 }
