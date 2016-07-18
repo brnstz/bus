@@ -2,12 +2,17 @@ package models
 
 import (
 	"fmt"
+	"log"
+	"strings"
 	"time"
 
 	"github.com/brnstz/bus/internal/etc"
 )
 
 const (
+	hereQueryLimit         = 2000
+	departureLookaheadSecs = 60 * 60 * 3
+
 	hereQuery = `
 		SELECT
 			agency_id,
@@ -31,7 +36,22 @@ const (
 
 			trip_headsign,
 
-			ST_DISTANCE(ST_GEOMFROMTEXT(:point_string, 4326), location) AS dist
+			ST_DISTANCE(ST_GEOMFROMTEXT(:point_string, 4326), location) AS dist,
+
+			CASE 
+				WHEN departure_sec >= :yesterday_departure_min AND
+				     departure_sec <= :yesterday_departure_max
+					 THEN departure_sec - :yesterday_sec_diff
+
+			    WHEN departure_sec >= :today_departure_min AND
+					 departure_sec <= :today_departure_max
+					 THEN departure_sec
+
+				WHEN departure_sec >= :tomorrow_departure_min AND
+					 departure_sec <= :tomorrow_departure_max
+					 THEN departure_sec + :tomorrow_sec_diff
+			END
+			AS departure_sort_sec
 
 		FROM here
 
@@ -41,8 +61,24 @@ const (
 			(
 				(   
 					service_id IN (%s) AND
-					departure_sec > :departure_min AND
-					departure_sec < :departure_max
+					departure_sec >= :yesterday_departure_min AND
+					departure_sec <= :yesterday_departure_max
+				)
+
+				OR
+
+				(   
+					service_id IN (%s) AND
+					departure_sec >= :today_departure_min AND
+					departure_sec <= :today_departure_max
+				)
+
+				OR
+
+				(   
+					service_id IN (%s) AND
+					departure_sec >= :tomorrow_departure_min AND
+					departure_sec <= :tomorrow_departure_max
 				)
 			)
 	`
@@ -52,7 +88,7 @@ const (
 	`
 
 	hereOrderLimit = `
-		ORDER BY dist ASC, departure_sec ASC
+		ORDER BY dist ASC, departure_sort_sec ASC
 		LIMIT :limit
 	`
 )
@@ -72,31 +108,115 @@ type HereQuery struct {
 	LineString  string `db:"line_string"`
 	PointString string `db:"point_string"`
 
-	ServiceIDs []string
+	YesterdayDepartureMin  int `db:"yesterday_departure_min"`
+	YesterdayDepartureMax  int `db:"yesterday_departure_max"`
+	YesterdaySecDiff       int `db:"yesterday_sec_diff"`
+	YesterdayDepartureBase time.Time
+	YesterdayServiceIDs    []string
 
-	DepartureMin int `db:"departure_min"`
-	DepartureMax int `db:"departure_max"`
+	TodayDepartureMin  int `db:"today_departure_min"`
+	TodayDepartureMax  int `db:"today_departure_max"`
+	TodayDepartureBase time.Time
+	TodayServiceIDs    []string
 
-	DepartureBase time.Time
+	TomorrowDepartureMin  int `db:"tomorrow_departure_min"`
+	TomorrowDepartureMax  int `db:"tomorrow_departure_max"`
+	TomorrowSecDiff       int `db:"tomorrow_sec_diff"`
+	TomorrowDepartureBase time.Time
+	TomorrowServiceIDs    []string
 
 	Limit int `db:"limit"`
 
 	Query string
 }
 
-func NewHereQuery(lat, lon, swlat, swlon, nelat, nelon float64, routeTypes []int, serviceIDs []string, minSec int, departureBase time.Time) (hq *HereQuery, err error) {
+func NewHereQuery(lat, lon, swlat, swlon, nelat, nelon float64, routeTypes []int, now time.Time) (hq *HereQuery, err error) {
+
+	// FIXME: hard coded, we need a region to agency mapping
+	agencyID := "MTA NYCT"
+
+	today := etc.BaseTime(now)
+	todayName := strings.ToLower(now.Format("Monday"))
+	todayMinSec := etc.TimeToDepartureSecs(now)
+	todayMaxSec := todayMinSec + departureLookaheadSecs
+	todayServiceIDs, err := GetNewServiceIDs(etc.DBConn, agencyID, todayName, today)
+
+	if err != nil {
+		log.Println("can't get today serviceIDs", err)
+		return
+	}
+
+	yesterday := today.AddDate(0, 0, -1)
+	yesterdayName := strings.ToLower(now.Format("Monday"))
+	yesterdayMinSec := now.Hour()*3600 + now.Minute()*60 + now.Second() + midnightSecs
+	yesterdayMaxSec := yesterdayMinSec + departureLookaheadSecs
+	yesterdaySecDiff := int(today.Sub(yesterday).Seconds())
+	yesterdayServiceIDs, err := GetNewServiceIDs(etc.DBConn, agencyID, yesterdayName, yesterday)
+	if err != nil {
+		log.Println("can't get yesterday serviceIDs", err)
+		return
+	}
+
+	tomorrow := today.AddDate(0, 0, 1)
+	tomorrowName := strings.ToLower(now.Format("Monday"))
+	tomorrowMinSec := 0
+	tomorrowMaxSec := departureLookaheadSecs
+	tomorrowSecDiff := int(tomorrow.Sub(today).Seconds())
+	tomorrowServiceIDs, err := GetNewServiceIDs(etc.DBConn, agencyID, tomorrowName, tomorrow)
+	if err != nil {
+		log.Println("can't get tomorrow serviceIDs", err)
+		return
+	}
+
+	// Check for overlap. If there is overlap, then nullify that day in
+	// preference for today.
+	if yesterdayMinSec <= todayMaxSec && todayMinSec <= yesterdayMaxSec {
+		yesterdayMinSec = -1
+		yesterdayMaxSec = -1
+	}
+
+	if tomorrowMinSec <= todayMaxSec && todayMinSec <= tomorrowMaxSec {
+		tomorrowMinSec = -1
+		tomorrowMaxSec = -1
+	}
+
+	// Check that yesterday is relevant
+	if todayMinSec > departureLookaheadSecs {
+		yesterdayMinSec = -1
+		yesterdayMaxSec = -1
+	}
+
+	// Check that tomorrow is relevant
+	if todayMaxSec < midnightSecs {
+		tomorrowMinSec = -1
+		tomorrowMaxSec = -1
+	}
+
 	hq = &HereQuery{
-		MidLat:        lat,
-		MidLon:        lon,
-		SWLat:         swlat,
-		SWLon:         swlon,
-		NELat:         nelat,
-		NELon:         nelon,
-		ServiceIDs:    serviceIDs,
-		Limit:         2000,
-		DepartureMin:  minSec,
-		DepartureMax:  minSec + 60*60*6,
-		DepartureBase: departureBase,
+		MidLat: lat,
+		MidLon: lon,
+		SWLat:  swlat,
+		SWLon:  swlon,
+		NELat:  nelat,
+		NELon:  nelon,
+		Limit:  hereQueryLimit,
+
+		TodayServiceIDs:    todayServiceIDs,
+		TodayDepartureMin:  todayMinSec,
+		TodayDepartureMax:  todayMinSec + departureLookaheadSecs,
+		TodayDepartureBase: today,
+
+		YesterdayServiceIDs:    yesterdayServiceIDs,
+		YesterdayDepartureMin:  yesterdayMinSec,
+		YesterdayDepartureMax:  yesterdayMinSec + departureLookaheadSecs,
+		YesterdayDepartureBase: yesterday,
+		YesterdaySecDiff:       yesterdaySecDiff,
+
+		TomorrowServiceIDs:    tomorrowServiceIDs,
+		TomorrowDepartureMin:  tomorrowMinSec,
+		TomorrowDepartureMax:  tomorrowMinSec + departureLookaheadSecs,
+		TomorrowDepartureBase: tomorrow,
+		TomorrowSecDiff:       tomorrowSecDiff,
 	}
 
 	hq.LineString = fmt.Sprintf(
@@ -114,7 +234,9 @@ func NewHereQuery(lat, lon, swlat, swlon, nelat, nelon float64, routeTypes []int
 	)
 
 	hq.Query = fmt.Sprintf(hereQuery,
-		etc.CreateIDs(hq.ServiceIDs),
+		etc.CreateIDs(hq.YesterdayServiceIDs),
+		etc.CreateIDs(hq.TodayServiceIDs),
+		etc.CreateIDs(hq.TomorrowServiceIDs),
 	)
 
 	if len(routeTypes) > 0 {

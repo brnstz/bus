@@ -24,8 +24,8 @@ type HereResult struct {
 	ServiceID string `db:"service_id"`
 
 	// Departure
-	ArrivalSec  int `db:"arrival_sec"`
-	DepatureSec int `db:"departure_sec"`
+	ArrivalSec   int `db:"arrival_sec"`
+	DepartureSec int `db:"departure_sec"`
 
 	// Trip
 	StopSequence int    `db:"stop_sequence"`
@@ -99,7 +99,7 @@ func (h *HereResult) createRoute() (route *Route, err error) {
 
 func (h *HereResult) createDeparture() (departure *Departure, err error) {
 	departure = &Departure{
-		DepartureSec: h.DepatureSec,
+		DepartureSec: h.DepartureSec,
 		TripID:       h.TripID,
 		ServiceID:    h.ServiceID,
 		baseTime:     h.DepartureBase,
@@ -172,12 +172,27 @@ func GetHereResults(db sqlx.Ext, hq *HereQuery) (stops []*Stop, stopRoutes map[s
 
 	count := 0
 	for rows.Next() {
-		here := HereResult{DepartureBase: hq.DepartureBase}
+		here := HereResult{}
 
 		err = rows.StructScan(&here)
 		if err != nil {
 			log.Println("can't scan row", err)
 			continue
+		}
+
+		if here.DepartureSec >= hq.YesterdayDepartureMin &&
+			here.DepartureSec <= hq.YesterdayDepartureMax {
+
+			here.DepartureBase = hq.YesterdayDepartureBase
+
+		} else if here.DepartureSec >= hq.TodayDepartureMin &&
+			here.DepartureSec <= hq.TodayDepartureMax {
+
+			here.DepartureBase = hq.TodayDepartureBase
+		} else if here.DepartureSec >= hq.TomorrowDepartureMin &&
+			here.DepartureSec <= hq.TomorrowDepartureMax {
+
+			here.DepartureBase = hq.TomorrowDepartureBase
 		}
 
 		err = here.Initialize()

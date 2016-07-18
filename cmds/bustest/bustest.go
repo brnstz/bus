@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -35,19 +36,40 @@ func main() {
 		log.Fatal(err)
 	}
 
-	etc.DBConn = etc.MustDB()
-
-	refreshViews := []string{
-		//		"REFRESH MATERIALIZED VIEW here;",
-		"REFRESH MATERIALIZED VIEW service;",
-		"REFRESH MATERIALIZED VIEW service_exception;",
-	}
-
-	for _, refreshView := range refreshViews {
-		_, err = etc.DBConn.Exec(refreshView)
-		if err != nil {
-			log.Fatal(err)
+	/*
+		next := map[string]string{
+			"Friday":    "Saturday",
+			"Saturday":  "Sunday",
+			"Sunday":    "Monday",
+			"Monday":    "Tuesday",
+			"Tuesday":   "Wednesday",
+			"Wednesday": "Thursday",
+			"Thursday":  "Friday",
 		}
+	*/
+
+	prev := map[string]string{
+		"Friday":    "Thursday",
+		"Saturday":  "Friday",
+		"Sunday":    "Saturday",
+		"Monday":    "Sunday",
+		"Tuesday":   "Monday",
+		"Wednesday": "Tuesday",
+		"Thursday":  "Wednesday",
 	}
 
+	day := etc.BaseTime(time.Now())
+	last := "Monday"
+	for i := 0; i < 5000; i++ {
+		name := day.Format("Monday")
+
+		fmt.Printf("last: %v, next: %v\n", last, name)
+		if prev[last] != name {
+			log.Fatal(day)
+		}
+
+		last = name
+
+		day = day.AddDate(0, 0, -1)
+	}
 }

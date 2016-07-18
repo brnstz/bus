@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"sort"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/willf/bloom"
@@ -199,27 +198,14 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	today := etc.BaseTime(now)
-	todayName := strings.ToLower(now.Format("Monday"))
-	// FIXME: hard coded, we need a region to agency mapping
-	agencyID := "MTA NYCT"
-	todayIDs, err := models.GetNewServiceIDs(etc.DBConn, agencyID, todayName, today)
+	hq, err := models.NewHereQuery(
+		lat, lon, SWLat, SWLon, NELat, NELon, routeTypes, now,
+	)
 	if err != nil {
-		log.Println("can't get serviceIDs", err)
+		log.Println("can't create here query", err)
 		apiErr(w, err)
 		return
 	}
-
-	hq, err := models.NewHereQuery(
-		// position
-		lat, lon, SWLat, SWLon, NELat, NELon,
-
-		// potential route type filter
-		routeTypes,
-
-		// today
-		todayIDs, etc.TimeToDepartureSecs(now), today,
-	)
 
 	stops, stopRoutes, err := models.GetHereResults(etc.DBConn, hq)
 	if err != nil {
@@ -342,7 +328,7 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 
 		// Checking for partial match.
 		tripID, err = models.GetPartialTripIDMatch(
-			etc.DBConn, agencyID, stop.RouteID, tripID,
+			etc.DBConn, stop.AgencyID, stop.RouteID, tripID,
 		)
 
 		// If we get one, then update the uniqueID and the relevant stop /
@@ -353,7 +339,7 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 			resp.Stops[i].Initialize()
 
 			// Re-get the trip with update ID
-			trip, err = models.GetTrip(etc.DBConn, agencyID, stop.RouteID,
+			trip, err = models.GetTrip(etc.DBConn, stop.AgencyID, stop.RouteID,
 				tripID)
 			if err != nil {
 				log.Println("can't get trip", err)
@@ -382,7 +368,7 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 		resp.Stops[i].Initialize()
 
 		// Re-get the trip with update ID
-		trip, err = models.GetTrip(etc.DBConn, agencyID, stop.RouteID,
+		trip, err = models.GetTrip(etc.DBConn, stop.AgencyID, stop.RouteID,
 			tripID)
 		if err != nil {
 			log.Println("can't get trip", err)

@@ -159,6 +159,8 @@ func MustDB() *sqlx.DB {
 		log.Panic(err)
 	}
 
+	db = db.Unsafe()
+
 	return db
 }
 
