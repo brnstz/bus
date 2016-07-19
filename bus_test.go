@@ -385,6 +385,9 @@ func TestStopSpeed(t *testing.T) {
 	params.Set("sw_lon", "-73.99798393249512")
 	params.Set("ne_lat", "40.758342802212724")
 	params.Set("ne_lon", "-73.95764350891112")
+	params.Add("route_type", "0")
+	params.Add("route_type", "1")
+	params.Add("route_type", "2")
 
 	t1 := time.Now()
 	err := getJSON(&resp, serverURL+"/api/here?"+params.Encode())
