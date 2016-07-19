@@ -130,8 +130,18 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var resp hereResponse
 	var routes []*models.Route
+	var now time.Time
 
-	now := time.Now()
+	if len(r.FormValue("now")) > 0 {
+		now, err = time.ParseInLocation("2006-01-02 15:04:05", r.FormValue("now"), time.Local)
+		if err != nil {
+			log.Println("can't parse time", err)
+			apiErr(w, errBadRequest)
+			return
+		}
+	} else {
+		now = time.Now()
+	}
 
 	// Read values incoming from http request
 	lat, err := floatOrDie(r.FormValue("lat"))
