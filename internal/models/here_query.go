@@ -48,6 +48,10 @@ const (
 					 departure_sec <= :today_departure_max
 					 THEN departure_sec
 
+				WHEN departure_sec >= :tomorrow_departure_min AND
+					 departure_sec <= :tomorrow_departure_max
+					 THEN departure_sec + :tomorrow_sec_diff
+
 			END AS departure_sort_sec
 
 		FROM here
@@ -67,8 +71,14 @@ const (
 					departure_sec >= :today_departure_min AND
 					departure_sec <= :today_departure_max
 				)
+
+			OR
+				(
+					service_id IN (%s) AND
+					departure_sec >= :tomorrow_departure_min AND
+					departure_sec <= :tomorrow_departure_max
+				)
 			)
-	
 	`
 
 	routeTypeFilter = `
@@ -79,22 +89,6 @@ const (
 		ORDER BY dist ASC, departure_sort_sec ASC
 		LIMIT :limit
 	`
-
-	/*
-				--		WHEN departure_sec >= :tomorrow_departure_min AND
-				--			 departure_sec <= :tomorrow_departure_max
-				--			 THEN departure_sec + :tomorrow_sec_diff
-
-
-			--			OR
-		    --
-			--			(
-			--				service_id IN (%s) AND
-			--				departure_sec >= :tomorrow_departure_min AND
-			--				departure_sec <= :tomorrow_departure_max
-			-- 			)
-	*/
-
 )
 
 type HereQuery struct {
@@ -241,7 +235,7 @@ func NewHereQuery(lat, lon, swlat, swlon, nelat, nelon float64, routeTypes []int
 	hq.Query = fmt.Sprintf(hereQuery,
 		etc.CreateIDs(hq.YesterdayServiceIDs),
 		etc.CreateIDs(hq.TodayServiceIDs),
-		//etc.CreateIDs(hq.TomorrowServiceIDs),
+		etc.CreateIDs(hq.TomorrowServiceIDs),
 	)
 
 	if len(routeTypes) > 0 {
