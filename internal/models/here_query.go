@@ -138,7 +138,6 @@ func NewHereQuery(lat, lon, swlat, swlon, nelat, nelon float64, routeTypes []int
 	todayMinSec := etc.TimeToDepartureSecs(now)
 	todayMaxSec := todayMinSec + departureLookaheadSecs
 	todayServiceIDs, err := GetNewServiceIDs(etc.DBConn, agencyID, todayName, today)
-
 	if err != nil {
 		log.Println("can't get today serviceIDs", err)
 		return
@@ -154,7 +153,6 @@ func NewHereQuery(lat, lon, swlat, swlon, nelat, nelon float64, routeTypes []int
 		log.Println("can't get yesterday serviceIDs", err)
 		return
 	}
-	log.Println("yesterday", yesterdayName, yesterdayMinSec, yesterdayMaxSec, yesterdaySecDiff, yesterdayServiceIDs)
 
 	tomorrow := today.AddDate(0, 0, 1)
 	tomorrowName := strings.ToLower(tomorrow.Format("Monday"))
@@ -243,8 +241,6 @@ func NewHereQuery(lat, lon, swlat, swlon, nelat, nelon float64, routeTypes []int
 	}
 
 	hq.Query = hq.Query + hereOrderLimit
-
-	log.Printf("here query: %+v", hq)
 
 	return
 }
