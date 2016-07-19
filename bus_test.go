@@ -418,13 +418,6 @@ func TestHereYesterday(t *testing.T) {
 		t.Fatal("can't get API response for G train test", err)
 	}
 
-	b, err := json.MarshalIndent(resp, "", "\t")
-	if err != nil {
-		t.Fatal("can't marshal", err)
-	}
-
-	log.Printf("%s", b)
-
 	expectedTimes := map[string][]string{
 		"G26N": []string{
 			"2016-07-18T00:01:00-04:00",
@@ -479,13 +472,6 @@ func TestHereToday(t *testing.T) {
 		t.Fatal("can't get API response for G train test", err)
 	}
 
-	b, err := json.MarshalIndent(resp, "", "\t")
-	if err != nil {
-		t.Fatal("can't marshal", err)
-	}
-
-	log.Printf("%s", b)
-
 	expectedTimes := map[string][]string{
 		"G26N": []string{
 			"2016-07-18T12:06:30-04:00",
@@ -501,6 +487,59 @@ func TestHereToday(t *testing.T) {
 			"2016-07-18T12:30:00-04:00",
 			"2016-07-18T12:40:00-04:00",
 			"2016-07-18T12:50:00-04:00",
+		},
+	}
+
+	for _, stop := range resp.Stops {
+		for i, departure := range stop.Departures {
+			expectedTime, err := time.Parse(time.RFC3339, expectedTimes[stop.Stop_ID][i])
+			if err != nil {
+				t.Fatal(expectedTimes[stop.Stop_ID][i], err)
+			}
+
+			if !departure.Time.Equal(expectedTime) {
+				t.Fatalf("actual departure time %v did not match expected %v", departure.Time, expectedTime)
+			}
+		}
+	}
+}
+
+// TestHereTomorrow tests we can get departures that start yesterday and today
+func TestHereTomorrow(t *testing.T) {
+	var resp hereResponse
+	var err error
+
+	params := url.Values{}
+
+	// Manhattan Av. and Greenpoint Av. in Brooklyn
+	params.Set("lat", "40.731324619044514")
+	params.Set("lon", "-73.95446261823963")
+	params.Set("sw_lat", "40.73059087592777")
+	params.Set("sw_lon", "-73.95548990429234")
+	params.Set("ne_lat", "40.73205835407014")
+	params.Set("ne_lon", "-73.95343533218693")
+	params.Set("now", "2016-07-18 23:47:01")
+
+	err = getJSON(&resp, serverURL+"/api/here?"+params.Encode())
+	if err != nil {
+		t.Fatal("can't get API response for G train test", err)
+	}
+
+	expectedTimes := map[string][]string{
+		"G26N": []string{
+			"2016-07-19T00:01:00-04:00",
+			"2016-07-19T00:18:30-04:00",
+			"2016-07-19T00:37:30-04:00",
+			"2016-07-19T00:57:30-04:00",
+			"2016-07-19T01:17:30-04:00",
+		},
+
+		"G26S": []string{
+			"2016-07-19T00:01:00-04:00",
+			"2016-07-19T00:17:30-04:00",
+			"2016-07-19T00:37:30-04:00",
+			"2016-07-19T00:57:30-04:00",
+			"2016-07-19T01:17:30-04:00",
 		},
 	}
 
