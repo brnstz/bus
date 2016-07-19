@@ -43,8 +43,12 @@ const (
 				     departure_sec <= :yesterday_departure_max
 					 THEN departure_sec - :yesterday_sec_diff
 
-		END
-			AS departure_sort_sec
+
+				WHEN departure_sec >= :today_departure_min AND
+					 departure_sec <= :today_departure_max
+					 THEN departure_sec
+
+			END AS departure_sort_sec
 
 		FROM here
 
@@ -57,8 +61,14 @@ const (
 					departure_sec >= :yesterday_departure_min AND
 					departure_sec <= :yesterday_departure_max
 				)
-
+			OR
+				(
+					service_id IN (%s) AND
+					departure_sec >= :today_departure_min AND
+					departure_sec <= :today_departure_max
+				)
 			)
+	
 	`
 
 	routeTypeFilter = `
@@ -71,23 +81,11 @@ const (
 	`
 
 	/*
-				--	    WHEN departure_sec >= :today_departure_min AND
-				--			 departure_sec <= :today_departure_max
-				--			 THEN departure_sec
-
 				--		WHEN departure_sec >= :tomorrow_departure_min AND
 				--			 departure_sec <= :tomorrow_departure_max
 				--			 THEN departure_sec + :tomorrow_sec_diff
 
 
-			--			OR
-		    --
-			--			(
-			--				service_id IN (%s) AND
-			--				departure_sec >= :today_departure_min AND
-			--				departure_sec <= :today_departure_max
-			--			)
-		    --
 			--			OR
 		    --
 			--			(
@@ -210,18 +208,18 @@ func NewHereQuery(lat, lon, swlat, swlon, nelat, nelon float64, routeTypes []int
 
 		TodayServiceIDs:    todayServiceIDs,
 		TodayDepartureMin:  todayMinSec,
-		TodayDepartureMax:  todayMinSec + departureLookaheadSecs,
+		TodayDepartureMax:  todayMaxSec,
 		TodayDepartureBase: today,
 
 		YesterdayServiceIDs:    yesterdayServiceIDs,
 		YesterdayDepartureMin:  yesterdayMinSec,
-		YesterdayDepartureMax:  yesterdayMinSec + departureLookaheadSecs,
+		YesterdayDepartureMax:  yesterdayMaxSec,
 		YesterdayDepartureBase: yesterday,
 		YesterdaySecDiff:       yesterdaySecDiff,
 
 		TomorrowServiceIDs:    tomorrowServiceIDs,
 		TomorrowDepartureMin:  tomorrowMinSec,
-		TomorrowDepartureMax:  tomorrowMinSec + departureLookaheadSecs,
+		TomorrowDepartureMax:  tomorrowMaxSec,
 		TomorrowDepartureBase: tomorrow,
 		TomorrowSecDiff:       tomorrowSecDiff,
 	}
@@ -242,7 +240,7 @@ func NewHereQuery(lat, lon, swlat, swlon, nelat, nelon float64, routeTypes []int
 
 	hq.Query = fmt.Sprintf(hereQuery,
 		etc.CreateIDs(hq.YesterdayServiceIDs),
-		//etc.CreateIDs(hq.TodayServiceIDs),
+		etc.CreateIDs(hq.TodayServiceIDs),
 		//etc.CreateIDs(hq.TomorrowServiceIDs),
 	)
 
