@@ -43,14 +43,7 @@ const (
 				     departure_sec <= :yesterday_departure_max
 					 THEN departure_sec - :yesterday_sec_diff
 
-			    WHEN departure_sec >= :today_departure_min AND
-					 departure_sec <= :today_departure_max
-					 THEN departure_sec
-
-				WHEN departure_sec >= :tomorrow_departure_min AND
-					 departure_sec <= :tomorrow_departure_max
-					 THEN departure_sec + :tomorrow_sec_diff
-			END
+		END
 			AS departure_sort_sec
 
 		FROM here
@@ -65,21 +58,6 @@ const (
 					departure_sec <= :yesterday_departure_max
 				)
 
-				OR
-
-				(   
-					service_id IN (%s) AND
-					departure_sec >= :today_departure_min AND
-					departure_sec <= :today_departure_max
-				)
-
-				OR
-
-				(   
-					service_id IN (%s) AND
-					departure_sec >= :tomorrow_departure_min AND
-					departure_sec <= :tomorrow_departure_max
-				)
 			)
 	`
 
@@ -91,6 +69,34 @@ const (
 		ORDER BY dist ASC, departure_sort_sec ASC
 		LIMIT :limit
 	`
+
+	/*
+				--	    WHEN departure_sec >= :today_departure_min AND
+				--			 departure_sec <= :today_departure_max
+				--			 THEN departure_sec
+
+				--		WHEN departure_sec >= :tomorrow_departure_min AND
+				--			 departure_sec <= :tomorrow_departure_max
+				--			 THEN departure_sec + :tomorrow_sec_diff
+
+
+			--			OR
+		    --
+			--			(
+			--				service_id IN (%s) AND
+			--				departure_sec >= :today_departure_min AND
+			--				departure_sec <= :today_departure_max
+			--			)
+		    --
+			--			OR
+		    --
+			--			(
+			--				service_id IN (%s) AND
+			--				departure_sec >= :tomorrow_departure_min AND
+			--				departure_sec <= :tomorrow_departure_max
+			-- 			)
+	*/
+
 )
 
 type HereQuery struct {
@@ -147,7 +153,7 @@ func NewHereQuery(lat, lon, swlat, swlon, nelat, nelon float64, routeTypes []int
 	}
 
 	yesterday := today.AddDate(0, 0, -1)
-	yesterdayName := strings.ToLower(now.Format("Monday"))
+	yesterdayName := strings.ToLower(yesterday.Format("Monday"))
 	yesterdayMinSec := now.Hour()*3600 + now.Minute()*60 + now.Second() + midnightSecs
 	yesterdayMaxSec := yesterdayMinSec + departureLookaheadSecs
 	yesterdaySecDiff := int(today.Sub(yesterday).Seconds())
@@ -156,9 +162,10 @@ func NewHereQuery(lat, lon, swlat, swlon, nelat, nelon float64, routeTypes []int
 		log.Println("can't get yesterday serviceIDs", err)
 		return
 	}
+	log.Println("yesterday", yesterdayName, yesterdayMinSec, yesterdayMaxSec, yesterdaySecDiff, yesterdayServiceIDs)
 
 	tomorrow := today.AddDate(0, 0, 1)
-	tomorrowName := strings.ToLower(now.Format("Monday"))
+	tomorrowName := strings.ToLower(tomorrow.Format("Monday"))
 	tomorrowMinSec := 0
 	tomorrowMaxSec := departureLookaheadSecs
 	tomorrowSecDiff := int(tomorrow.Sub(today).Seconds())
@@ -235,8 +242,8 @@ func NewHereQuery(lat, lon, swlat, swlon, nelat, nelon float64, routeTypes []int
 
 	hq.Query = fmt.Sprintf(hereQuery,
 		etc.CreateIDs(hq.YesterdayServiceIDs),
-		etc.CreateIDs(hq.TodayServiceIDs),
-		etc.CreateIDs(hq.TomorrowServiceIDs),
+		//etc.CreateIDs(hq.TodayServiceIDs),
+		//etc.CreateIDs(hq.TomorrowServiceIDs),
 	)
 
 	if len(routeTypes) > 0 {

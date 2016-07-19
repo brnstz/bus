@@ -404,11 +404,6 @@ func TestHereQuery(t *testing.T) {
 
 	params := url.Values{}
 
-	/*
-		expectedStop := "Greenpoint Av"
-		expectedRoute := "G"
-	*/
-
 	// Manhattan Av. and Greenpoint Av. in Brooklyn
 	params.Set("lat", "40.731324619044514")
 	params.Set("lon", "-73.95446261823963")
@@ -416,6 +411,7 @@ func TestHereQuery(t *testing.T) {
 	params.Set("sw_lon", "-73.95548990429234")
 	params.Set("ne_lat", "40.73205835407014")
 	params.Set("ne_lon", "-73.95343533218693")
+	params.Set("now", "2016-07-18 00:00:01")
 
 	err = getJSON(&resp, serverURL+"/api/here?"+params.Encode())
 	if err != nil {
