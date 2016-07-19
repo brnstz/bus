@@ -164,8 +164,9 @@ func GetHereResults(db sqlx.Ext, hq *HereQuery) (stops []*Stop, stopRoutes map[s
 		log.Printf("%s %+v", hq.Query, hq)
 		return
 	}
-	if conf.API.LogTiming {
-		log.Println("time querying for here results", time.Now().Sub(t3))
+	queryDur := time.Now().Sub(t3)
+	if conf.API.LogTiming && queryDur > time.Duration(1)*time.Second {
+		log.Printf("long here query (%v): %+v", queryDur, hq)
 	}
 
 	defer rows.Close()
