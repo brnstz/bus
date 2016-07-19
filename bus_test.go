@@ -396,3 +396,36 @@ func TestStopSpeed(t *testing.T) {
 		t.Fatal("too slow")
 	}
 }
+
+// TestHereQuery tests weird edge cases with here query
+func TestHereQuery(t *testing.T) {
+	var resp hereResponse
+	var err error
+
+	params := url.Values{}
+
+	/*
+		expectedStop := "Greenpoint Av"
+		expectedRoute := "G"
+	*/
+
+	// Manhattan Av. and Greenpoint Av. in Brooklyn
+	params.Set("lat", "40.731324619044514")
+	params.Set("lon", "-73.95446261823963")
+	params.Set("sw_lat", "40.73059087592777")
+	params.Set("sw_lon", "-73.95548990429234")
+	params.Set("ne_lat", "40.73205835407014")
+	params.Set("ne_lon", "-73.95343533218693")
+
+	err = getJSON(&resp, serverURL+"/api/here?"+params.Encode())
+	if err != nil {
+		t.Fatal("can't get API response for G train test", err)
+	}
+
+	b, err := json.MarshalIndent(resp, "", "\t")
+	if err != nil {
+		t.Fatal("can't marshal", err)
+	}
+
+	log.Printf("%s", b)
+}
