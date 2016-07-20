@@ -47,7 +47,7 @@ func (p static) Precache(agencyID, routeID string, directionID int) error {
 	return nil
 }
 
-func (p static) Live(agencyID, routeID, stopID string, directionID int) (d models.Departures, v []models.Vehicle, err error) {
+func (p static) Live(agencyID, routeID, stopID string, directionID int) (d []*models.Departure, v []models.Vehicle, err error) {
 	k := fmt.Sprintf("%v|%v|%v", agencyID, routeID, directionID)
 
 	b, err := etc.RedisGet(k)
@@ -63,7 +63,7 @@ func (p static) Live(agencyID, routeID, stopID string, directionID int) (d model
 	}
 
 	// we have no departures to append, ensure it's blank
-	d = make(models.Departures, 0)
+	d = make([]*models.Departure, 0)
 
 	return
 }

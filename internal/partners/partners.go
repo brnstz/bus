@@ -29,7 +29,7 @@ type P interface {
 	// Live reads the data saved into redis by Precache, parses it and
 	// returns any Departure and/or Vehicle info that can be appended
 	// to the response.
-	Live(agencyID, routeID, stopID string, directionID int) (models.Departures, []models.Vehicle, error)
+	Live(agencyID, routeID, stopID string, directionID int) ([]*models.Departure, []models.Vehicle, error)
 }
 
 // Find returns the correct partner for this route. If there is no

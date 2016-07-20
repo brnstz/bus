@@ -62,8 +62,9 @@ func stopWorker() {
 			req.stop.Vehicles = liveVehicles
 		}
 
-		// Ensure the departures are sorted
-		sort.Sort(liveDepartures)
+		sd := models.SortableDepartures(liveDepartures)
+		sort.Sort(sd)
+		liveDepartures = []*models.Departure(sd)
 
 		if len(liveDepartures) > 0 {
 			liveTripIDs := map[string]bool{}
