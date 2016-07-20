@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"sort"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/brnstz/bus/internal/conf"
@@ -16,22 +18,18 @@ const (
 )
 
 type HereResult struct {
-	// shared fields
 	AgencyID  string `db:"agency_id"`
 	RouteID   string `db:"route_id"`
 	StopID    string `db:"stop_id"`
-	TripID    string `db:"trip_id"`
 	ServiceID string `db:"service_id"`
 
-	// Departure
-	ArrivalSec   int `db:"arrival_sec"`
-	DepartureSec int `db:"departure_sec"`
+	TripIDs       string `db:"trip_ids"`
+	ArrivalSecs   string `db:"arrival_secs"`
+	DepartureSecs string `db:"departure_secs"`
+	StopSequences string `db:"stop_sequences"`
 
-	// Trip
-	StopSequence int    `db:"stop_sequence"`
 	TripHeadsign string `db:"trip_headsign"`
 
-	// Stop
 	StopName     string  `db:"stop_name"`
 	StopHeadsign string  `db:"stop_headsign"`
 	DirectionID  int     `db:"direction_id"`
@@ -39,16 +37,16 @@ type HereResult struct {
 	Lon          float64 `db:"lon"`
 	Dist         float64 `db:"dist"`
 
-	// Route
 	RouteType      int    `db:"route_type"`
 	RouteColor     string `db:"route_color"`
 	RouteTextColor string `db:"route_text_color"`
 
-	DepartureBase time.Time
+	HQ *HereQuery
 
-	Stop      *Stop
-	Route     *Route
-	Departure *Departure
+	Stop  *Stop
+	Route *Route
+
+	Departures []*Departure
 }
 
 func (h *HereResult) createStop() (stop *Stop, err error) {
@@ -68,7 +66,7 @@ func (h *HereResult) createStop() (stop *Stop, err error) {
 		RouteTextColor: h.RouteTextColor,
 
 		// FIXME: is seq even needed?
-		Seq: h.StopSequence,
+		//Seq: h.StopSequence,
 	}
 	err = stop.Initialize()
 	if err != nil {
@@ -97,23 +95,6 @@ func (h *HereResult) createRoute() (route *Route, err error) {
 	return
 }
 
-func (h *HereResult) createDeparture() (departure *Departure, err error) {
-	departure = &Departure{
-		DepartureSec: h.DepartureSec,
-		TripID:       h.TripID,
-		ServiceID:    h.ServiceID,
-		baseTime:     h.DepartureBase,
-	}
-
-	err = departure.Initialize()
-	if err != nil {
-		log.Println("can't init departure", err)
-		return
-	}
-
-	return
-}
-
 func (h *HereResult) Initialize() error {
 	var err error
 
@@ -129,14 +110,83 @@ func (h *HereResult) Initialize() error {
 		return err
 	}
 
-	h.Departure, err = h.createDeparture()
+	h.Departures, err = h.createDepartures()
 	if err != nil {
-		log.Println("can't init here departure", err)
+		log.Println("can't init departure", err)
 		return err
 	}
 
 	return nil
+}
 
+func (h *HereResult) createDepartures() (departures []*Departure, err error) {
+	var (
+		tripID        string
+		departureBase time.Time
+	)
+
+	departureSecs := strings.Split(h.DepartureSecs, ",")
+	tripIDs := strings.Split(h.TripIDs, ",")
+
+	if len(departureSecs) < 1 {
+		err = fmt.Errorf("invalid departureSecs: %v", h.DepartureSecs)
+		return
+	}
+	if departureSecs[0] == "" {
+		err = fmt.Errorf("empty departure secs")
+		return
+	}
+	if len(departureSecs) != len(tripIDs) {
+		err = fmt.Errorf("mismatch between departureSecs length (%v) and tripIDs length (%v)", len(departureSecs), len(tripIDs))
+		return
+	}
+
+	for i := range departureSecs {
+		var departureSec int
+		departureSec, err = strconv.Atoi(strings.TrimSpace(departureSecs[i]))
+		if err != nil {
+			log.Println("can't parse departure sec", err)
+			return
+		}
+		tripID = strings.TrimSpace(tripIDs[i])
+
+		// We have up to three non-overlapping ranges of departure sec,
+		// that could be yesterday, today or tomorrow. We're able to do this
+		// because the range is only 3 hours.
+		if departureSec >= h.HQ.YesterdayDepartureMin &&
+			departureSec <= h.HQ.YesterdayDepartureMax {
+			departureBase = h.HQ.YesterdayDepartureBase
+
+		} else if departureSec >= h.HQ.TodayDepartureMin &&
+			departureSec <= h.HQ.TodayDepartureMax {
+			departureBase = h.HQ.TodayDepartureBase
+
+		} else if departureSec >= h.HQ.TomorrowDepartureMin &&
+			departureSec <= h.HQ.TomorrowDepartureMax {
+			departureBase = h.HQ.TomorrowDepartureBase
+
+		} else {
+			// If it's not in our range, then we ignore it
+			continue
+		}
+
+		departure := &Departure{
+			DepartureSec: departureSec,
+			TripID:       tripID,
+			ServiceID:    h.ServiceID,
+			baseTime:     departureBase,
+		}
+
+		err = departure.Initialize()
+		if err != nil {
+			log.Println("can't init departure", err)
+			return
+		}
+
+		departures = append(departures, departure)
+	}
+
+	return
 }
 
 func GetHereResults(db sqlx.Ext, hq *HereQuery) (stops []*Stop, stopRoutes map[string]*Route, err error) {
@@ -173,27 +223,12 @@ func GetHereResults(db sqlx.Ext, hq *HereQuery) (stops []*Stop, stopRoutes map[s
 
 	count := 0
 	for rows.Next() {
-		here := HereResult{}
+		here := HereResult{HQ: hq}
 
 		err = rows.StructScan(&here)
 		if err != nil {
 			log.Println("can't scan row", err)
 			continue
-		}
-
-		if here.DepartureSec >= hq.YesterdayDepartureMin &&
-			here.DepartureSec <= hq.YesterdayDepartureMax {
-
-			here.DepartureBase = hq.YesterdayDepartureBase
-
-		} else if here.DepartureSec >= hq.TodayDepartureMin &&
-			here.DepartureSec <= hq.TodayDepartureMax {
-
-			here.DepartureBase = hq.TodayDepartureBase
-		} else if here.DepartureSec >= hq.TomorrowDepartureMin &&
-			here.DepartureSec <= hq.TomorrowDepartureMax {
-
-			here.DepartureBase = hq.TomorrowDepartureBase
 		}
 
 		err = here.Initialize()
@@ -202,36 +237,39 @@ func GetHereResults(db sqlx.Ext, hq *HereQuery) (stops []*Stop, stopRoutes map[s
 			continue
 		}
 
-		routeDir := fmt.Sprintf("%v|%v", here.Route.UniqueID, here.Stop.DirectionID)
+		for _, departure := range here.Departures {
 
-		oldStop, stopExists := sm[here.Stop.UniqueID]
-		_, routeExists := rm[routeDir]
+			routeDir := fmt.Sprintf("%v|%v", here.Route.UniqueID, here.Stop.DirectionID)
 
-		// Ignore when the route / direction already exists, but stop is not
-		// the same
-		if routeExists && !stopExists {
-			continue
+			oldStop, stopExists := sm[here.Stop.UniqueID]
+			_, routeExists := rm[routeDir]
+
+			// Ignore when the route / direction already exists, but stop is not
+			// the same
+			if routeExists && !stopExists {
+				continue
+			}
+
+			// Ignore if it's our stop but we already have too many departures
+			if stopExists && len(oldStop.Departures) >= MaxDepartures {
+				continue
+			}
+
+			// If we didn't have stop or route, put them in our map
+			if !stopExists {
+				sm[here.Stop.UniqueID] = here.Stop
+			}
+			if !routeExists {
+				rm[routeDir] = here.Route
+			}
+
+			// Get the stop and append the current departure
+			stop := sm[here.Stop.UniqueID]
+			stop.Departures = append(stop.Departures, departure)
+			stopRoutes[here.Stop.UniqueID] = here.Route
+
+			count++
 		}
-
-		// Ignore if it's our stop but we already have too many departures
-		if stopExists && len(oldStop.Departures) >= MaxDepartures {
-			continue
-		}
-
-		// If we didn't have stop or route, put them in our map
-		if !stopExists {
-			sm[here.Stop.UniqueID] = here.Stop
-		}
-		if !routeExists {
-			rm[routeDir] = here.Route
-		}
-
-		// Get the stop and append the current departure
-		stop := sm[here.Stop.UniqueID]
-		stop.Departures = append(stop.Departures, here.Departure)
-		stopRoutes[here.Stop.UniqueID] = here.Route
-
-		count++
 
 	}
 
@@ -253,6 +291,14 @@ func GetHereResults(db sqlx.Ext, hq *HereQuery) (stops []*Stop, stopRoutes map[s
 		stops = []*Stop(ss.stops[0:maxStops])
 	} else {
 		stops = []*Stop(ss.stops)
+	}
+
+	// sort departures in stop
+	for _, s := range stops {
+		d := SortableDepartures(s.Departures)
+		sort.Sort(d)
+
+		s.Departures = []*Departure(d)
 	}
 
 	return

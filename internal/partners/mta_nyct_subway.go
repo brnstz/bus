@@ -86,7 +86,7 @@ func (p mtaNYCSubway) Precache(agencyID, routeID string, directionID int) error 
 	return nil
 }
 
-func (p mtaNYCSubway) Live(agencyID, routeID, stopID string, directionID int) (d models.Departures, v []models.Vehicle, err error) {
+func (p mtaNYCSubway) Live(agencyID, routeID, stopID string, directionID int) (d []*models.Departure, v []models.Vehicle, err error) {
 	now := time.Now()
 
 	u, exists := p.getURL(routeID)

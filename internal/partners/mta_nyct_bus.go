@@ -50,7 +50,7 @@ func (p mtaNYCBus) Precache(agencyID, routeID string, directionID int) error {
 	return nil
 }
 
-func (p mtaNYCBus) Live(agencyID, routeID, stopID string, directionID int) (d models.Departures, v []models.Vehicle, err error) {
+func (p mtaNYCBus) Live(agencyID, routeID, stopID string, directionID int) (d []*models.Departure, v []models.Vehicle, err error) {
 
 	stopPointRef := fmt.Sprint("MTA_", stopID)
 

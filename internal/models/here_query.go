@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	hereQueryLimit         = 2000
+	hereQueryLimit         = 10000
 	departureLookaheadSecs = 60 * 60 * 3
 
 	hereQuery = `
@@ -19,10 +19,10 @@ const (
 			route_id,
 			stop_id,
 			service_id,
-			trip_id,
-			arrival_sec,
-			departure_sec,
-			stop_sequence,
+			trip_ids,
+			arrival_secs,
+			departure_secs,
+			stop_sequences,
 
 			stop_name,
 			direction_id,
@@ -36,48 +36,18 @@ const (
 
 			trip_headsign,
 
-			ST_DISTANCE(ST_GEOMFROMTEXT(:point_string, 4326), location) AS dist,
+			ST_DISTANCE(ST_GEOMFROMTEXT(:point_string, 4326), location) AS dist
 
-			CASE 
-				WHEN departure_sec >= :yesterday_departure_min AND
-				     departure_sec <= :yesterday_departure_max
-					 THEN departure_sec - :yesterday_sec_diff
-
-
-				WHEN departure_sec >= :today_departure_min AND
-					 departure_sec <= :today_departure_max
-					 THEN departure_sec
-
-				WHEN departure_sec >= :tomorrow_departure_min AND
-					 departure_sec <= :tomorrow_departure_max
-					 THEN departure_sec + :tomorrow_sec_diff
-
-			END AS departure_sort_sec
-
-		FROM here
+		FROM here_trip
 
 		WHERE
-			ST_CONTAINS(ST_SETSRID(ST_MAKEPOLYGON(:line_string), 4326), location) AND
+			ST_CONTAINS(ST_SETSRID(
+				ST_MAKEPOLYGON(:line_string), 4326), location) AND
 
-			(
-				(   
-					service_id IN (%s) AND
-					departure_sec >= :yesterday_departure_min AND
-					departure_sec <= :yesterday_departure_max
-				)
-			OR
-				(
-					service_id IN (%s) AND
-					departure_sec >= :today_departure_min AND
-					departure_sec <= :today_departure_max
-				)
-
-			OR
-				(
-					service_id IN (%s) AND
-					departure_sec >= :tomorrow_departure_min AND
-					departure_sec <= :tomorrow_departure_max
-				)
+			( 
+				service_id IN (%s) OR
+				service_id IN (%s) OR
+				service_id IN (%s) 
 			)
 	`
 
@@ -86,7 +56,7 @@ const (
 	`
 
 	hereOrderLimit = `
-		ORDER BY dist ASC, departure_sort_sec ASC
+		ORDER BY dist ASC 
 		LIMIT :limit
 	`
 )
@@ -106,20 +76,20 @@ type HereQuery struct {
 	LineString  string `db:"line_string"`
 	PointString string `db:"point_string"`
 
-	YesterdayDepartureMin  int `db:"yesterday_departure_min"`
-	YesterdayDepartureMax  int `db:"yesterday_departure_max"`
-	YesterdaySecDiff       int `db:"yesterday_sec_diff"`
+	YesterdayDepartureMin  int
+	YesterdayDepartureMax  int
+	YesterdaySecDiff       int
 	YesterdayDepartureBase time.Time
 	YesterdayServiceIDs    []string
 
-	TodayDepartureMin  int `db:"today_departure_min"`
-	TodayDepartureMax  int `db:"today_departure_max"`
+	TodayDepartureMin  int
+	TodayDepartureMax  int
 	TodayDepartureBase time.Time
 	TodayServiceIDs    []string
 
-	TomorrowDepartureMin  int `db:"tomorrow_departure_min"`
-	TomorrowDepartureMax  int `db:"tomorrow_departure_max"`
-	TomorrowSecDiff       int `db:"tomorrow_sec_diff"`
+	TomorrowDepartureMin  int
+	TomorrowDepartureMax  int
+	TomorrowSecDiff       int
 	TomorrowDepartureBase time.Time
 	TomorrowServiceIDs    []string
 

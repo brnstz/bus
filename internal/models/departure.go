@@ -32,21 +32,21 @@ func (d *Departure) Initialize() error {
 	return nil
 }
 
-type Departures []*Departure
+type SortableDepartures []*Departure
 
-func (d Departures) Len() int {
+func (d SortableDepartures) Len() int {
 	return len(d)
 }
 
-func (d Departures) Less(i, j int) bool {
+func (d SortableDepartures) Less(i, j int) bool {
 	return d[i].Time.Before(d[j].Time)
 }
 
-func (d Departures) Swap(i, j int) {
+func (d SortableDepartures) Swap(i, j int) {
 	d[i], d[j] = d[j], d[i]
 }
 
-func getDepartures(agencyID, routeID, stopID, serviceID string, minSec int, base time.Time) (d Departures, err error) {
+func getDepartures(agencyID, routeID, stopID, serviceID string, minSec int, base time.Time) (d []*Departure, err error) {
 	q := `
 		SELECT departure_sec, trip_id, service_id
 		FROM   scheduled_stop_time
