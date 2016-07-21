@@ -32,6 +32,8 @@ func (p mtaNYCBus) getURL(routeID string, directionID int) string {
 }
 
 func (p mtaNYCBus) Precache(agencyID, routeID string, directionID int) error {
+	k := fmt.Sprintf("%v|%v|%v", agencyID, routeID, directionID)
+
 	u := p.getURL(routeID, directionID)
 
 	_, err := etc.RedisCacheURL(u)
@@ -46,6 +48,8 @@ func (p mtaNYCBus) Precache(agencyID, routeID string, directionID int) error {
 		log.Println("can't parse response", err)
 		return err
 	}
+
+	log.Println("succesfully saved", k)
 
 	return nil
 }
