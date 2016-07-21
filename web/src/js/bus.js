@@ -7,6 +7,11 @@ var Route = require("./route.js");
 var Trip = require("./trip.js");
 var LayerZoom = require("./layer_zoom.js");
 
+var youAreHere = L.icon({
+    iconUrl: 'img/here_blue3.svg',
+    iconSize: [30, 30]
+});
+
 var homeControl = L.Control.extend({
     options: {
         position: 'bottomright'
@@ -115,7 +120,9 @@ Bus.prototype.init = function() {
     L.tileLayer(self.tileURL, self.tileOptions).addTo(self.map);
 
     // Create "you are here" marker
-    self.marker = L.marker([0, 0]);
+    self.marker = L.marker([0, 0], {
+        icon: youAreHere
+    });
     self.marker.addTo(self.map);
 
     // Add layers to map
