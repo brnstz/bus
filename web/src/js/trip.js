@@ -66,7 +66,6 @@ Trip.prototype.createStopsLabels = function(stop) {
 
         stops.push(marker);
         labels.push(popup);
-        console.log("what is popup?", popup);
     }
 
     return [stops, labels];
