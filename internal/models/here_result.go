@@ -190,11 +190,6 @@ func (h *HereResult) createDepartures() (departures []*Departure, err error) {
 		departures = append(departures, departure)
 	}
 
-	d := SortableDepartures(departures)
-	sort.Sort(d)
-
-	departures = []*Departure(d)
-
 	return
 }
 
@@ -250,17 +245,12 @@ func GetHereResults(db sqlx.Ext, hq *HereQuery) (stops []*Stop, stopRoutes map[s
 
 			routeDir := fmt.Sprintf("%v|%v", here.Route.UniqueID, here.Stop.DirectionID)
 
-			oldStop, stopExists := sm[here.Stop.UniqueID]
+			_, stopExists := sm[here.Stop.UniqueID]
 			_, routeExists := rm[routeDir]
 
 			// Ignore when the route / direction already exists, but stop is not
 			// the same
 			if routeExists && !stopExists {
-				continue
-			}
-
-			// Ignore if it's our stop but we already have too many departures
-			if stopExists && len(oldStop.Departures) >= MaxDepartures {
 				continue
 			}
 
@@ -300,6 +290,18 @@ func GetHereResults(db sqlx.Ext, hq *HereQuery) (stops []*Stop, stopRoutes map[s
 		stops = []*Stop(ss.stops[0:maxStops])
 	} else {
 		stops = []*Stop(ss.stops)
+	}
+
+	// For each stop, sort its departures and limit to max number of departures
+	for _, s := range stops {
+		d := SortableDepartures(s.Departures)
+		sort.Sort(d)
+
+		if len(d) > MaxDepartures {
+			s.Departures = []*Departure(d[0:MaxDepartures])
+		} else {
+			s.Departures = []*Departure(d)
+		}
 	}
 
 	return
