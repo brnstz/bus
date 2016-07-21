@@ -5,6 +5,11 @@ var stopIcon = L.icon({
     iconSize: [15, 15]
 });
 
+var hereStopIcon = L.icon({
+    iconUrl: 'img/here_stop3.svg',
+    iconSize: [30, 30]
+});
+
 // Trip is a single instance of a trip
 function Trip(api) {
     var self = this;
@@ -16,10 +21,6 @@ function Trip(api) {
     // stop_line_dist is the number of meters we assume
     // a stop can be from the polyline to say that it hit the stop
     self.stop_line_dist = 50;
-
-    self.stop_radius = 20;
-
-    self.first_stop_radius = 20;
 
     self.weight = 8;
     self.before_opacity = 0.5;
@@ -35,14 +36,14 @@ Trip.prototype.createMarkers = function(stop, route) {
 
     for (var i = 0; i < self.api.stops.length; i++) {
         var tripStop = self.api.stops[i];
-        var radius = 0;
+        var icon = null;
 
         // The first stop gets a bigger radius
         if (tripStop.stop_id == stop.stop_id) {
-            radius = self.first_stop_radius;
+            icon = hereStopIcon;
             foundStop = true;
         } else {
-            radius = self.stop_radius;
+            icon = stopIcon;
         }
 
         // Ignore stops until we find our current stop.
@@ -51,7 +52,7 @@ Trip.prototype.createMarkers = function(stop, route) {
         }
 
         markers.push(L.marker([tripStop.lat, tripStop.lon], {
-            icon: stopIcon
+            icon: icon
         }));
     }
 
