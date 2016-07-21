@@ -164,16 +164,6 @@ func (p mtaNYCSubway) Live(agencyID, routeID, stopID string, directionID int) (d
 			}
 		}
 
-		// FIXME: we should probably do this in api_here
-		/*
-			tripID, err := models.GetPartialTripIDMatch(etc.DBConn, agencyID, routeID, trip.GetTripId())
-			if err != nil {
-				// FIXME: what to do here?
-				tripID = trip.GetTripId()
-				log.Println("can't get tripID", routeID, tripID, trip.GetTripId(), err)
-			}
-		*/
-
 		// Go through all updates to check for our stop ID's departure time.
 		for _, u := range stopTimeUpdates {
 
