@@ -18,6 +18,13 @@
 
 
   tasks:
+    - name: Add i386 libs 
+      shell: "dpkg --add-architecture i386"
+
+    - name: Install needed packages
+      apt: update_cache=yes pkg="{{ item }}" state=installed
+      with_items:
+        - gcc-multilib
 
     - name: Get Flyway
       get_url: url="{{ flyway_url }}" dest="/tmp/{{ flyway_file }}"
