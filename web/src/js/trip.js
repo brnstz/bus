@@ -27,16 +27,18 @@ function Trip(api) {
     self.after_opacity = 1.0;
 }
 
-// createMarkers returns a list of L.circle values for this trip
+// createStopsLabels returns a list of L.circle values for this trip
 // given we are at stop
-Trip.prototype.createMarkers = function(stop, route) {
+Trip.prototype.createStopsLabels = function(stop) {
     var self = this;
-    var markers = [];
+    var stops = [];
+    var labels = [];
     var foundStop = false;
 
     for (var i = 0; i < self.api.stops.length; i++) {
         var tripStop = self.api.stops[i];
         var icon = null;
+        var marker = null;
 
         // The first stop gets a bigger radius
         if (tripStop.stop_id == stop.stop_id) {
@@ -51,12 +53,23 @@ Trip.prototype.createMarkers = function(stop, route) {
             continue;
         }
 
-        markers.push(L.marker([tripStop.lat, tripStop.lon], {
+        var marker = L.marker([tripStop.lat, tripStop.lon], {
             icon: icon
-        }));
+        });
+        var popup = L.popup({
+            autoPan: false,
+            closeButton: false,
+        }, marker);
+
+        popup.setContent(tripStop.stop_name);
+        popup.setLatLng([tripStop.lat, tripStop.lon]);
+
+        stops.push(marker);
+        labels.push(popup);
+        console.log("what is popup?", popup);
     }
 
-    return markers;
+    return [stops, labels];
 };
 
 // createLines returns a list of L.polyline values for this trip

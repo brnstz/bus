@@ -92,6 +92,9 @@ function Bus() {
     // Layer of stops on the current clicked trip
     self.stopLayer = L.featureGroup();
 
+    // Layer of stop labels on the current clicked trip
+    self.stopLabelLayer = L.featureGroup();
+
     // Layer of vehicles on the current clicked trip
     self.vehicleLayer = L.featureGroup();
 
@@ -129,6 +132,7 @@ Bus.prototype.init = function() {
     self.layerZooms.push(new LayerZoom(self.busRouteLayer, 15));
     self.layerZooms.push(new LayerZoom(self.trainRouteLayer, 0));
     self.layerZooms.push(new LayerZoom(self.stopLayer, 13));
+    self.layerZooms.push(new LayerZoom(self.stopLabelLayer, 14));
     self.layerZooms.push(new LayerZoom(self.vehicleLayer, 10));
     self.layerZooms.push(new LayerZoom(self.clickedTripLayer, 0));
     self.updateLayers();
@@ -273,7 +277,9 @@ Bus.prototype.clickHandler = function(stop) {
             console.log("can't get trip", self.trips, stop.api.agency_id + "|" + stop.api.departures[0].trip_id);
         }
 
-        var markers = trip.createMarkers(stop.api, route.api);
+        var sl = trip.createStopsLabels(stop.api);
+        var stops = sl[0];
+        var labels = sl[1];
         var lines = trip.createLines(stop.api, route.api);
         var vehicles = stop.createVehicles(route.api);
         $(row).css({
@@ -283,6 +289,7 @@ Bus.prototype.clickHandler = function(stop) {
         // Clear previous layer elements
         self.clickedTripLayer.clearLayers();
         self.stopLayer.clearLayers();
+        self.stopLabelLayer.clearLayers();
         self.vehicleLayer.clearLayers();
 
         // Add new elements
@@ -292,9 +299,14 @@ Bus.prototype.clickHandler = function(stop) {
             self.clickedTripLayer.addLayer(lines[i]);
         }
 
-        // Draw marker stops
-        for (var key in markers) {
-            self.stopLayer.addLayer(markers[key]);
+        // Draw stops
+        for (var key in stops) {
+            self.stopLayer.addLayer(stops[key]);
+        }
+
+        // Add stop labels
+        for (var key in labels) {
+            self.stopLabelLayer.addLayer(labels[key]);
         }
 
         // Draw vehicles
@@ -325,7 +337,7 @@ Bus.prototype.updateStops = function() {
     }
 
     for (var i = 0; i < self.stopList.length; i++) {
-        // create the stop row and markers
+        // create the stop row and stops
         var stop = self.stopList[i];
 
         // If the current stop shows up after first, then ignore it
