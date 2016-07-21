@@ -2,19 +2,14 @@ package partners
 
 import (
 	"errors"
-	"net/http"
-	"time"
 
 	"github.com/brnstz/bus/internal/models"
 )
 
-// ErrNoPartner means there is no configured partner for this route
-var ErrNoPartner = errors.New("no partner for this route")
-
-// httpClient is an http.Client with a reasonable timeout for contacting
-// partner sites. Partner implementations should use this (or perhaps their own
-// custom client) rather than the default http client (which has no timeout).
-var httpClient = http.Client{Timeout: time.Duration(20) * time.Second}
+var (
+	// ErrNoPartner means there is no configured partner for this route
+	ErrNoPartner = errors.New("no partner for this route")
+)
 
 // P is an interface that can pull live info from partners
 type P interface {

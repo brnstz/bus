@@ -154,11 +154,6 @@ func (h *HereResult) createDepartures() (departures []*Departure, err error) {
 		// that could be yesterday, today or tomorrow. We're able to do this
 		// because the range is only 3 hours.
 
-		// FIXME: why is matching broken?
-		log.Printf("%v %v %v %v", h.ServiceID, h.HQ.YesterdayServiceIDMap[h.ServiceID], h.HQ.TodayServiceIDMap[h.ServiceID], h.HQ.TomorrowServiceIDMap[h.ServiceID])
-		log.Println(h.HQ.YesterdayServiceIDMap)
-		log.Println(h.HQ.TodayServiceIDMap)
-		log.Println(h.HQ.TomorrowServiceIDMap)
 		if departureSec >= h.HQ.YesterdayDepartureMin &&
 			departureSec <= h.HQ.YesterdayDepartureMax &&
 			h.HQ.YesterdayServiceIDMap[h.ServiceID] {

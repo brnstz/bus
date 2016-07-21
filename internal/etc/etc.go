@@ -20,12 +20,16 @@ import (
 const (
 	// redisConnectTimeout is how long we wait to connect to redis
 	// before giving up
-	redisConnectTimeout = 100 * time.Millisecond
+	redisConnectTimeout = 1 * time.Second
 )
 
 var (
 	// DBConn is our shared connection to postgres
 	DBConn *sqlx.DB
+
+	// httpClient is an http.Client with a reasonable timeout for contacting
+	// external sites.
+	httpClient = http.Client{Timeout: time.Duration(20) * time.Second}
 )
 
 // TimeStrToSecs takes a string like "01:23:45" (hours:minutes:seconds)
@@ -113,7 +117,7 @@ func RedisCache(k string, b []byte) (err error) {
 func RedisCacheURL(u string) (b []byte, err error) {
 	// Get the value from the URL. If we can't do this, it's an error
 	// we should return.
-	resp, err := http.Get(u)
+	resp, err := httpClient.Get(u)
 	if err != nil {
 		log.Println("can't get URL", err)
 		return
@@ -191,16 +195,18 @@ func CreateIntIDs(ids []int) string {
 // CreateIDs turns a slice of strings into a single string suitable
 // for substitution into an IN clause.
 func CreateIDs(ids []string) string {
+	escapedIDs := make([]string, len(ids))
+
 	// If there are no ids, we want a single blank value
 	if len(ids) < 1 {
 		return `''`
 	}
 
 	for i, _ := range ids {
-		ids[i] = escape(ids[i])
+		escapedIDs[i] = escape(ids[i])
 	}
 
-	return strings.Join(ids, ",")
+	return strings.Join(escapedIDs, ",")
 }
 
 // escape ensures any single quotes inside of id are escaped / quoted
