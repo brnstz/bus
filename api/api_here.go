@@ -209,6 +209,7 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	t1 := time.Now()
 	hq, err := models.NewHereQuery(
 		lat, lon, SWLat, SWLon, NELat, NELon, routeTypes, now,
 	)
@@ -224,7 +225,9 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 		apiErr(w, err)
 		return
 	}
+	log.Println("here query:        ", time.Now().Sub(t1))
 
+	t2 := time.Now()
 	// Create a channel for receiving responses to stopLiveRequest values
 	respch := make(chan error, len(stops))
 	count := 0
@@ -233,7 +236,6 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 	// use it in case the live tripID cannot be found
 	firstDepart := map[string]*models.Departure{}
 
-	t3 := time.Now()
 	for _, s := range stops {
 
 		firstDepart[s.UniqueID] = s.Departures[0]
@@ -265,7 +267,9 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 	}
+	log.Println("partner info:      ", time.Now().Sub(t2))
 
+	t3 := time.Now()
 	// Add any routes to the response that the bloom filter says we don't have
 	for _, route := range routes {
 		exists := resp.Filter.TestString(route.UniqueID)
@@ -287,7 +291,7 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 			resp.Routes = append(resp.Routes, route)
 		}
 	}
-	log.Println("time spent getting routes and partners", time.Now().Sub(t3))
+	log.Println("route shape:       ", time.Now().Sub(t3))
 
 	t4 := time.Now()
 
@@ -390,9 +394,7 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 		resp.Filter.AddString(uniqueID)
 		resp.Trips = append(resp.Trips, &trip)
 	}
-	log.Println("time spent getting trips", time.Now().Sub(t4))
-
-	t5 := time.Now()
+	log.Println("trips:             ", time.Now().Sub(t4))
 
 	b, err := json.Marshal(resp)
 	if err != nil {
@@ -400,8 +402,6 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 		apiErr(w, err)
 		return
 	}
-	log.Println("time spent marshalling", time.Now().Sub(t5))
 
 	w.Write(b)
-
 }
