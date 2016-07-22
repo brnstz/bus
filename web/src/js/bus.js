@@ -27,6 +27,14 @@ function Bus() {
 
     var nofilter = [];
     var trainsOnly = [0, 1, 2];
+    var initialLat = localStorage.getItem("lat");
+    var initialLon = localStorage.getItem("lon");
+
+    if (!(initialLat && initialLon)) {
+        // default to Times Square
+        initialLat = 40.758895;
+        initialLon = -73.9873197;
+    }
 
     self.defaultZoom = 16;
 
@@ -51,8 +59,7 @@ function Bus() {
         minZoom: 10,
         zoom: self.defaultZoom,
 
-        // default to Times Square
-        center: [40.758895, -73.9873197]
+        center: [initialLat, initialLon]
     };
 
     // zoomRouteTypes maps zoom levels to the route types they should send
@@ -111,6 +118,8 @@ function Bus() {
 
     // true while updating
     self.updating = false;
+
+    self.firstGeolocate = true;
 }
 
 // init is run when the page initially loads
@@ -141,12 +150,6 @@ Bus.prototype.init = function() {
 
     self.getInitialRoutes();
 
-    // Set up event handler
-    self.map.on("moveend", function() {
-        self.getHere();
-        self.updateLayers();
-    });
-
     self.geolocate();
 };
 
@@ -166,9 +169,27 @@ Bus.prototype.geolocate = function() {
 
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(p) {
+            localStorage.setItem("lat", p.coords.latitude);
+            localStorage.setItem("lon", p.coords.longitude);
+
             // Set location of "you are here" and map view
             self.marker.setLatLng([p.coords.latitude, p.coords.longitude]);
             self.map.setView([p.coords.latitude, p.coords.longitude], self.defaultZoom);
+
+            // After the first successful geolocation, set up the move
+            // handlers.
+
+            if (self.firstGeolocate) {
+                // Set up event handler
+                self.map.on("moveend", function() {
+                    self.getHere();
+                    self.updateLayers();
+                });
+                self.firstGeolocate = false;
+            }
+
+            self.getHere();
+            self.updateLayers();
         });
     }
 };
