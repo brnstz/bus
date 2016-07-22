@@ -168,6 +168,9 @@ Bus.prototype.geolocate = function() {
     var self = this;
 
     if (navigator.geolocation) {
+        var loc = $("#locating");
+        $(loc).css("visibility", "visible");
+
         navigator.geolocation.getCurrentPosition(function(p) {
             localStorage.setItem("lat", p.coords.latitude);
             localStorage.setItem("lon", p.coords.longitude);
@@ -175,6 +178,8 @@ Bus.prototype.geolocate = function() {
             // Set location of "you are here" and map view
             self.marker.setLatLng([p.coords.latitude, p.coords.longitude]);
             self.map.setView([p.coords.latitude, p.coords.longitude], self.defaultZoom);
+
+            $(loc).css("visibility", "hidden");
 
             // After the first successful geolocation, set up the move
             // handlers.
