@@ -40,3 +40,28 @@ body {
 #rowroute {
     vertical-align: middle;
 }
+
+/* originally stolen from: 
+	https://www.mapbox.com/mapbox.js/example/v1.0.0/custom-popup-style/
+*/
+
+.busmap .leaflet-popup-content-wrapper {
+	background:#2c3e50;
+	color:#fff;
+	font-size: 12px;
+}
+
+.busmap .leaflet-popup-content-wrapper a {
+	color:rgba(255,255,255,0.5);
+}
+
+.busmap .leaflet-popup-tip-container {
+	width:30px;
+	height:15px;
+}
+
+.busmap .leaflet-popup-tip {
+	border-left:15px solid transparent;
+ 	border-right:15px solid transparent;
+	border-top:15px solid #2c3e50;
+}
