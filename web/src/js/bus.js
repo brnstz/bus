@@ -132,7 +132,7 @@ Bus.prototype.init = function() {
     self.layerZooms.push(new LayerZoom(self.busRouteLayer, 15));
     self.layerZooms.push(new LayerZoom(self.trainRouteLayer, 0));
     self.layerZooms.push(new LayerZoom(self.stopLayer, 13));
-    self.layerZooms.push(new LayerZoom(self.stopLabelLayer, 14));
+    self.layerZooms.push(new LayerZoom(self.stopLabelLayer, 15));
     self.layerZooms.push(new LayerZoom(self.vehicleLayer, 10));
     self.layerZooms.push(new LayerZoom(self.clickedTripLayer, 0));
     self.updateLayers();
@@ -299,19 +299,24 @@ Bus.prototype.clickHandler = function(stop) {
             self.clickedTripLayer.addLayer(lines[i]);
         }
 
+        // First stop goes on the clicked trip layer (so we always see it)
+        if (stops.length > 0) {
+            self.clickedTripLayer.addLayer(stops[0]);
+        }
+
         // Draw stops
-        for (var key in stops) {
-            self.stopLayer.addLayer(stops[key]);
+        for (var i = 1; i < stops.length; i++) {
+            self.stopLayer.addLayer(stops[i]);
         }
 
         // Add stop labels
-        for (var key in labels) {
-            self.stopLabelLayer.addLayer(labels[key]);
+        for (var i = 0; i < labels.length; i++) {
+            //self.stopLabelLayer.addLayer(labels[i]);
         }
 
         // Draw vehicles
-        for (var key in vehicles) {
-            self.vehicleLayer.addLayer(vehicles[key]);
+        for (var i = 0; i < vehicles.length; i++) {
+            self.vehicleLayer.addLayer(vehicles[i]);
         }
 
         self.current_stop = stop;
