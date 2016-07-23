@@ -165,7 +165,7 @@ Bus.prototype.updateLayers = function() {
     }
 };
 
-Bus.prototype.initMover = function() {
+Bus.prototype.initMover = function(geoSuccess) {
     var self = this;
 
     // After the first successful geolocation, set up the move
@@ -176,8 +176,42 @@ Bus.prototype.initMover = function() {
             self.getHere();
             self.updateLayers();
         });
+
+        // If we succeeded in doing the geolocate, also set up the watcher
+        if (geoSuccess) {
+
+            // Double check
+            if (navigator.geolocation) {
+                navigator.geolocation.watchPosition(
+                    // Success
+                    function(p) {
+                        self.geoWatchSuccess(p);
+                    },
+
+                    // Error (don't need to do anything)
+                    null,
+
+                    // Options
+                    {
+                        enableHighAccuracy: true
+                    });
+            }
+        }
+
+        // Only do this once
         self.firstGeolocate = false;
     }
+};
+
+Bus.prototype.geoWatchSuccess = function(p) {
+    var self = this;
+
+    // Save last known location
+    localStorage.setItem("lat", p.coords.latitude);
+    localStorage.setItem("lon", p.coords.longitude);
+
+    // Set location of "you are here" and map view
+    self.marker.setLatLng([p.coords.latitude, p.coords.longitude]);
 };
 
 Bus.prototype.geoSuccess = function(p) {
@@ -194,9 +228,8 @@ Bus.prototype.geoSuccess = function(p) {
     // Remove updating screen
     $("#locating").css("visibility", "hidden");
 
-    // Initialize mover (maybe), get results here and update 
-    // results
-    self.initMover();
+    // Initialize mover, get results here and update results
+    self.initMover(true);
     self.getHere();
     self.updateLayers();
 };
@@ -207,9 +240,10 @@ Bus.prototype.geoFailure = function() {
     // The request for location has failed, just get results wherever we were.
     $("#locating").css("visibility", "hidden");
 
+    self.initMover(false);
+
     self.getHere();
     self.updateLayers();
-    self.initMover();
 };
 
 // geolocate requests the location from the browser and sets the location
