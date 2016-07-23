@@ -119,6 +119,8 @@ function Bus() {
     // true while updating
     self.updating = false;
 
+    // We want to enable the map mover only after our first gelocation
+    // request is executed.
     self.firstGeolocate = true;
 }
 
@@ -163,39 +165,73 @@ Bus.prototype.updateLayers = function() {
     }
 };
 
+Bus.prototype.initMover = function() {
+    var self = this;
+
+    // After the first successful geolocation, set up the move
+    // handlers.
+    if (self.firstGeolocate) {
+        // Set up event handler
+        self.map.on("moveend", function() {
+            self.getHere();
+            self.updateLayers();
+        });
+        self.firstGeolocate = false;
+    }
+};
+
+Bus.prototype.geoSuccess = function(p) {
+    var self = this;
+
+    // Save last known location
+    localStorage.setItem("lat", p.coords.latitude);
+    localStorage.setItem("lon", p.coords.longitude);
+
+    // Set location of "you are here" and map view
+    self.marker.setLatLng([p.coords.latitude, p.coords.longitude]);
+    self.map.setView([p.coords.latitude, p.coords.longitude], self.defaultZoom);
+
+    // Remove updating screen
+    $("#locating").css("visibility", "hidden");
+
+    // Initialize mover (maybe), get results here and update 
+    // results
+    self.initMover();
+    self.getHere();
+    self.updateLayers();
+};
+
+Bus.prototype.geoFailure = function() {
+    var self = this;
+
+    // The request for location has failed, just get results wherever we were.
+    $("#locating").css("visibility", "hidden");
+
+    self.getHere();
+    self.updateLayers();
+    self.initMover();
+};
+
 // geolocate requests the location from the browser and sets the location
 Bus.prototype.geolocate = function() {
     var self = this;
 
     if (navigator.geolocation) {
-        var loc = $("#locating");
-        $(loc).css("visibility", "visible");
+        // Set updating screen
+        $("#locating").css("visibility", "visible");
 
-        navigator.geolocation.getCurrentPosition(function(p) {
-            localStorage.setItem("lat", p.coords.latitude);
-            localStorage.setItem("lon", p.coords.longitude);
+        navigator.geolocation.getCurrentPosition(
+            function(p) {
+                self.geoSuccess(p);
+            },
+            function(p) {
+                self.geoFailure()
+            }, {
+                enableHighAccuracy: true
+            });
 
-            // Set location of "you are here" and map view
-            self.marker.setLatLng([p.coords.latitude, p.coords.longitude]);
-            self.map.setView([p.coords.latitude, p.coords.longitude], self.defaultZoom);
-
-            $(loc).css("visibility", "hidden");
-
-            // After the first successful geolocation, set up the move
-            // handlers.
-
-            if (self.firstGeolocate) {
-                // Set up event handler
-                self.map.on("moveend", function() {
-                    self.getHere();
-                    self.updateLayers();
-                });
-                self.firstGeolocate = false;
-            }
-
-            self.getHere();
-            self.updateLayers();
-        });
+    } else {
+        self.geoFailure();
     }
 };
 
