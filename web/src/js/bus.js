@@ -134,7 +134,7 @@ function Bus() {
     // the moveend event. 
     self.here_req_timer = null;
 
-    self.here_req_timer_delay = 50;
+    self.here_req_timer_delay = 150;
 }
 
 // init is run when the page initially loads
