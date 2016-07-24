@@ -18,8 +18,9 @@ var homeControl = L.Control.extend({
     },
 
     onAdd: function(map) {
-        return $("<button id='geolocate' type='button' class='btn btn-default' onclick='getbus().geolocate();'><span class='glyphicon glyphicon-screenshot'></span></button>")[0];
+        return $("<button id='geolocate' type='button' class='btn btn-default' onclick='getbus().geolocate();'><img src='img/gps_solid.svg' height='20' width='20'></button>")[0];
     }
+
 });
 
 function Bus() {
@@ -254,7 +255,7 @@ Bus.prototype.geoSuccess = function(p) {
     self.map.setView([p.coords.latitude, p.coords.longitude], self.defaultZoom);
 
     // Remove updating screen
-    $("#locating").css("visibility", "hidden");
+    $("#loading").css("visibility", "hidden");
 
     // Initialize mover, get results here and update results
     self.initMover(true);
@@ -266,7 +267,7 @@ Bus.prototype.geoFailure = function() {
     var self = this;
 
     // The request for location has failed, just get results wherever we were.
-    $("#locating").css("visibility", "hidden");
+    $("#loading").css("visibility", "hidden");
 
     self.initMover(false);
 
@@ -279,7 +280,7 @@ Bus.prototype.geolocate = function() {
 
     if (navigator.geolocation) {
         // Set updating screen
-        $("#locating").css("visibility", "visible");
+        $("#loading").css("visibility", "visible");
 
         navigator.geolocation.getCurrentPosition(
             function(p) {
