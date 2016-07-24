@@ -18,9 +18,13 @@ function Trip(api) {
     // and add any other info we want as a sibling data piece.
     self.api = api;
 
-    // stop_line_dist is the number of meters we assume
-    // a stop can be from the polyline to say that it hit the stop
-    self.stop_line_dist = 50;
+    // When drawing the lines for the trip, we need to identify when
+    // the current stop shows up. Since the line doesn't always pass
+    // exactly through the stop, we start by looking for stops
+    // at min distance away, then incrementing until we get to max (after
+    // which we give up if the line never crosses).
+    self.stop_line_dist_min = 0;
+    self.stop_line_dist_max = 100;
 
     self.weight = 8;
     self.before_opacity = 0.5;
@@ -86,25 +90,48 @@ Trip.prototype.createLines = function(stop, route) {
     var before = true;
 
     // Create a point for each latlon
-    for (var i = 0; i < self.api.shape_points.length; i++) {
-        var point = self.api.shape_points[i];
+    for (var d = self.stop_line_dist_min; d <= self.stop_line_dist_max; d++) {
 
-        if (before) {
-            before_latlons.push(L.latLng(point.lat, point.lon));
-        } else {
-            after_latlons.push(L.latLng(point.lat, point.lon));
+        for (var i = 0; i < self.api.shape_points.length; i++) {
+            var point = self.api.shape_points[i];
+
+            if (before) {
+                before_latlons.push(L.latLng(point.lat, point.lon));
+            } else {
+                after_latlons.push(L.latLng(point.lat, point.lon));
+            }
+
+            // If the point matches our current stop, then we're
+            // transitioning from before to after.
+            var difference = util.measure(
+                point.lat, point.lon, stop.lat, stop.lon
+            );
+
+            if (before && (difference < d)) {
+                before = false;
+                // When switching from before to after, always
+                // add the last point
+                after_latlons.push(L.latLng(point.lat, point.lon));
+            }
         }
 
-        // If the point matches our current stop, then we're
-        // transitioning from before to after.
-        var difference = util.measure(point.lat, point.lon, stop.lat, stop.lon);
-        if (before && (difference < self.stop_line_dist)) {
-
-            before = false;
-            // When switching from before to after, always
-            // add the last point
-            after_latlons.push(L.latLng(point.lat, point.lon));
+        // If we found the stop, then quit the loop
+        if (before == false) {
+            break;
         }
+
+        // If this is the final iteration, fall back by using the entire
+        // route as the "after" route (full opacity).
+        if (before == true && d == self.stop_line_dist_max) {
+            after_latlons = before_latlons;
+            before_latlons = [];
+            break;
+        }
+
+        // If we didn't find the stop, then try again with a different d
+        // value
+        before_latlons = [];
+        after_latlons = [];
     }
 
     // Create a polyline with the latlons
