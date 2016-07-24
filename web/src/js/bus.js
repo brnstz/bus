@@ -129,6 +129,10 @@ function Bus() {
     // Increment the request id so we don't display results for oudated
     // requests.
     self.here_req_id = 0;
+
+    // here_req_time is a timeoutID from setTimeout, created on 
+    // the moveend event. 
+    self.here_req_timer = null;
 }
 
 // init is run when the page initially loads
@@ -153,7 +157,6 @@ Bus.prototype.init = function() {
     self.layerZooms.push(new LayerZoom(self.stopLabelLayer, 15));
     self.layerZooms.push(new LayerZoom(self.vehicleLayer, 10));
     self.layerZooms.push(new LayerZoom(self.clickedTripLayer, 0));
-    self.updateLayers();
 
     self.map.addControl(new homeControl());
 
@@ -181,7 +184,13 @@ Bus.prototype.initMover = function(geoSuccess) {
         // Set up event handler
         self.map.on("moveend", function() {
             self.getHere();
-            self.updateLayers();
+        });
+
+        self.map.on("movestart", function() {
+            // Abort any previous requests inflight
+            if (self.here_req != null) {
+                self.here_req.abort();
+            }
         });
 
         // If we succeeded in doing the geolocate, also set up the watcher
@@ -239,7 +248,6 @@ Bus.prototype.geoSuccess = function(p) {
     self.initMover(true);
 
     self.getHere();
-    self.updateLayers();
 };
 
 Bus.prototype.geoFailure = function() {
@@ -251,7 +259,6 @@ Bus.prototype.geoFailure = function() {
     self.initMover(false);
 
     self.getHere();
-    self.updateLayers();
 };
 
 // geolocate requests the location from the browser and sets the location
@@ -563,6 +570,7 @@ Bus.prototype.getHere = function() {
                 self.parseHere(data);
                 self.updateStops();
                 self.updateRoutes();
+                self.updateLayers();
 
                 self.here_req = null;
             }
@@ -579,7 +587,7 @@ Bus.prototype.getHere = function() {
 
                 // Usually this will be an abort request, but if it's
                 // not then log the error
-                if (stat.statusText != "abort") {
+                if (err != "abort") {
                     console.log("error executing here request");
                     console.log(xhr, stat, err);
                 }
