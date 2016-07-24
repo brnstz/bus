@@ -122,6 +122,13 @@ function Bus() {
     // We want to enable the map mover only after our first gelocation
     // request is executed.
     self.firstGeolocate = true;
+
+    // The current inflight "here" req if any.
+    self.here_req = null;
+
+    // Increment the request id so we don't display results for oudated
+    // requests.
+    self.here_req_id = 0;
 }
 
 // init is run when the page initially loads
@@ -230,6 +237,7 @@ Bus.prototype.geoSuccess = function(p) {
 
     // Initialize mover, get results here and update results
     self.initMover(true);
+
     self.getHere();
     self.updateLayers();
 };
@@ -518,13 +526,6 @@ Bus.prototype.getInitialRoutes = function() {
 Bus.prototype.getHere = function() {
     var self = this;
 
-    // Don't update more than once at a time
-    if (self.updating) {
-        return;
-    }
-
-    self.updating = true;
-
     var center = self.map.getCenter();
     var bounds = self.map.getBounds();
     var sw = bounds.getSouthWest();
@@ -544,19 +545,53 @@ Bus.prototype.getHere = function() {
         url += '&route_type=' + encodeURIComponent(routeTypes[i]);
     }
 
-    $.ajax(url, {
+    // Abort any previous requests inflight
+    if (self.here_req != null) {
+        self.here_req.abort();
+    }
+
+    self.here_req_id++;
+    var here_req_now = self.here_req_id;
+
+    self.here_req = $.ajax(url, {
         dataType: "json",
+
         success: function(data) {
-            self.parseHere(data);
-            self.updateStops();
-            self.updateRoutes();
-            self.updating = false;
+            if (self.here_req_id == here_req_now) {
+                // If our request id is the most recent one, then
+                // process the response and reset the request to null
+                self.parseHere(data);
+                self.updateStops();
+                self.updateRoutes();
+
+                self.here_req = null;
+            }
+
+            // Otherwise, we ignore the response because we have 
+            // something more recent in flight
         },
 
         error: function(xhr, stat, err) {
-            console.log("error executing here request");
-            console.log(xhr, stat, err);
-            self.updating = false;
+            if (self.here_req_id == here_req_now) {
+
+                // If our request id is the most recent one, then 
+                // process the response
+
+                // Usually this will be an abort request, but if it's
+                // not then log the error
+                if (stat.statusText != "abort") {
+                    console.log("error executing here request");
+                    console.log(xhr, stat, err);
+                }
+
+                // Reset this to null though typically when this is the
+                // result of abort, the primary request will immediately
+                // reset this. But this seems to be the right thing to do.
+                self.here_req = null;
+            }
+
+            // Otherwise, we ignore the response because we have 
+            // something more recent in flight
         }
     });
 };
