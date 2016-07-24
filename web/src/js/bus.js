@@ -133,6 +133,8 @@ function Bus() {
     // here_req_time is a timeoutID from setTimeout, created on 
     // the moveend event. 
     self.here_req_timer = null;
+
+    self.here_req_timer_delay = 50;
 }
 
 // init is run when the page initially loads
@@ -183,10 +185,20 @@ Bus.prototype.initMover = function(geoSuccess) {
     if (self.firstGeolocate) {
         // Set up event handler
         self.map.on("moveend", function() {
-            self.getHere();
+
+            self.here_req_timer = window.setTimeout(function() {
+                self.here_req_timer = null;
+                self.getHere();
+            }, self.here_req_timer_delay);
+
         });
 
         self.map.on("movestart", function() {
+            if (self.here_req_timer != null) {
+                window.clearTimeout(self.here_req_timer);
+                self.here_req_timer = null;
+            }
+
             // Abort any previous requests inflight
             if (self.here_req != null) {
                 self.here_req.abort();
@@ -533,6 +545,17 @@ Bus.prototype.getInitialRoutes = function() {
 Bus.prototype.getHere = function() {
     var self = this;
 
+    $("#loading").css("visibility", "visible");
+
+    // Abort any previous requests in flight
+    if (self.here_req != null) {
+        self.here_req.abort();
+    }
+
+    // Update the here id
+    self.here_req_id++;
+    var here_req_now = self.here_req_id;
+
     var center = self.map.getCenter();
     var bounds = self.map.getBounds();
     var sw = bounds.getSouthWest();
@@ -552,14 +575,6 @@ Bus.prototype.getHere = function() {
         url += '&route_type=' + encodeURIComponent(routeTypes[i]);
     }
 
-    // Abort any previous requests inflight
-    if (self.here_req != null) {
-        self.here_req.abort();
-    }
-
-    self.here_req_id++;
-    var here_req_now = self.here_req_id;
-
     self.here_req = $.ajax(url, {
         dataType: "json",
 
@@ -573,6 +588,7 @@ Bus.prototype.getHere = function() {
                 self.updateLayers();
 
                 self.here_req = null;
+                $("#loading").css("visibility", "hidden");
             }
 
             // Otherwise, we ignore the response because we have 
@@ -590,6 +606,7 @@ Bus.prototype.getHere = function() {
                 if (err != "abort") {
                     console.log("error executing here request");
                     console.log(xhr, stat, err);
+                    $("#loading").css("visibility", "hidden");
                 }
 
                 // Reset this to null though typically when this is the
