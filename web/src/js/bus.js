@@ -133,9 +133,9 @@ function Bus() {
 
     // here_req_time is a timeoutID from setTimeout, created on 
     // the moveend event. 
-    self.here_req_timer = null;
+    //self.here_req_timer = null;
 
-    self.here_req_timer_delay = 150;
+    //self.here_req_timer_delay = 150;
 }
 
 // init is run when the page initially loads
@@ -187,13 +187,17 @@ Bus.prototype.initMover = function(geoSuccess) {
         // Set up event handler
         self.map.on("moveend", function() {
 
+            /*
             self.here_req_timer = window.setTimeout(function() {
                 self.here_req_timer = null;
                 self.getHere();
             }, self.here_req_timer_delay);
+            */
 
+            self.getHere();
         });
 
+        /*
         self.map.on("movestart", function() {
             if (self.here_req_timer != null) {
                 window.clearTimeout(self.here_req_timer);
@@ -205,6 +209,7 @@ Bus.prototype.initMover = function(geoSuccess) {
                 self.here_req.abort();
             }
         });
+        */
 
         // If we succeeded in doing the geolocate, also set up the watcher
         if (geoSuccess) {
@@ -532,6 +537,7 @@ Bus.prototype.getInitialRoutes = function() {
         success: function(data) {
             self.parseHere(data);
             self.updateRoutes();
+            self.updateLayers();
         },
 
         error: function(xhr, stat, err) {
