@@ -316,6 +316,8 @@ Bus.prototype.parseHere = function(data) {
             var s = new Stop(data.stops[i]);
             self.stopList[i] = s;
         }
+    } else {
+        self.stopList = [];
     }
 
     if (data.routes) {
@@ -456,9 +458,22 @@ Bus.prototype.clickHandler = function(stop) {
 // into stopList
 Bus.prototype.updateStops = function() {
     var self = this;
+    var stop = null;
 
     // Reset rows
     self.rows = {};
+
+    // Ensure that current stop still represents a route that
+    // is on screen
+    if (self.current_stop != null) {
+        stop = self.current_stop;
+        var route = self.routes[stop.api.agency_id + "|" + stop.api.route_id];
+        var bounds = self.map.getBounds();
+
+        if (!route.onMap(bounds)) {
+            self.current_stop = null;
+        }
+    }
 
     // Create new table
     var table = $("<table class='table'>");
@@ -472,7 +487,7 @@ Bus.prototype.updateStops = function() {
 
     for (var i = 0; i < self.stopList.length; i++) {
         // create the stop row and stops
-        var stop = self.stopList[i];
+        stop = self.stopList[i];
 
         // If the current stop shows up after first, then ignore it
         if (i != 0 && self.current_stop && self.current_stop.id == stop.id) {
