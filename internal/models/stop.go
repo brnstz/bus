@@ -114,36 +114,71 @@ func GetStopsByTrip(db sqlx.Ext, t *Trip) (stops []*Stop, err error) {
 // we want to sort stops first by their type, then by dist (i.e.,
 // show subways before buses even if bus is closer)
 const (
-	byDist = 0
-	byType = 1
+	byDist  = 0
+	byType  = 1
+	byRoute = 2
+	byDir   = 3
 )
 
 type sortableStops struct {
 	stops []*Stop
-	by    int
+
+	// map of agency_id|route_id to distance
+	maxRouteDist map[string]float64
+
+	by int
 }
 
 func (ss sortableStops) Len() int {
 	return len(ss.stops)
 }
 
+func (ss sortableStops) distID(s *Stop) string {
+	return s.AgencyID + "|" + s.RouteID
+}
+
 func (ss sortableStops) Less(i, j int) bool {
-	s1 := ss.stops[i]
-	s2 := ss.stops[j]
 
 	switch ss.by {
 
 	case byDist:
-		return s1.Dist < s2.Dist
+		d1 := ss.maxRouteDist[ss.distID(ss.stops[i])]
+		d2 := ss.maxRouteDist[ss.distID(ss.stops[j])]
+
+		return d1 < d2
 
 	case byType:
-		return s1.RouteType < s2.RouteType
+		return ss.stops[i].RouteType < ss.stops[j].RouteType
 
-	default:
-		return s1.Dist < s2.Dist
+	case byRoute:
+		return ss.stops[i].RouteID < ss.stops[j].RouteID
+
+	case byDir:
+		return ss.stops[i].DirectionID < ss.stops[j].DirectionID
 	}
+
+	log.Println("unrecognized sort by", ss.by)
+	return false
 }
 
 func (ss sortableStops) Swap(i, j int) {
 	ss.stops[i], ss.stops[j] = ss.stops[j], ss.stops[i]
+}
+
+func newSortableStops(stops []*Stop) (ss sortableStops) {
+	ss = sortableStops{
+		stops:        stops,
+		maxRouteDist: map[string]float64{},
+	}
+
+	for _, s := range stops {
+		dist := s.Dist
+		id := ss.distID(s)
+
+		if dist > ss.maxRouteDist[id] {
+			ss.maxRouteDist[id] = dist
+		}
+	}
+
+	return
 }

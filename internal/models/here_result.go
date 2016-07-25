@@ -194,7 +194,6 @@ func (h *HereResult) createDepartures() (departures []*Departure, err error) {
 }
 
 func GetHereResults(db sqlx.Ext, hq *HereQuery) (stops []*Stop, stopRoutes map[string]*Route, err error) {
-	ss := sortableStops{}
 
 	// mapping of stop.UniqueID to route
 	stopRoutes = map[string]*Route{}
@@ -274,14 +273,25 @@ func GetHereResults(db sqlx.Ext, hq *HereQuery) (stops []*Stop, stopRoutes map[s
 
 	// Add all stops to sortableStops list
 	for _, s := range sm {
-		ss.stops = append(ss.stops, s)
+		stops = append(stops, s)
 	}
 
-	// sort stops by distance first
+	ss := newSortableStops(stops)
+
+	// Our goal is to sort
+	// - Trains before buses
+	// - Then by distance
+	// - Grouped by route_id
+	// - With consistent direction id 0/1 ordering
+	ss.by = byDir
+	sort.Sort(ss)
+
+	ss.by = byRoute
+	sort.Stable(ss)
+
 	ss.by = byDist
 	sort.Stable(ss)
 
-	// then sort by type to put subways first
 	ss.by = byType
 	sort.Stable(ss)
 
