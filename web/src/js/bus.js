@@ -383,6 +383,25 @@ Bus.prototype.createRow = function(stop, i) {
     return row;
 };
 
+// createEmptyRow creates a single empty row indicating there are
+// no stops on the map
+Bus.prototype.createEmptyRow = function() {
+    var self = this;
+
+    var cellCSS = {
+        "color": "#222222",
+        "background-color": "#ffffff",
+        "opacity": 1.0
+    };
+
+    var row = $("<tr>");
+    var td = $("<td>No results in this area.</td>");
+    $(row).css(cellCSS);
+    $(row).append(td);
+
+    return row;
+};
+
 // clickHandler highlights the marker and the row for this stop_id
 Bus.prototype.clickHandler = function(stop) {
     var self = this;
@@ -510,6 +529,10 @@ Bus.prototype.updateStops = function() {
     if (self.current_stop == null && self.stopList.length > 0) {
         var row = self.rows[self.stopList[0].id];
         $(row).trigger("click");
+    }
+
+    if (self.stopList.length === 0) {
+        $(tbody).append(self.createEmptyRow());
     }
 
     // Destroy and recreate results
