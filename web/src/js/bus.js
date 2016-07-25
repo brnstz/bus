@@ -539,6 +539,9 @@ Bus.prototype.updateStops = function() {
     $(table).append(tbody);
     $(results).empty();
     $(results).append(table);
+    $(results).animate({
+        "scrollTop": 0
+    }, "fast");
 };
 
 Bus.prototype.updateRoutes = function() {
