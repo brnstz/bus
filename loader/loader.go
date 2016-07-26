@@ -63,6 +63,9 @@ type Loader struct {
 	// to shapes table)
 	shapeRoute map[string]string
 
+	// maxTripSeq
+	maxTripSeq map[string]int
+
 	// routeShapeCount keeps a running tab of the biggest shape for this
 	// route/dir/headsign combo
 	/*
@@ -81,6 +84,7 @@ func newLoader(dir string) *Loader {
 		serviceRoute: map[string]map[string]bool{},
 		routeAgency:  map[string]string{},
 		shapeRoute:   map[string]string{},
+		maxTripSeq:   map[string]int{},
 	}
 
 	// Checking the length of the 0th entry ensures we ignore the case where
@@ -102,6 +106,7 @@ func newLoader(dir string) *Loader {
 func (l *Loader) load() {
 	l.loadRoutes()
 	l.loadTrips()
+	l.loadMaxSeq()
 	l.loadStopTrips()
 	l.loadUniqueStop()
 	l.loadCalendars()
@@ -283,6 +288,42 @@ func (l *Loader) loadTrips() {
 
 }
 
+// loadMaxSeq pre-loads the stop_times.txt to get the max stop_sequence
+// value for each trip
+func (l *Loader) loadMaxSeq() {
+	stopTimes := getcsv(l.dir, "stop_times.txt")
+
+	header, err := stopTimes.Read()
+	if err != nil {
+		log.Fatalf("unable to read header: %v", err)
+	}
+
+	tripIdx := find(header, "trip_id")
+	sequenceIdx := find(header, "stop_sequence")
+
+	for i := 0; ; i++ {
+		rec, err := stopTimes.Read()
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			log.Fatalf("%v on line %v of stop_times.txt", err, i)
+		}
+
+		trip := rec[tripIdx]
+		sequenceStr := rec[sequenceIdx]
+		sequence, err := strconv.Atoi(sequenceStr)
+		if err != nil {
+			log.Fatalf("%v on line %v of stop_times.txt", err, i)
+		}
+
+		if sequence > l.maxTripSeq[trip] {
+			l.maxTripSeq[trip] = sequence
+		}
+	}
+}
+
 func (l *Loader) loadStopTrips() {
 	var i int
 
@@ -326,9 +367,15 @@ func (l *Loader) loadStopTrips() {
 			continue
 		}
 
+		lastStop := false
+		maxSeq := l.maxTripSeq[trip]
+		if maxSeq == sequence {
+			lastStop = true
+		}
+
 		sst, err := models.NewScheduledStopTime(
 			service.RouteID, stop, service.ID, arrivalStr, departureStr,
-			agencyID, trip, sequence,
+			agencyID, trip, sequence, lastStop,
 		)
 		if err != nil {
 			log.Fatalf("%v on line %v of stop_times.txt", err, i)
