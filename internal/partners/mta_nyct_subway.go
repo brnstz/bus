@@ -186,8 +186,7 @@ func (p mtaNYCSubway) Live(agencyID, routeID, stopID string, directionID int) (d
 					directionID,
 				)
 				if err != nil {
-					// FIXME: identify not found error vs. others
-					//log.Println("can't get vehicle", err)
+					log.Println("can't get vehicle", err)
 
 				} else {
 					vehicle.Live = true
