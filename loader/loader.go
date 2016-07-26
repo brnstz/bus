@@ -116,7 +116,7 @@ func (l *Loader) load() {
 	l.updateRouteShapes()
 }
 
-func getcsv(dir, name string) *csv.Reader {
+func getcsv(dir, name string) (*csv.Reader, io.Closer) {
 
 	f, err := os.Open(path.Join(dir, name))
 	if err != nil {
@@ -125,7 +125,8 @@ func getcsv(dir, name string) *csv.Reader {
 
 	r := csv.NewReader(f)
 	r.LazyQuotes = true
-	return r
+
+	return r, f
 }
 
 // find index of col in header
@@ -153,7 +154,8 @@ func (l *Loader) skipRoute(routeID string) bool {
 
 func (l *Loader) loadRoutes() {
 	var i int
-	f := getcsv(l.dir, "routes.txt")
+	f, fh := getcsv(l.dir, "routes.txt")
+	defer fh.Close()
 
 	header, err := f.Read()
 	if err != nil {
@@ -211,7 +213,8 @@ func (l *Loader) loadRoutes() {
 func (l *Loader) loadTrips() {
 	var i int
 
-	f := getcsv(l.dir, "trips.txt")
+	f, fh := getcsv(l.dir, "trips.txt")
+	defer fh.Close()
 
 	header, err := f.Read()
 	if err != nil {
@@ -291,7 +294,8 @@ func (l *Loader) loadTrips() {
 // loadMaxSeq pre-loads the stop_times.txt to get the max stop_sequence
 // value for each trip
 func (l *Loader) loadMaxSeq() {
-	stopTimes := getcsv(l.dir, "stop_times.txt")
+	stopTimes, fh := getcsv(l.dir, "stop_times.txt")
+	defer fh.Close()
 
 	header, err := stopTimes.Read()
 	if err != nil {
@@ -327,7 +331,8 @@ func (l *Loader) loadMaxSeq() {
 func (l *Loader) loadStopTrips() {
 	var i int
 
-	stopTimes := getcsv(l.dir, "stop_times.txt")
+	stopTimes, fh := getcsv(l.dir, "stop_times.txt")
+	defer fh.Close()
 
 	header, err := stopTimes.Read()
 	if err != nil {
@@ -397,7 +402,8 @@ func (l *Loader) loadStopTrips() {
 func (l *Loader) loadUniqueStop() {
 	var i int
 
-	stops := getcsv(l.dir, "stops.txt")
+	stops, fh := getcsv(l.dir, "stops.txt")
+	defer fh.Close()
 
 	header, err := stops.Read()
 	if err != nil {
@@ -468,7 +474,8 @@ func (l *Loader) loadUniqueStop() {
 
 func (l *Loader) loadCalendarDates() {
 
-	cal := getcsv(l.dir, "calendar_dates.txt")
+	cal, fh := getcsv(l.dir, "calendar_dates.txt")
+	defer fh.Close()
 
 	header, err := cal.Read()
 	if err != nil {
@@ -527,7 +534,8 @@ func (l *Loader) loadCalendarDates() {
 func (l *Loader) loadCalendars() {
 	var i int
 
-	cal := getcsv(l.dir, "calendar.txt")
+	cal, fh := getcsv(l.dir, "calendar.txt")
+	defer fh.Close()
 
 	header, err := cal.Read()
 	if err != nil {
@@ -597,7 +605,8 @@ func (l *Loader) loadCalendars() {
 func (l *Loader) loadShapes() {
 	var i int
 
-	shapes := getcsv(l.dir, "shapes.txt")
+	shapes, fh := getcsv(l.dir, "shapes.txt")
+	defer fh.Close()
 
 	header, err := shapes.Read()
 	if err != nil {
