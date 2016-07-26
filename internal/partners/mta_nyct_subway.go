@@ -32,6 +32,13 @@ var (
 		"L":  "2",
 		"SI": "11",
 	}
+
+	// mapping from feed routeIDs to actual routeIDs
+	expressMatch = map[string]string{
+		// The feed uses 6 to mean 6X. We need to dig deeper to
+		// find out that it's express.
+		"6": "6X",
+	}
 )
 
 type mtaNYCSubway struct{}
@@ -72,6 +79,12 @@ func (p mtaNYCSubway) Precache(agencyID, routeID string, directionID int) error 
 		return nil
 	}
 
+	// Also feed ID "1" applies to multiple routes. We only need to cache one.
+	// Arbitrarily choose the "1" route.
+	if mtaSubwayRouteToFeed[routeID] == "1" && routeID != "1" {
+		return nil
+	}
+
 	_, err := etc.RedisCacheURL(u)
 	if err != nil {
 		log.Println("can't cache live subway response", err)
@@ -88,6 +101,21 @@ func (p mtaNYCSubway) Precache(agencyID, routeID string, directionID int) error 
 	log.Println("succesfully saved", k)
 
 	return nil
+}
+
+// matchingRoutes determines if a route from the feed is equivalent to our
+// routeID
+func (p mtaNYCSubway) matchingRoute(feedRouteID, routeID string) bool {
+	// The obvious case
+	if feedRouteID == routeID {
+		return true
+	}
+
+	if expressMatch[feedRouteID] == routeID {
+		return true
+	}
+
+	return false
 }
 
 func (p mtaNYCSubway) Live(agencyID, routeID, stopID string, directionID int) (d []*models.Departure, v []models.Vehicle, err error) {
@@ -119,6 +147,10 @@ func (p mtaNYCSubway) Live(agencyID, routeID, stopID string, directionID int) (d
 		tripUpdate := e.GetTripUpdate()
 		trip := tripUpdate.GetTrip()
 		stopTimeUpdates := tripUpdate.GetStopTimeUpdate()
+
+		if !p.matchingRoute(trip.GetRouteId(), routeID) {
+			continue
+		}
 
 		// If we have at least one stopTimeUpdate and the trip is non-nil,
 		// we can get the NYCT extensions.
