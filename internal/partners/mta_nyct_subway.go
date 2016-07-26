@@ -32,13 +32,6 @@ var (
 		"L":  "2",
 		"SI": "11",
 	}
-
-	// mapping from feed routeIDs to actual routeIDs
-	expressMatch = map[string]string{
-		// The feed uses 6 to mean 6X. We need to dig deeper to
-		// find out that it's express.
-		"6": "6X",
-	}
 )
 
 type mtaNYCSubway struct{}
@@ -103,21 +96,6 @@ func (p mtaNYCSubway) Precache(agencyID, routeID string, directionID int) error 
 	return nil
 }
 
-// matchingRoutes determines if a route from the feed is equivalent to our
-// routeID
-func (p mtaNYCSubway) matchingRoute(feedRouteID, routeID string) bool {
-	// The obvious case
-	if feedRouteID == routeID {
-		return true
-	}
-
-	if expressMatch[feedRouteID] == routeID {
-		return true
-	}
-
-	return false
-}
-
 func (p mtaNYCSubway) Live(agencyID, routeID, stopID string, directionID int) (d []*models.Departure, v []models.Vehicle, err error) {
 	now := time.Now()
 
@@ -148,13 +126,53 @@ func (p mtaNYCSubway) Live(agencyID, routeID, stopID string, directionID int) (d
 		trip := tripUpdate.GetTrip()
 		stopTimeUpdates := tripUpdate.GetStopTimeUpdate()
 
-		if !p.matchingRoute(trip.GetRouteId(), routeID) {
+		// Ensure we have at least one stop time update
+		if len(stopTimeUpdates) < 1 {
 			continue
 		}
 
-		// If we have at least one stopTimeUpdate and the trip is non-nil,
-		// we can get the NYCT extensions.
-		if len(stopTimeUpdates) > 0 && trip != nil {
+		// Check the first stop time update to see if it's express or not
+		var updateEvent interface{}
+		firstUpdate := stopTimeUpdates[0]
+
+		// Get the NYC extension so we can see if the Trip is "assigned"
+		// yet. If it's assigned, we'll put the vehicle on the map.
+		updateEvent, err = proto.GetExtension(
+			firstUpdate, nyct_subway.E_NyctStopTimeUpdate,
+		)
+		if err != nil {
+			log.Println("can't get extension", err)
+			return
+		}
+		nycEvent, ok := updateEvent.(*nyct_subway.NyctStopTimeUpdate)
+		if !ok {
+			log.Println("can't coerce to nyct_subway.NyctStopTimeUpdate")
+			return
+		}
+
+		var feedRouteID string
+
+		switch nycEvent.GetScheduledTrack() {
+
+		case "2", "3", "M":
+			// Express track. Special case for 6X.
+			if trip.GetRouteId() == "6" {
+				feedRouteID = trip.GetRouteId() + "X"
+			} else {
+				feedRouteID = trip.GetRouteId()
+			}
+		default:
+			// not express track
+			feedRouteID = trip.GetRouteId()
+		}
+
+		if feedRouteID != routeID {
+			continue
+		}
+
+		// If we have at least one stopTimeUpdate (already checked before) and
+		// the trip is non-nil, we can get the NYCT extensions.
+		if trip != nil {
 			var event interface{}
 
 			// Get the NYC extension so we can see if the Trip is "assigned"
@@ -186,7 +204,8 @@ func (p mtaNYCSubway) Live(agencyID, routeID, stopID string, directionID int) (d
 					directionID,
 				)
 				if err != nil {
-					log.Println("can't get vehicle", err)
+					// FIXME: why are these showing up again?
+					//log.Println("can't get vehicle", err)
 
 				} else {
 					vehicle.Live = true
@@ -197,7 +216,6 @@ func (p mtaNYCSubway) Live(agencyID, routeID, stopID string, directionID int) (d
 
 		// Go through all updates to check for our stop ID's departure time.
 		for _, u := range stopTimeUpdates {
-
 			// If this is our stop, then get the departure time.
 			if u.GetStopId() == stopID {
 				dtime := time.Unix(u.GetDeparture().GetTime(), 0)
