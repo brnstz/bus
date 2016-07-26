@@ -1,7 +1,9 @@
 package models
 
 import (
+	"database/sql"
 	"fmt"
+	"log"
 
 	"github.com/brnstz/bus/internal/etc"
 	"github.com/brnstz/upsert"
@@ -18,9 +20,11 @@ type ScheduledStopTime struct {
 	DepartureSec int `db:"departure_sec"`
 
 	StopSequence int `db:"stop_sequence"`
+
+	LastStop sql.NullBool `db:"last_stop"`
 }
 
-func NewScheduledStopTime(routeID, stopID, serviceID, arrivalStr, depatureStr, agencyID, tripID string, sequence int) (sst *ScheduledStopTime, err error) {
+func NewScheduledStopTime(routeID, stopID, serviceID, arrivalStr, depatureStr, agencyID, tripID string, sequence int, lastStop bool) (sst *ScheduledStopTime, err error) {
 	asec := etc.TimeStrToSecs(arrivalStr)
 	dsec := etc.TimeStrToSecs(depatureStr)
 
@@ -33,6 +37,12 @@ func NewScheduledStopTime(routeID, stopID, serviceID, arrivalStr, depatureStr, a
 		AgencyID:     agencyID,
 		TripID:       tripID,
 		StopSequence: sequence,
+	}
+
+	err = sst.LastStop.Scan(lastStop)
+	if err != nil {
+		log.Println("can't scan last stop value")
+		return
 	}
 
 	return
