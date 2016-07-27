@@ -318,6 +318,11 @@ func TestScheduledBus(t *testing.T) {
 
 	// Check each result
 	for _, v := range resp.Stops {
+		// Ignore this direction, we just want to check one stop
+		if v.Direction_ID == 0 {
+			continue
+		}
+
 		if v.Stop_Name != expectedStop {
 			t.Errorf("expected %v stop_name but got %v", expectedStop, v.Stop_Name)
 		}
