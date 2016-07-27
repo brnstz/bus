@@ -107,7 +107,6 @@ func (l *Loader) load() {
 	l.loadRoutes()
 	l.loadTrips()
 	l.loadStopTimes()
-	//l.loadStopTrips()
 	l.loadUniqueStop()
 	l.loadCalendars()
 	l.loadCalendarDates()
@@ -341,11 +340,12 @@ func (l *Loader) loadStopTimes() {
 	}
 
 	// Sort primarily by trip then by sequence id
+	// sort -s -t, -k1,1 -k5,5n
 	cmd = exec.Command("sort",
+		"-s",
 		"-t,",
-		"-n",
-		"-k", fmt.Sprintf("%d,%d", tripIdx+1, tripIdx+1),
-		"-k", fmt.Sprintf("%d,%d", sequenceIdx+1, sequenceIdx+1),
+		fmt.Sprintf("-k%d,%d", tripIdx+1, tripIdx+1),
+		fmt.Sprintf("-k%d,%dn", sequenceIdx+1, sequenceIdx+1),
 		noFirstLine.Name(),
 	)
 	cmd.Stdout = sorted
@@ -432,8 +432,13 @@ func (l *Loader) loadStopTimes() {
 
 		// Save the sst from the previous iteration
 		if sst != nil {
-			// The next stop id for the last stop is the current stop
-			sst.NextStopID.Scan(stop)
+
+			if sst.TripID == trip {
+				sst.NextStopID.Scan(stop)
+			} else {
+				sst.NextStopID.Scan(nil)
+			}
+
 			err = sst.Save()
 			if err != nil {
 				log.Fatalf("%v on line %v of stop_times.txt", err, i)
@@ -455,8 +460,9 @@ func (l *Loader) loadStopTimes() {
 
 	// Make sure we get the last stop
 	if sst != nil {
-		// The last stop id should always be null
-		sst.NextStopID.Scan("null")
+		// This will always be nil
+		sst.NextStopID.Scan(nil)
+
 		err = sst.Save()
 		if err != nil {
 			log.Fatalf("%v on line %v of stop_times.txt", err, i)
