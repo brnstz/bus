@@ -106,8 +106,8 @@ func newLoader(dir string) *Loader {
 func (l *Loader) load() {
 	l.loadRoutes()
 	l.loadTrips()
-	l.loadMaxSeq()
-	l.loadStopTrips()
+	l.loadStopTimes()
+	//l.loadStopTrips()
 	l.loadUniqueStop()
 	l.loadCalendars()
 	l.loadCalendarDates()
@@ -291,20 +291,78 @@ func (l *Loader) loadTrips() {
 
 }
 
-// loadMaxSeq pre-loads the stop_times.txt to get the max stop_sequence
-// value for each trip
-func (l *Loader) loadMaxSeq() {
-	stopTimes, fh := getcsv(l.dir, "stop_times.txt")
-	defer fh.Close()
+func (l *Loader) loadStopTimes() {
+	var i int
+	var err error
 
-	header, err := stopTimes.Read()
+	// Read the unsorted file first so we can get headers index values
+	stopTimesUnsorted, unsortedFh := getcsv(l.dir, "stop_times.txt")
+	defer unsortedFh.Close()
+
+	header, err := stopTimesUnsorted.Read()
 	if err != nil {
 		log.Fatalf("unable to read header: %v", err)
 	}
 
+	stopIdx := find(header, "stop_id")
 	tripIdx := find(header, "trip_id")
+	arrivalIdx := find(header, "arrival_time")
+	depatureIdx := find(header, "departure_time")
 	sequenceIdx := find(header, "stop_sequence")
 
+	// Create a file in the same dir that we've guaranteed is sorted
+	// by trip_id and stop_sequence. It probably already is, but let's
+	// be sure
+	noFirstLine, err := ioutil.TempFile(l.dir, "")
+	if err != nil {
+		log.Fatal("can't create first line file", err)
+	}
+	defer noFirstLine.Close()
+	defer os.Remove(noFirstLine.Name())
+
+	sorted, err := ioutil.TempFile(l.dir, "")
+	if err != nil {
+		log.Fatal("can't create sorted file", err)
+	}
+	defer sorted.Close()
+	defer os.Remove(sorted.Name())
+
+	// Remove first line of file (we don't want the header to be sorted
+	// in the middle of the file)
+	cmd := exec.Command("tail", "-n", "+2", path.Join(l.dir, "stop_times.txt"))
+	cmd.Stdout = noFirstLine
+	err = cmd.Run()
+	if err != nil {
+		log.Fatal("can't create file with no first line", err)
+	}
+	err = noFirstLine.Close()
+	if err != nil {
+		log.Fatal("can't close no first line file", err)
+	}
+
+	// Sort primarily by trip then by sequence id
+	cmd = exec.Command("sort",
+		"-t,",
+		"-n",
+		"-k", fmt.Sprintf("%d,%d", tripIdx+1, tripIdx+1),
+		"-k", fmt.Sprintf("%d,%d", sequenceIdx+1, sequenceIdx+1),
+		noFirstLine.Name(),
+	)
+	cmd.Stdout = sorted
+	err = cmd.Run()
+	if err != nil {
+		log.Fatal("can't sort file", err, cmd)
+	}
+	err = sorted.Close()
+	if err != nil {
+		log.Fatal("can't close sorted file")
+	}
+
+	// Open the sorted file and process
+	stopTimes, fh := getcsv(l.dir, path.Base(sorted.Name()))
+	defer fh.Close()
+
+	// read once to get max sequence ids
 	for i := 0; ; i++ {
 		rec, err := stopTimes.Read()
 		if err == io.EOF {
@@ -326,8 +384,89 @@ func (l *Loader) loadMaxSeq() {
 			l.maxTripSeq[trip] = sequence
 		}
 	}
+	err = fh.Close()
+	if err != nil {
+		log.Fatal("can't close", err)
+	}
+
+	stopTimes, fh = getcsv(l.dir, path.Base(sorted.Name()))
+	defer fh.Close()
+
+	// read again for actual processing
+	var rec []string
+	var sst *models.ScheduledStopTime
+	var stop string
+	for i = 0; ; i++ {
+		rec, err = stopTimes.Read()
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			log.Fatalf("%v on line %v of stop_times.txt", err, i)
+		}
+
+		stop = rec[stopIdx]
+		trip := rec[tripIdx]
+		arrivalStr := rec[arrivalIdx]
+		departureStr := rec[depatureIdx]
+		agencyID := l.routeAgency[l.tripRoute[trip]]
+		sequenceStr := rec[sequenceIdx]
+		sequence, err := strconv.Atoi(sequenceStr)
+		if err != nil {
+			log.Fatalf("%v on line %v of stop_times.txt", err, i)
+		}
+
+		l.stopTrips[stop] = append(l.stopTrips[stop], trip)
+
+		service, exists := l.tripService[trip]
+		if !exists {
+			continue
+		}
+
+		lastStop := false
+		maxSeq := l.maxTripSeq[trip]
+		if maxSeq == sequence {
+			lastStop = true
+		}
+
+		// Save the sst from the previous iteration
+		if sst != nil {
+			// The next stop id for the last stop is the current stop
+			sst.NextStopID.Scan(stop)
+			err = sst.Save()
+			if err != nil {
+				log.Fatalf("%v on line %v of stop_times.txt", err, i)
+			}
+		}
+
+		sst, err = models.NewScheduledStopTime(
+			service.RouteID, stop, service.ID, arrivalStr, departureStr,
+			agencyID, trip, sequence, lastStop,
+		)
+		if err != nil {
+			log.Fatalf("%v on line %v of stop_times.txt", err, i)
+		}
+
+		if i%logp == 0 {
+			log.Printf("loaded %v stop times", i)
+		}
+	}
+
+	// Make sure we get the last stop
+	if sst != nil {
+		// The last stop id should always be null
+		sst.NextStopID.Scan("null")
+		err = sst.Save()
+		if err != nil {
+			log.Fatalf("%v on line %v of stop_times.txt", err, i)
+		}
+	}
+
+	log.Printf("loaded %v stop times", i)
 }
 
+/*
 func (l *Loader) loadStopTrips() {
 	var i int
 
@@ -398,6 +537,7 @@ func (l *Loader) loadStopTrips() {
 
 	log.Printf("loaded %v stop times", i)
 }
+*/
 
 func (l *Loader) loadUniqueStop() {
 	var i int
@@ -684,7 +824,7 @@ func (l *Loader) updateRouteShapes() {
 		} else {
 			tx.Rollback()
 			if err != nil {
-				log.Println("can't rollback oute shapes", err)
+				log.Println("can't rollback route shapes", err)
 			}
 		}
 	}()

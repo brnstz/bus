@@ -22,6 +22,8 @@ type ScheduledStopTime struct {
 	StopSequence int `db:"stop_sequence"`
 
 	LastStop sql.NullBool `db:"last_stop"`
+
+	NextStopID sql.NullString `db:"next_stop_id"`
 }
 
 func NewScheduledStopTime(routeID, stopID, serviceID, arrivalStr, depatureStr, agencyID, tripID string, sequence int, lastStop bool) (sst *ScheduledStopTime, err error) {
