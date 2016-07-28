@@ -31,6 +31,8 @@ var (
 	// with n = 300 and p = 0.001
 	bloomM uint = 4314
 	bloomK uint = 10
+
+	minFirstDepartureTime = time.Duration(2) * time.Hour
 )
 
 type stopLiveRequest struct {
@@ -304,6 +306,10 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 		var trip models.Trip
 
 		if len(stop.Departures) < 1 {
+			continue
+		}
+
+		if now.Add(minFirstDepartureTime).Before(stop.Departures[0].Time) {
 			continue
 		}
 

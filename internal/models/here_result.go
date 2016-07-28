@@ -13,8 +13,7 @@ import (
 )
 
 const (
-	maxStops              = 20
-	minFirstDepartureTime = time.Duration(2) * time.Hour
+	maxStops = 20
 )
 
 type HereResult struct {
