@@ -51,7 +51,7 @@ function Bus() {
     self.tileOptions = {
         maxZoom: 17,
         minZoom: 10,
-        opacity: 0.8,
+        opacity: 1.0,
     };
 
     // mapOptions is the initial options sent on creation of the map
@@ -365,11 +365,16 @@ Bus.prototype.createRow = function(stop, i) {
     // Create and append the cell containing the route identifier
     // with colored background
     var routeID = null;
+    /*
     if (stop.live == true) {
         routeID = $("<td class='rowroute'>" + stop.api.route_id + "<br><img src='img/radio1.svg' width=20 height=20></td>");
     } else {
         routeID = $("<td class='rowroute'>" + stop.api.route_id + "</td>");
     }
+    */
+
+
+    routeID = $("<td class='rowroute'>" + stop.api.route_id + "<br><img src='img/compass_plain.svg' style='transform(" + stop.api.departures[0].compass_dir + ")' width=20 height=20></td>");
 
 
     var datatd = $("<td>");
