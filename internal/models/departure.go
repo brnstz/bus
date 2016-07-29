@@ -23,6 +23,9 @@ type Departure struct {
 	ServiceID    string    `json:"service_id" db:"service_id"`
 	Live         bool      `json:"live" db:"-" upsert:"omit"`
 
+	// CompassDir is the direction to the next stop
+	CompassDir float64 `json:"compass_dir" db:"-" upsert:"omit"`
+
 	baseTime time.Time `json:"-" db:"-"`
 }
 

@@ -26,6 +26,7 @@ type HereResult struct {
 	ArrivalSecs   string `db:"arrival_secs"`
 	DepartureSecs string `db:"departure_secs"`
 	StopSequences string `db:"stop_sequences"`
+	CompassDirs   string `db:"compass_dirs"`
 
 	TripHeadsign string `db:"trip_headsign"`
 
@@ -120,12 +121,15 @@ func (h *HereResult) Initialize() error {
 
 func (h *HereResult) createDepartures() (departures []*Departure, err error) {
 	var (
+		departureSec  int
+		compassDir    float64
 		tripID        string
 		departureBase time.Time
 	)
 
 	departureSecs := strings.Split(h.DepartureSecs, ",")
 	tripIDs := strings.Split(h.TripIDs, ",")
+	compassDirs := strings.Split(h.CompassDirs, ",")
 
 	if len(departureSecs) < 1 {
 		err = fmt.Errorf("invalid departureSecs: %v", h.DepartureSecs)
@@ -140,14 +144,26 @@ func (h *HereResult) createDepartures() (departures []*Departure, err error) {
 		return
 	}
 
+	if len(departureSecs) != len(compassDirs) {
+		log.Println(h)
+		log.Println(h.CompassDirs)
+		log.Println(compassDirs)
+		err = fmt.Errorf("mismatch between departureSecs length (%v) and compassDirs length (%v)", len(departureSecs), len(compassDirs))
+		return
+	}
+
 	for i := range departureSecs {
-		var departureSec int
 		departureSec, err = strconv.Atoi(strings.TrimSpace(departureSecs[i]))
 		if err != nil {
 			log.Println("can't parse departure sec", err)
 			return
 		}
 		tripID = strings.TrimSpace(tripIDs[i])
+		compassDir, err = strconv.ParseFloat(compassDirs[i], 64)
+		if err != nil {
+			log.Println("can't parse compass dir", err)
+			return
+		}
 
 		// We have up to three non-overlapping ranges of departure sec,
 		// that could be yesterday, today or tomorrow. We're able to do this
@@ -178,6 +194,7 @@ func (h *HereResult) createDepartures() (departures []*Departure, err error) {
 			TripID:       tripID,
 			ServiceID:    h.ServiceID,
 			baseTime:     departureBase,
+			CompassDir:   compassDir,
 		}
 
 		err = departure.Initialize()
