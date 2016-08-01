@@ -35,6 +35,11 @@ type rskey struct {
 	headsign    string
 }
 
+type latlon struct {
+	lat float64
+	lon float64
+}
+
 type Loader struct {
 	// the dir from which we load google transit files
 	dir string
@@ -66,6 +71,9 @@ type Loader struct {
 	// maxTripSeq
 	maxTripSeq map[string]int
 
+	// mapping of stop ids to lat/lon pairs
+	stopLocation map[string]*latlon
+
 	// routeShapeCount keeps a running tab of the biggest shape for this
 	// route/dir/headsign combo
 	/*
@@ -85,6 +93,7 @@ func newLoader(dir string) *Loader {
 		routeAgency:  map[string]string{},
 		shapeRoute:   map[string]string{},
 		maxTripSeq:   map[string]int{},
+		stopLocation: map[string]*latlon{},
 	}
 
 	// Checking the length of the 0th entry ensures we ignore the case where
@@ -106,6 +115,7 @@ func newLoader(dir string) *Loader {
 func (l *Loader) load() {
 	l.loadRoutes()
 	l.loadTrips()
+	l.loadStopLocations()
 	l.loadStopTimes()
 	l.loadUniqueStop()
 	l.loadCalendars()
@@ -433,10 +443,19 @@ func (l *Loader) loadStopTimes() {
 		// Save the sst from the previous iteration
 		if sst != nil {
 
+			ll := l.stopLocation[stop]
+			if ll == nil {
+				log.Fatal("can't get lat lon", stop)
+			}
+
 			if sst.TripID == trip {
 				sst.NextStopID.Scan(stop)
+				sst.NextStopLat = ll.lat
+				sst.NextStopLon = ll.lon
 			} else {
 				sst.NextStopID.Scan(nil)
+				sst.NextStopLat = 0
+				sst.NextStopLon = 0
 			}
 
 			err = sst.Save()
@@ -472,78 +491,54 @@ func (l *Loader) loadStopTimes() {
 	log.Printf("loaded %v stop times", i)
 }
 
-/*
-func (l *Loader) loadStopTrips() {
+func (l *Loader) loadStopLocations() {
 	var i int
 
-	stopTimes, fh := getcsv(l.dir, "stop_times.txt")
+	stops, fh := getcsv(l.dir, "stops.txt")
 	defer fh.Close()
 
-	header, err := stopTimes.Read()
+	header, err := stops.Read()
 	if err != nil {
 		log.Fatalf("unable to read header: %v", err)
 	}
 
 	stopIdx := find(header, "stop_id")
-	tripIdx := find(header, "trip_id")
-	arrivalIdx := find(header, "arrival_time")
-	depatureIdx := find(header, "departure_time")
-	sequenceIdx := find(header, "stop_sequence")
+	stopLatIdx := find(header, "stop_lat")
+	stopLonIdx := find(header, "stop_lon")
+
 	for i = 0; ; i++ {
-		rec, err := stopTimes.Read()
+		rec, err := stops.Read()
 		if err == io.EOF {
 			break
 		}
-
 		if err != nil {
-			log.Fatalf("%v on line %v of stop_times.txt", err, i)
+			log.Fatalf("%v on line %v of stops.txt", err, i)
 		}
 
-		stop := rec[stopIdx]
-		trip := rec[tripIdx]
-		arrivalStr := rec[arrivalIdx]
-		departureStr := rec[depatureIdx]
-		agencyID := l.routeAgency[l.tripRoute[trip]]
-		sequenceStr := rec[sequenceIdx]
-		sequence, err := strconv.Atoi(sequenceStr)
-		if err != nil {
-			log.Fatalf("%v on line %v of stop_times.txt", err, i)
-		}
-
-		l.stopTrips[stop] = append(l.stopTrips[stop], trip)
-
-		service, exists := l.tripService[trip]
-		if !exists {
-			continue
-		}
-
-		lastStop := false
-		maxSeq := l.maxTripSeq[trip]
-		if maxSeq == sequence {
-			lastStop = true
-		}
-
-		sst, err := models.NewScheduledStopTime(
-			service.RouteID, stop, service.ID, arrivalStr, departureStr,
-			agencyID, trip, sequence, lastStop,
+		stopLat, err := strconv.ParseFloat(
+			strings.TrimSpace(rec[stopLatIdx]), 64,
 		)
 		if err != nil {
-			log.Fatalf("%v on line %v of stop_times.txt", err, i)
+			log.Fatalf("%v on line %v of stops.txt", err, i)
 		}
 
-		err = sst.Save()
+		stopLon, err := strconv.ParseFloat(
+			strings.TrimSpace(rec[stopLonIdx]), 64,
+		)
 		if err != nil {
-			log.Fatalf("%v on line %v of stop_times.txt", err, i)
+			log.Fatalf("%v on line %v of stops.txt", err, i)
 		}
 
-		if i%logp == 0 {
-			log.Printf("loaded %v stop times", i)
+		ll := &latlon{
+			lat: stopLat,
+			lon: stopLon,
 		}
+
+		l.stopLocation[rec[stopIdx]] = ll
 	}
 
-	log.Printf("loaded %v stop times", i)
+	log.Printf("loaded %v stops locations", i)
 }
-*/
 
 func (l *Loader) loadUniqueStop() {
 	var i int
