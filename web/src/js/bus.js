@@ -374,7 +374,7 @@ Bus.prototype.createRow = function(stop, i) {
     */
 
 
-    routeID = $("<td class='rowroute'>" + stop.api.route_id + "<br><img src='img/compass_plain.svg' style='transform(" + stop.api.departures[0].compass_dir + ")' width=20 height=20></td>");
+    routeID = $("<td class='rowroute'>" + stop.api.route_id + "<br><img src='img/compass_plain.svg' style='transform: rotate(" + stop.api.departures[0].compass_dir + "deg);' width=20 height=20></td>");
 
 
     var datatd = $("<td>");

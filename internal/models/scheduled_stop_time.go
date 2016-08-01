@@ -23,7 +23,13 @@ type ScheduledStopTime struct {
 
 	LastStop sql.NullBool `db:"last_stop"`
 
-	NextStopID sql.NullString `db:"next_stop_id"`
+	NextStopID  sql.NullString `db:"next_stop_id"`
+	NextStopLat float64        `json:"next_stop_lat" db:"next_stop_lat" upsert:"omit"`
+	NextStopLon float64        `json:"next_stop_lon" db:"next_stop_lon" upsert:"omit"`
+
+	// Location is PostGIS field value that combines lat and lon into a single
+	// field.
+	NextStopLocation interface{} `json:"-" db:"next_stop_location" upsert_value:"ST_SetSRID(ST_MakePoint(:next_stop_lat, :next_stop_lon),4326)"`
 }
 
 func NewScheduledStopTime(routeID, stopID, serviceID, arrivalStr, depatureStr, agencyID, tripID string, sequence int, lastStop bool) (sst *ScheduledStopTime, err error) {
