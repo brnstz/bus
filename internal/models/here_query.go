@@ -23,7 +23,8 @@ const (
 			arrival_secs,
 			departure_secs,
 			stop_sequences,
-			compass_dirs,
+			next_stop_lats,
+			next_stop_lons,
 
 			stop_name,
 			direction_id,
