@@ -32,10 +32,6 @@ type Departure struct {
 func (d *Departure) Initialize() error {
 	d.Time = d.baseTime.Add(time.Second * time.Duration(d.DepartureSec))
 
-	if d.CompassDir < 0 {
-		d.CompassDir = 180 + d.CompassDir
-	}
-
 	return nil
 }
 

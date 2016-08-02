@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/brnstz/bus/internal/conf"
+	"github.com/brnstz/bus/internal/etc"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -26,7 +27,8 @@ type HereResult struct {
 	ArrivalSecs   string `db:"arrival_secs"`
 	DepartureSecs string `db:"departure_secs"`
 	StopSequences string `db:"stop_sequences"`
-	CompassDirs   string `db:"compass_dirs"`
+	NextStopLats  string `db:"next_stop_lats"`
+	NextStopLons  string `db:"next_stop_lons"`
 
 	TripHeadsign string `db:"trip_headsign"`
 
@@ -123,13 +125,16 @@ func (h *HereResult) createDepartures() (departures []*Departure, err error) {
 	var (
 		departureSec  int
 		compassDir    float64
+		nextLat       float64
+		nextLon       float64
 		tripID        string
 		departureBase time.Time
 	)
 
 	departureSecs := strings.Split(h.DepartureSecs, ",")
 	tripIDs := strings.Split(h.TripIDs, ",")
-	compassDirs := strings.Split(h.CompassDirs, ",")
+	nextLats := strings.Split(h.NextStopLats, ",")
+	nextLons := strings.Split(h.NextStopLons, ",")
 
 	if len(departureSecs) < 1 {
 		err = fmt.Errorf("invalid departureSecs: %v", h.DepartureSecs)
@@ -144,11 +149,13 @@ func (h *HereResult) createDepartures() (departures []*Departure, err error) {
 		return
 	}
 
-	if len(departureSecs) != len(compassDirs) {
-		log.Println(h)
-		log.Println(h.CompassDirs)
-		log.Println(compassDirs)
-		err = fmt.Errorf("mismatch between departureSecs length (%v) and compassDirs length (%v)", len(departureSecs), len(compassDirs))
+	if len(departureSecs) != len(nextLats) {
+		err = fmt.Errorf("mismatch between departureSecs length (%v) and nextLats length (%v)", len(departureSecs), len(nextLats))
+		return
+	}
+
+	if len(departureSecs) != len(nextLons) {
+		err = fmt.Errorf("mismatch between departureSecs length (%v) and nextLons length (%v)", len(departureSecs), len(nextLons))
 		return
 	}
 
@@ -159,11 +166,19 @@ func (h *HereResult) createDepartures() (departures []*Departure, err error) {
 			return
 		}
 		tripID = strings.TrimSpace(tripIDs[i])
-		compassDir, err = strconv.ParseFloat(compassDirs[i], 64)
+		nextLat, err = strconv.ParseFloat(nextLats[i], 64)
 		if err != nil {
-			log.Println("can't parse compass dir", err)
+			log.Println("can't parse next lat dir", err)
 			return
 		}
+
+		nextLon, err = strconv.ParseFloat(nextLons[i], 64)
+		if err != nil {
+			log.Println("can't parse next lon dir", err)
+			return
+		}
+
+		compassDir = etc.Bearing(h.Lat, h.Lon, nextLat, nextLon)
 
 		// We have up to three non-overlapping ranges of departure sec,
 		// that could be yesterday, today or tomorrow. We're able to do this

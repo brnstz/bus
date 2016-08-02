@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math"
 	"net"
 	"net/http"
 	"strconv"
@@ -229,4 +230,21 @@ func escape(id string) string {
 	b.WriteRune('\u0027')
 
 	return b.String()
+}
+
+const rad = math.Pi / 180.0
+const deg = 180.0 / math.Pi
+
+// stolen from https://github.com/kellydunn/golang-geo/blob/master/point.go
+// in turn stolen from http://www.movable-type.co.uk/scripts/latlong.html
+func Bearing(lat1, lon1, lat2, lon2 float64) float64 {
+	dlon := (lon2 - lon1) * rad
+	dlat1 := lat1 * rad
+	dlat2 := lat2 * rad
+
+	y := math.Sin(dlon) * math.Cos(dlat2)
+	x := math.Cos(dlat1)*math.Sin(dlat2) -
+		math.Sin(dlat1)*math.Cos(dlat2)*math.Cos(dlon)
+
+	return math.Atan2(y, x) * deg
 }
