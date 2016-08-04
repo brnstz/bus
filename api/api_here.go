@@ -64,6 +64,10 @@ func stopWorker() {
 			req.stop.Vehicles = liveVehicles
 		}
 
+		// FIXME: assume compass dir for live departures is
+		// the first scheduled departure's dir
+		compassDir := req.stop.Departures[0].CompassDir
+
 		sd := models.SortableDepartures(liveDepartures)
 		sort.Sort(sd)
 		liveDepartures = []*models.Departure(sd)
@@ -109,10 +113,10 @@ func stopWorker() {
 
 			}
 
-			if len(liveDepartures) > 5 {
-				req.stop.Departures = liveDepartures[0:5]
-			} else {
-				req.stop.Departures = liveDepartures
+			for i := 0; i < models.MaxDepartures && i < len(liveDepartures); i++ {
+				liveDepartures[i].CompassDir = compassDir
+				req.stop.Departures[i] = liveDepartures[i]
+
 			}
 
 		}
