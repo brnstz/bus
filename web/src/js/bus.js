@@ -6,6 +6,7 @@ var Stop = require("./stop.js");
 var Route = require("./route.js");
 var Trip = require("./trip.js");
 var LayerZoom = require("./layer_zoom.js");
+var isMobile = require("ismobilejs");
 
 var youAreHere = L.icon({
     iconUrl: 'img/here_blue3.svg',
@@ -227,7 +228,7 @@ Bus.prototype.initMover = function(geoSuccess) {
 
                     // Options
                     {
-                        enableHighAccuracy: true
+                        enableHighAccuracy: isMobile.any
                     });
             }
         }
@@ -294,7 +295,7 @@ Bus.prototype.geolocate = function() {
             function(p) {
                 self.geoFailure()
             }, {
-                enableHighAccuracy: true
+                enableHighAccuracy: isMobile.any
             });
 
     } else {

@@ -11,5 +11,7 @@
         "grunt-contrib-clean": "latest"
     },
 
-    "dependencies": {}
+    "dependencies": {
+        "ismobilejs": "latest"
+    }
 }
