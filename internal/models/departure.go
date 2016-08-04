@@ -1,11 +1,6 @@
 package models
 
-import (
-	"log"
-	"time"
-
-	"github.com/brnstz/bus/internal/etc"
-)
+import "time"
 
 const (
 	// midnightSecs is what a depature_sec value of midnight looks like. We
@@ -47,39 +42,4 @@ func (d SortableDepartures) Less(i, j int) bool {
 
 func (d SortableDepartures) Swap(i, j int) {
 	d[i], d[j] = d[j], d[i]
-}
-
-func getDepartures(agencyID, routeID, stopID, serviceID string, minSec int, base time.Time) (d []*Departure, err error) {
-	q := `
-		SELECT departure_sec, trip_id, service_id
-		FROM   scheduled_stop_time
-		WHERE  
-			   agency_id  =	$1 AND
-			   route_id   =	$2 AND
-			   stop_id    =	$3 AND
-			   service_id =	$4 AND
-
-			   departure_sec    >= $5
-
-		ORDER BY departure_sec LIMIT $6
-	`
-
-	err = etc.DBConn.Select(&d, q, agencyID, routeID, stopID, serviceID,
-		minSec, MaxDepartures)
-
-	if err != nil {
-		log.Println("can't get departures", err)
-		return
-	}
-
-	for _, departure := range d {
-		departure.baseTime = base
-		err = departure.Initialize()
-		if err != nil {
-			log.Println("can't init departure", err)
-			return
-		}
-	}
-
-	return
 }
