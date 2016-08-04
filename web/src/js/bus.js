@@ -131,12 +131,6 @@ function Bus() {
     // Increment the request id so we don't display results for oudated
     // requests.
     self.here_req_id = 0;
-
-    // here_req_time is a timeoutID from setTimeout, created on 
-    // the moveend event. 
-    //self.here_req_timer = null;
-
-    //self.here_req_timer_delay = 150;
 }
 
 // init is run when the page initially loads
@@ -187,30 +181,8 @@ Bus.prototype.initMover = function(geoSuccess) {
     if (self.firstGeolocate) {
         // Set up event handler
         self.map.on("moveend", function() {
-
-            /*
-            self.here_req_timer = window.setTimeout(function() {
-                self.here_req_timer = null;
-                self.getHere();
-            }, self.here_req_timer_delay);
-            */
-
             self.getHere();
         });
-
-        /*
-        self.map.on("movestart", function() {
-            if (self.here_req_timer != null) {
-                window.clearTimeout(self.here_req_timer);
-                self.here_req_timer = null;
-            }
-
-            // Abort any previous requests inflight
-            if (self.here_req != null) {
-                self.here_req.abort();
-            }
-        });
-        */
 
         // If we succeeded in doing the geolocate, also set up the watcher
         if (geoSuccess) {
