@@ -9,6 +9,7 @@ import (
 
 	"github.com/willf/bloom"
 
+	"github.com/brnstz/bus/internal/conf"
 	"github.com/brnstz/bus/internal/etc"
 	"github.com/brnstz/bus/internal/fuse"
 	"github.com/brnstz/bus/internal/models"
@@ -118,7 +119,6 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	t1 := time.Now()
 	hq, err := models.NewHereQuery(
 		lat, lon, SWLat, SWLon, NELat, NELon, routeTypes, now,
 	)
@@ -134,11 +134,15 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 		apiErr(w, err)
 		return
 	}
-	log.Println("here query:        ", time.Now().Sub(t1))
 
-	t2 := time.Now()
-	// Create a channel for receiving responses to stopLiveRequest values
-	respch := make(chan error, len(stops))
+	// time taken to add stuff
+	if conf.API.LogTiming {
+		t1 := time.Now()
+		defer func() { log.Println(time.Now().Sub(t1)) }()
+	}
+
+	// Create a channel for waiting for responses, arbitrarily large
+	respch := make(chan error, 10000)
 	count := 0
 
 	// save the first scheduled departure of each stop, so that we can
@@ -159,59 +163,38 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Create a request to get live info and send it on the channel
-		req := &fuse.Req{
+		req := &fuse.StopReq{
 			Stop:     s,
 			Partner:  partner,
 			Response: respch,
-			Filter:   resp.Filter,
 		}
-		fuse.Chan <- req
+		fuse.StopChan <- req
 		count++
 	}
 
-	// Wait for all responses
-	for i := 0; i < count; i++ {
-		err = <-respch
-		if err != nil {
-			log.Println(err)
-		}
-	}
-	log.Println("partner info:      ", time.Now().Sub(t2))
-
-	t3 := time.Now()
 	// Add any routes to the response that the bloom filter says we don't have
 	for _, route := range routes {
 		exists := resp.Filter.TestString(route.UniqueID)
-		// If the route doesn't exist in our filter, then we want to pull
-		// the shapes and also append it to our response list.
-		if !exists {
-			route.RouteShapes, err = models.GetSavedRouteShapes(
-				etc.DBConn, route.AgencyID, route.RouteID,
-			)
-			if err != nil {
-				// This is a fatal error because the front end code
-				// assumes the route will be there
-				log.Println("can't get route shapes", route, err)
-				apiErr(w, err)
-				return
-			}
-
-			resp.Filter.AddString(route.UniqueID)
-			resp.Routes = append(resp.Routes, route)
+		if exists {
+			continue
 		}
-	}
-	log.Println("route shape:       ", time.Now().Sub(t3))
 
-	t4 := time.Now()
+		req := &fuse.RouteReq{
+			Route:    route,
+			Response: respch,
+		}
+
+		fuse.RouteChan <- req
+		count++
+	}
 
 	// Set stop value of the response
 	resp.Stops = stops
 
 	// Add the first trip of each stop response that is not already in our
 	// bloom filter
-	for i, stop := range resp.Stops {
-		var trip models.Trip
-
+	tripReqs := []*fuse.TripReq{}
+	for _, stop := range resp.Stops {
 		if len(stop.Departures) < 1 {
 			continue
 		}
@@ -232,82 +215,56 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		// Get the full trip with stop and shape details. If we succeed, we can
-		// move onto next trip
-		trip, err = models.GetTrip(etc.DBConn, stop.AgencyID, stop.RouteID, tripID)
-		if err == nil {
-			resp.Filter.AddString(uniqueID)
-			resp.Trips = append(resp.Trips, &trip)
-			continue
+		req := &fuse.TripReq{
+			TripID:      tripID,
+			FirstTripID: firstDepart[stop.UniqueID].TripID,
+			Stop:        stop,
+			Response:    respch,
 		}
-
-		// If the error is unexpected, we should error out immediately
-		if err != models.ErrNotFound {
-			log.Println("can't get trip", err)
-			apiErr(w, err)
-			return
-		}
-
-		// Here we weren't able to find the trip ID in the database. This is
-		// typically due to a response from a realtime source which gives us
-		// TripIDs that are not in the static feed or are partial matches.
-		// Let's first look for a partial match. If that fails, let's just get
-		// the use the first scheduled departure instead.
-
-		// Checking for partial match.
-		tripID, err = models.GetPartialTripIDMatch(
-			etc.DBConn, stop.AgencyID, stop.RouteID, tripID,
-		)
-
-		// If we get one, then update the uniqueID and the relevant stop /
-		// departure's ID, adding it to our filter.
-		if err == nil {
-			uniqueID = stop.AgencyID + "|" + tripID
-			resp.Stops[i].Departures[0].TripID = tripID
-			resp.Stops[i].Initialize()
-
-			// Re-get the trip with update ID
-			trip, err = models.GetTrip(etc.DBConn, stop.AgencyID, stop.RouteID,
-				tripID)
-			if err != nil {
-				log.Println("can't get trip", err)
-				apiErr(w, err)
-				return
-			}
-
-			resp.Filter.AddString(uniqueID)
-			resp.Trips = append(resp.Trips, &trip)
-
-			continue
-		}
-
-		// If the error is unexpected, we should error out immediately
-		if err != models.ErrNotFound {
-			log.Println("can't get trip", err)
-			apiErr(w, err)
-			return
-		}
-
-		// Our last hope is take the first scheduled departure
-		tripID = firstDepart[stop.UniqueID].TripID
-
-		uniqueID = stop.AgencyID + "|" + tripID
-		resp.Stops[i].Departures[0].TripID = tripID
-		resp.Stops[i].Initialize()
-
-		// Re-get the trip with update ID
-		trip, err = models.GetTrip(etc.DBConn, stop.AgencyID, stop.RouteID,
-			tripID)
-		if err != nil {
-			log.Println("can't get trip", err)
-			apiErr(w, err)
-			return
-		}
-
-		resp.Filter.AddString(uniqueID)
-		resp.Trips = append(resp.Trips, &trip)
+		tripReqs = append(tripReqs, req)
+		fuse.TripChan <- req
+		count++
 	}
-	log.Println("trips:             ", time.Now().Sub(t4))
+
+	// Wait for all responses
+	for i := 0; i < count; i++ {
+		err = <-respch
+		if err != nil {
+			log.Println(err)
+		}
+	}
+
+	// append routes
+	for _, route := range routes {
+		exists := resp.Filter.TestString(route.UniqueID)
+		if exists {
+			continue
+		}
+
+		resp.Filter.AddString(route.UniqueID)
+		resp.Routes = append(resp.Routes, route)
+	}
+
+	// append trips
+	for _, tripReq := range tripReqs {
+		if tripReq.Trip == nil {
+			continue
+		}
+
+		uniqueID := tripReq.Stop.AgencyID + "|" + tripReq.Trip.TripID
+
+		exists := resp.Filter.TestString(uniqueID)
+		if exists {
+			continue
+		}
+
+		tripReq.Stop.Departures[0].TripID = tripReq.Trip.TripID
+		// FIXME: do we need to do this? should this actually be to init
+		// the departure?
+		tripReq.Stop.Initialize()
+
+		resp.Trips = append(resp.Trips, tripReq.Trip)
+	}
 
 	b, err := json.Marshal(resp)
 	if err != nil {
