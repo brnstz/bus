@@ -4,25 +4,18 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"sort"
 	"strconv"
 	"time"
 
 	"github.com/willf/bloom"
 
 	"github.com/brnstz/bus/internal/etc"
+	"github.com/brnstz/bus/internal/fuse"
 	"github.com/brnstz/bus/internal/models"
 	"github.com/brnstz/bus/internal/partners"
 )
 
 var (
-	// stopChan is a channel for receiving requests to get live departure
-	// data
-	stopChan chan *stopLiveRequest
-
-	// workers is the number of workers processing requestChan concurrently
-	stopWorkers = 10
-
 	// Formula for determining m and k values: http://hur.st/bloomfilter
 	// n = approx number of items to insert
 	// p = desired false positive rate (between 0 and 1)
@@ -34,96 +27,6 @@ var (
 
 	minFirstDepartureTime = time.Duration(2) * time.Hour
 )
-
-type stopLiveRequest struct {
-	route    *models.Route
-	stop     *models.Stop
-	partner  partners.P
-	response chan error
-}
-
-func init() {
-	stopChan = make(chan *stopLiveRequest, 100000)
-
-	for i := 0; i < stopWorkers; i++ {
-		go stopWorker()
-	}
-}
-
-// stop worker calls the partner's live departure API and sets
-// req.stop.Live
-func stopWorker() {
-	for req := range stopChan {
-		liveDepartures, liveVehicles, err := req.partner.Live(req.route.AgencyID, req.route.RouteID, req.stop.StopID, req.stop.DirectionID)
-		if err != nil {
-			req.response <- err
-			continue
-		}
-
-		if len(liveVehicles) > 0 {
-			req.stop.Vehicles = liveVehicles
-		}
-
-		// FIXME: assume compass dir for live departures is
-		// the first scheduled departure's dir
-		compassDir := req.stop.Departures[0].CompassDir
-
-		sd := models.SortableDepartures(liveDepartures)
-		sort.Sort(sd)
-		liveDepartures = []*models.Departure(sd)
-
-		if len(liveDepartures) > 0 {
-			liveTripIDs := map[string]bool{}
-
-			// Remove any of the same trip ids that appear in scheduled
-			// departures. Live info is better for that trip, but there
-			// might still be scheduled departures later we want to use.
-			for _, d := range liveDepartures {
-				liveTripIDs[d.TripID] = true
-			}
-
-			// If there are less than max departures, then add scheduled
-			// departures that are after our last live departure and
-			// don't have dupe trip IDs
-			count := len(liveDepartures)
-			lastLiveDeparture := liveDepartures[count-1]
-
-			i := -1
-			for {
-				i++
-
-				// Stop once we have enough departures
-				if count >= models.MaxDepartures {
-					break
-				}
-
-				// Stop if we reach the end of the scheduled departures
-				if i >= len(req.stop.Departures) {
-					break
-				}
-
-				// Ignore departures with trip IDs that we know of
-				if liveTripIDs[req.stop.Departures[i].TripID] {
-					continue
-				}
-
-				if req.stop.Departures[i].Time.After(lastLiveDeparture.Time) {
-					liveDepartures = append(liveDepartures, req.stop.Departures[i])
-				}
-
-			}
-
-			for i := 0; i < models.MaxDepartures && i < len(liveDepartures); i++ {
-				liveDepartures[i].CompassDir = compassDir
-				req.stop.Departures[i] = liveDepartures[i]
-
-			}
-
-		}
-
-		req.response <- nil
-	}
-}
 
 // hereResponse is the value returned by getHere
 type hereResponse struct {
@@ -256,13 +159,13 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Create a request to get live info and send it on the channel
-		req := &stopLiveRequest{
-			route:    route,
-			stop:     s,
-			partner:  partner,
-			response: respch,
+		req := &fuse.Req{
+			Stop:     s,
+			Partner:  partner,
+			Response: respch,
+			Filter:   resp.Filter,
 		}
-		stopChan <- req
+		fuse.Chan <- req
 		count++
 	}
 
