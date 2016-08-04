@@ -258,10 +258,14 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		tripReq.Stop.Departures[0].TripID = tripReq.Trip.TripID
-		// FIXME: do we need to do this? should this actually be to init
-		// the departure?
-		tripReq.Stop.Initialize()
+		if tripReq.Stop.Departures[0].TripID != tripReq.Trip.TripID {
+			log.Printf("switching from %v to %v", tripReq.Stop.Departures[0].TripID,
+				tripReq.Trip.TripID)
+			tripReq.Stop.Departures[0].TripID = tripReq.Trip.TripID
+			// FIXME: do we need to do this? should this actually be to init
+			// the departure?
+			tripReq.Stop.Initialize()
+		}
 
 		resp.Trips = append(resp.Trips, tripReq.Trip)
 	}
