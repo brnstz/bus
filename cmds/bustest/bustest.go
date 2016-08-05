@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -10,6 +9,7 @@ import (
 
 	"github.com/brnstz/bus/internal/conf"
 	"github.com/brnstz/bus/internal/etc"
+	"github.com/brnstz/bus/internal/models"
 	"github.com/kelseyhightower/envconfig"
 )
 
@@ -36,40 +36,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	/*
-		next := map[string]string{
-			"Friday":    "Saturday",
-			"Saturday":  "Sunday",
-			"Sunday":    "Monday",
-			"Monday":    "Tuesday",
-			"Tuesday":   "Wednesday",
-			"Wednesday": "Thursday",
-			"Thursday":  "Friday",
-		}
-	*/
+	etc.DBConn = etc.MustDB()
 
-	prev := map[string]string{
-		"Friday":    "Thursday",
-		"Saturday":  "Friday",
-		"Sunday":    "Saturday",
-		"Monday":    "Sunday",
-		"Tuesday":   "Monday",
-		"Wednesday": "Tuesday",
-		"Thursday":  "Wednesday",
-	}
+	log.Println(etc.DBConn)
+	missing, err := models.GetMissingRouteShapes(etc.DBConn)
+	log.Println(missing)
+	log.Println(err)
 
-	day := etc.BaseTime(time.Now())
-	last := "Monday"
-	for i := 0; i < 5000; i++ {
-		name := day.Format("Monday")
-
-		fmt.Printf("last: %v, next: %v\n", last, name)
-		if prev[last] != name {
-			log.Fatal(day)
-		}
-
-		last = name
-
-		day = day.AddDate(0, 0, -1)
-	}
 }
