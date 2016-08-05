@@ -380,6 +380,59 @@ Bus.prototype.createEmptyRow = function() {
     return row;
 };
 
+// getRoute returns a promise to get a route when it was a false positive
+// in the bloom filter
+Bus.prototype.getRoute = function(agency_id, route_id) {
+    var self = this;
+
+    var url = '/api/route' +
+        '?agency_id=' + encodeURIComponent(agency_id) +
+        '&route_id=' + encodeURIComponent(route_id);
+
+    var promise = $.ajax(url, {
+        dataType: "json"
+    });
+
+    promise.fail(function(xhr, text_status, error) {
+        console.log("failed", xhr, text_status, error);
+    });
+
+    promise.done(function(data) {
+        var r = new Route(data);
+        self.routes[r.api.unique_id] = r;
+    });
+
+    return promise;
+};
+
+// getTrip returns a promise to get a trip when it was a false 
+// positive in the bloom filter
+Bus.prototype.getTrip = function(agency_id, route_id, trip_id) {
+    var self = this;
+
+    var url = '/api/trip' +
+        '?agency_id=' + encodeURIComponent(agency_id) +
+        '&route_id=' + encodeURIComponent(route_id) +
+        '&trip_id=' + encodeURIComponent(trip_id);
+
+    var promise = $.ajax(url, {
+        dataType: "json"
+    });
+
+    promise.fail(function(xhr, text_status, error) {
+        console.log("failed", xhr, text_status, error);
+    });
+
+    promise.done(function(data) {
+        var t = new Trip(data);
+        self.trips[t.api.unique_id] = t;
+    });
+
+    return promise;
+};
+
+
+
 // clickHandler highlights the marker and the row for this stop_id
 Bus.prototype.clickHandler = function(stop) {
     var self = this;
@@ -397,57 +450,77 @@ Bus.prototype.clickHandler = function(stop) {
             });
         }
 
-        var route = self.routes[stop.api.agency_id + "|" + stop.api.route_id];
-        var trip = self.trips[stop.api.agency_id + "|" + stop.api.departures[0].trip_id]
-        var row = self.rows[stop.id];
+        var route_promise;
+        var trip_promise;
 
-        if (!trip) {
-            console.log("can't get trip", self.trips, stop.api.agency_id + "|" + stop.api.departures[0].trip_id);
+        if (!self.routes[stop.api.agency_id + "|" + stop.api.route_id]) {
+            console.log("getting route via promise", stop.api.agency_id, stop.api.route_id);
+            route_promise = self.getRoute(stop.api.agency_id, stop.api.route_id);
+        } else {
+            route_promise = $("<div>").promise();
         }
 
-        var sl = trip.createStopsLabels(stop.api);
-        var stops = sl[0];
-        var labels = sl[1];
-        var lines = trip.createLines(stop.api, route.api);
-        var vehicles = stop.createVehicles(route.api);
-        $(row).css({
-            "opacity": stop.table_fg_opacity
+        if (!self.trips[stop.api.agency_id + "|" + stop.api.departures[0].trip_id]) {
+            console.log("getting trip via promise", stop.api.agency_id, stop.api.route_id, stop.api.departures[0].trip_id);
+
+            trip_promise = self.getTrip(stop.api.agency_id, stop.api.route_id, stop.api.departures[0].trip_id);
+        } else {
+            trip_promise = $("<div>").promise();
+        }
+
+        route_promise.done(function() {
+            trip_promise.done(function() {
+
+
+                var route = self.routes[stop.api.agency_id + "|" + stop.api.route_id];
+                var trip = self.trips[stop.api.agency_id + "|" + stop.api.departures[0].trip_id]
+                var row = self.rows[stop.id];
+                var sl = trip.createStopsLabels(stop.api);
+                var stops = sl[0];
+                var labels = sl[1];
+                var lines = trip.createLines(stop.api, route.api);
+                var vehicles = stop.createVehicles(route.api);
+                $(row).css({
+                    "opacity": stop.table_fg_opacity
+                });
+
+                // Clear previous layer elements
+                self.clickedTripLayer.clearLayers();
+                self.stopLayer.clearLayers();
+                self.stopLabelLayer.clearLayers();
+                self.vehicleLayer.clearLayers();
+
+                // Add new elements
+
+                // Draw lines 
+                for (var i = 0; i < lines.length; i++) {
+                    self.clickedTripLayer.addLayer(lines[i]);
+                }
+
+                // First stop goes on the clicked trip layer (so we always see it)
+                if (stops.length > 0) {
+                    self.clickedTripLayer.addLayer(stops[0]);
+                }
+
+                // Draw stops
+                for (var i = 1; i < stops.length; i++) {
+                    self.stopLayer.addLayer(stops[i]);
+                }
+
+                // Add stop labels
+                for (var i = 0; i < labels.length; i++) {
+                    //self.stopLabelLayer.addLayer(labels[i]);
+                }
+
+                // Draw vehicles
+                for (var i = 0; i < vehicles.length; i++) {
+                    self.vehicleLayer.addLayer(vehicles[i]);
+                }
+
+                self.current_stop = stop;
+            });
         });
 
-        // Clear previous layer elements
-        self.clickedTripLayer.clearLayers();
-        self.stopLayer.clearLayers();
-        self.stopLabelLayer.clearLayers();
-        self.vehicleLayer.clearLayers();
-
-        // Add new elements
-
-        // Draw lines 
-        for (var i = 0; i < lines.length; i++) {
-            self.clickedTripLayer.addLayer(lines[i]);
-        }
-
-        // First stop goes on the clicked trip layer (so we always see it)
-        if (stops.length > 0) {
-            self.clickedTripLayer.addLayer(stops[0]);
-        }
-
-        // Draw stops
-        for (var i = 1; i < stops.length; i++) {
-            self.stopLayer.addLayer(stops[i]);
-        }
-
-        // Add stop labels
-        for (var i = 0; i < labels.length; i++) {
-            //self.stopLabelLayer.addLayer(labels[i]);
-        }
-
-        // Draw vehicles
-        for (var i = 0; i < vehicles.length; i++) {
-            self.vehicleLayer.addLayer(vehicles[i]);
-        }
-
-        self.current_stop = stop;
     };
 }
 
