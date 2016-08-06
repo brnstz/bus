@@ -31,6 +31,26 @@ function Trip(api) {
     self.after_opacity = 1.0;
 }
 
+Trip.prototype.onMap = function(bounds) {
+    var self = this;
+
+    if (!self.api.shape_points) {
+        return false;
+    }
+
+    var shape = self.api.shape_points;
+
+    // Check each point
+    for (var j = 0; j < shape.length; j++) {
+        var point = L.latLng(shape[j].lat, shape[j].lon);
+        if (bounds.contains(point) === true) {
+            return true;
+        }
+    }
+
+    return false;
+};
+
 // createStopsLabels returns a list of L.circle values for this trip
 // given we are at stop
 Trip.prototype.createStopsLabels = function(stop) {

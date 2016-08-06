@@ -538,9 +538,10 @@ Bus.prototype.updateStops = function() {
     if (self.current_stop != null) {
         stop = self.current_stop;
         var route = self.routes[stop.api.agency_id + "|" + stop.api.route_id];
+        var trip = self.trips[stop.api.agency_id + "|" + stop.api.departures[0].trip_id]
         var bounds = self.map.getBounds();
 
-        if (!route.onMap(bounds)) {
+        if (!(route.onMap(bounds) || trip.onMap(bounds))) {
             self.current_stop = null;
         }
     }
