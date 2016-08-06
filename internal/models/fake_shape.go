@@ -23,7 +23,7 @@ type FakeShape struct {
 	Location interface{} `json:"-" db:"location" upsert_value:"ST_SetSRID(ST_MakePoint(:lat, :lon),4326)"`
 
 	TripID  string `json:"-" db:"trip_id" upsert:"omit"`
-	ShapeID string `json:"-" db:"trip_id" upsert:"omit"`
+	ShapeID string `json:"-" db:"shape_id" upsert:"omit"`
 }
 
 func (s *FakeShape) Table() string {
@@ -141,7 +141,8 @@ func GetFakeRouteShapes(db sqlx.Ext) ([]*FakeShape, error) {
 		// Now get all stops for that trip as a FakeShape object
 		err = sqlx.Select(db, &theseShapes, `
 			SELECT 
-				sst.stop_sequence, ST_X(stop.location) AS lat, ST_Y(stop.location) AS lon,
+				sst.stop_sequence AS seq, 
+				ST_X(stop.location) AS lat, ST_Y(stop.location) AS lon,
 				trip.agency_id, trip.route_id, trip.headsign,
 			    trip.direction_id, trip.trip_id
 
@@ -160,8 +161,9 @@ func GetFakeRouteShapes(db sqlx.Ext) ([]*FakeShape, error) {
 			WHERE trip.agency_id    = $1 AND
 				  trip.route_id     = $2 AND
 				  trip.headsign     = $3 AND
-				  trip.direction_id = $4
-		`, v.AgencyID, v.RouteID, v.Headsign, v.DirectionID)
+				  trip.direction_id = $4 AND
+				  trip.trip_id      = $5
+		`, v.AgencyID, v.RouteID, v.Headsign, v.DirectionID, fs.TripID)
 
 		if err != nil {
 			log.Println("can't get trip id", err)

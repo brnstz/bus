@@ -794,7 +794,7 @@ func (l *Loader) loadShapes() {
 		shape, err := models.NewShape(
 			id, agency, int(seq), lat, lon,
 		)
-		err = shape.Save()
+		err = shape.Save(etc.DBConn)
 		if err != nil {
 			log.Fatalf("%v on line %v of shapes.txt", err, i)
 		}
@@ -853,6 +853,31 @@ func (l *Loader) updateRouteShapes() {
 			log.Printf("saved %v", rs)
 		}
 	}
+
+	// delete existing routes within a transaction (won't take effect
+	// unless committed)
+	err = models.DeleteFakeShapes(tx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Get shapes ordered from smallest to largest
+	fakeShapes, err := models.GetFakeRouteShapes(tx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("got %d fake shapes", len(fakeShapes))
+
+	for _, fs := range fakeShapes {
+		// upsert each route so we end up with the most common
+		err = fs.Save(tx)
+		if err != nil {
+			log.Fatal(err)
+		} else {
+			log.Printf("saved %v", fs)
+		}
+	}
+
 }
 
 // LoadOnce loads the files in conf.Loader.GTFSURLs, possibly filtering by the
@@ -860,6 +885,10 @@ func (l *Loader) updateRouteShapes() {
 // it loads all data in the specified URLs.
 func LoadOnce() {
 	for _, url := range conf.Loader.GTFSURLs {
+		if len(url) < 1 {
+			continue
+		}
+
 		log.Printf("starting %v", url)
 
 		// FIXME: do this in Go, need to make it integrated with loader
