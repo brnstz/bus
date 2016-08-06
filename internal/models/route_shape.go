@@ -29,19 +29,7 @@ func (rs *RouteShape) Table() string {
 	return "route_shape"
 }
 
-/*
-func (rs *RouteShape) CreateFakeShape(db sqlx.Ext) error {
-	q := `
-		INSERT INTO shape
-
-		SELECT $1, $2, stop.location, sst.stop_sequence
-
-		FROM trip INNER
-	`
-}
-*/
-
-// DeleteRouteShapes removes all existing shapes. Typically
+// DeleteRouteShapes removes all existing route / fake shapes. Typically
 // this should be used in a transaction in conjuction with GetRouteShapes
 // to rebuild the data
 func DeleteRouteShapes(db sqlx.Ext) error {
@@ -85,38 +73,6 @@ func GetRouteShapes(db sqlx.Ext) ([]*RouteShape, error) {
 
 	return rs, nil
 }
-
-// GetMissingRouteShapes returns fake shapes for agency/route/headsign/direction
-// combos that don't have a shape
-/*
-func GetMissingRouteShapes(db sqlx.Ext) ([]*RouteShape, error) {
-	rs := []*RouteShape{}
-
-	q := `
-		SELECT count(*) AS count, td.agency_id, td.trip_id,
-			   td.route_id, td.headsign, td.direction_id
-        FROM trip INNER JOIN
-		(
-			SELECT DISTINCT shape_id, agency_id, route_id, headsign,
-			                direction_id
-            FROM trip
-        ) AS td ON shape.shape_id =
-
-        GROUP BY td.shape_id, td.agency_id,
-				 td.route_id, td.headsign, td.direction_id
-
-		ORDER BY count(*) ASC
-	`
-
-	err := sqlx.Select(db, &rs, q)
-	if err != nil {
-		log.Println("can't get route shapes", err)
-		return rs, err
-	}
-
-	return rs, nil
-}
-*/
 
 func addRevCopies(rs []*RouteShape, from, to int) []*RouteShape {
 	newShapes := []*RouteShape{}

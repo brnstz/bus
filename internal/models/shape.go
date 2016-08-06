@@ -3,7 +3,6 @@ package models
 import (
 	"log"
 
-	"github.com/brnstz/bus/internal/etc"
 	"github.com/brnstz/upsert"
 	"github.com/jmoiron/sqlx"
 )
@@ -58,7 +57,7 @@ func (s *Shape) Table() string {
 }
 
 // Save saves a shape to the database
-func (s *Shape) Save() error {
-	_, err := upsert.Upsert(etc.DBConn, s)
+func (s *Shape) Save(db sqlx.Ext) error {
+	_, err := upsert.Upsert(db, s)
 	return err
 }

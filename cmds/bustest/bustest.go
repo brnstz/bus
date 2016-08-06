@@ -39,7 +39,7 @@ func main() {
 	etc.DBConn = etc.MustDB()
 
 	log.Println(etc.DBConn)
-	missing, err := models.GetMissingRouteShapes(etc.DBConn)
+	missing, err := models.GetFakeRouteShapes(etc.DBConn)
 	log.Println(missing)
 	log.Println(err)
 
