@@ -3,8 +3,8 @@ CREATE TABLE fake_shape (
     route_id        TEXT NOT NULL,
     direction_id    INT NOT NULL,
     headsign        TEXT NOT NULL,
-    location        GEOMETRY NOT NULL,
     seq             INT NOT NULL,
+    location        GEOMETRY NOT NULL,
 
-    UNIQUE(agency_id, route_id, direction_id, headsign)
+    UNIQUE(agency_id, route_id, direction_id, headsign, seq)
 );
