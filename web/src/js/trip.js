@@ -90,11 +90,6 @@ Trip.prototype.createLines = function(stop, route) {
     var before = true;
 
     // Create a point for each latlon
-    //console.log("stop", stop);
-    //console.log("route", route);
-    //console.log("trip", self);
-    console.log("trip", self.api.shape_id, self.api.trip_id);
-
     for (var d = self.stop_line_dist_min; d <= self.stop_line_dist_max; d++) {
 
         for (var i = 0; i < self.api.shape_points.length; i++) {
