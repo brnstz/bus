@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/brnstz/bus/internal/etc"
 	"github.com/brnstz/upsert"
 	"github.com/jmoiron/sqlx"
 )
@@ -48,6 +49,31 @@ func DeleteFakeShapes(db sqlx.Ext) error {
 	}
 
 	return nil
+}
+
+func GetFakeShapePoints(db sqlx.Ext, agencyID, routeID, headsign string, directionID int) ([]*Shape, error) {
+	var err error
+	points := []*Shape{}
+
+	q := `
+		SELECT 
+			ST_X(location) AS lat, 
+			ST_Y(location) AS lon
+		FROM fake_shape
+		WHERE agency_id    = $1 AND
+		      route_id     = $2 AND
+			  headsign     = $3 AND
+			  direction_id = $4
+		ORDER BY seq ASC
+	`
+
+	err = etc.DBConn.Select(&points, q, agencyID, routeID, headsign, directionID)
+	if err != nil {
+		log.Println("can't get shapes", err)
+		return points, err
+	}
+
+	return points, nil
 }
 
 // GetFakeRouteShapes returns fake shapes for agency/route/headsign/direction

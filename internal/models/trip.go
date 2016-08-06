@@ -111,16 +111,24 @@ func (t *Trip) addShapes(db sqlx.Ext, agencyID, shapeID string) (err error) {
 	}
 
 	if headsignShape != nil {
+		// If we match the headsign, use that
 		t.ShapePoints = headsignShape.Shapes
 		t.ShapeID = headsignShape.ShapeID
 
 	} else if directionRouteShape != nil {
+		// Otherwise, use one that matches the direction
 		t.ShapePoints = directionRouteShape.Shapes
 		t.ShapeID = directionRouteShape.ShapeID
 
 	} else {
-		// FIXME: final backup: draw a line from stop to stop?
-		log.Println("can't get shape for", t)
+		// Final thing to use is a fake shape drawn from stop to stop
+		t.ShapePoints, err = GetFakeShapePoints(db, agencyID, t.RouteID, t.Headsign, t.DirectionID)
+		if err != nil {
+			log.Println("couldn't get shape points", err)
+			return err
+		}
+
+		t.ShapeID = "FAKE"
 	}
 
 	return
