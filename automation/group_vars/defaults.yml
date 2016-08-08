@@ -5,11 +5,12 @@ gtfs_urls:
     - "http://web.mta.info/developers/data/nyct/bus/google_transit_manhattan.zip"
     - "http://web.mta.info/developers/data/nyct/bus/google_transit_queens.zip"
     - "http://web.mta.info/developers/data/nyct/bus/google_transit_staten_island.zip"
+    - "http://web.mta.info/developers/data/busco/google_transit.zip"
 route_filter: []
 web_dir: "/usr/local/bus/web"
 api_addr: "0.0.0.0:8000"
 load_forever: true
 initial_db_backup: "http://pub.brnstz.com.s3-website-us-east-1.amazonaws.com/bus/backups/busdump-latest.sql.gz"
-agency_ids: "MTA NYCT"
+agency_ids: "MTA NYCT,MTABC"
 mta_bustime_api_key: "FIXME"
 mta_datamine_api_key: "FIXME"

@@ -19,8 +19,8 @@ var (
 
 type mtaNYCBus struct{}
 
-func (p mtaNYCBus) getURL(routeID string, directionID int) string {
-	lineRef := fmt.Sprint("MTA NYCT_", routeID)
+func (p mtaNYCBus) getURL(agencyID, routeID string, directionID int) string {
+	lineRef := fmt.Sprint("%v_", agencyID, routeID)
 
 	q := url.Values{}
 	q.Set("key", conf.Partner.BustimeAPIKey)
@@ -34,7 +34,7 @@ func (p mtaNYCBus) getURL(routeID string, directionID int) string {
 func (p mtaNYCBus) Precache(agencyID, routeID string, directionID int) error {
 	k := fmt.Sprintf("%v|%v|%v", agencyID, routeID, directionID)
 
-	u := p.getURL(routeID, directionID)
+	u := p.getURL(agencyID, routeID, directionID)
 
 	_, err := etc.RedisCacheURL(u)
 	if err != nil {

@@ -33,7 +33,7 @@ func Find(route models.Route) (P, error) {
 
 	switch route.AgencyID {
 
-	case "MTA NYCT":
+	case "MTA NYCT", "MTABC":
 		// The MTA has a different partner API for bus and subway
 		switch route.Type {
 
