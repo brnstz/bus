@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/brnstz/bus/internal/conf"
 	"github.com/brnstz/bus/internal/etc"
 )
 
@@ -105,14 +106,15 @@ type HereQuery struct {
 
 func NewHereQuery(lat, lon, swlat, swlon, nelat, nelon float64, routeTypes []int, now time.Time) (hq *HereQuery, err error) {
 
-	// FIXME: hard coded, we need a region to agency mapping
-	agencyID := "MTA NYCT"
+	// FIXME: hard coded, we need a lat/lon to agencyID mapping
+	agencyIDs := conf.Partner.AgencyIDs
+	log.Println("here are the agency IDs", agencyIDs)
 
 	today := etc.BaseTime(now)
 	todayName := strings.ToLower(now.Format("Monday"))
 	todayMinSec := etc.TimeToDepartureSecs(now)
 	todayMaxSec := todayMinSec + departureLookaheadSecs
-	todayServiceIDs, err := GetNewServiceIDs(etc.DBConn, agencyID, todayName, today)
+	todayServiceIDs, err := GetNewServiceIDs(etc.DBConn, agencyIDs, todayName, today)
 	if err != nil {
 		log.Println("can't get today serviceIDs", err)
 		return
@@ -123,7 +125,7 @@ func NewHereQuery(lat, lon, swlat, swlon, nelat, nelon float64, routeTypes []int
 	yesterdayMinSec := now.Hour()*3600 + now.Minute()*60 + now.Second() + midnightSecs
 	yesterdayMaxSec := yesterdayMinSec + departureLookaheadSecs
 	yesterdaySecDiff := int(today.Sub(yesterday).Seconds())
-	yesterdayServiceIDs, err := GetNewServiceIDs(etc.DBConn, agencyID, yesterdayName, yesterday)
+	yesterdayServiceIDs, err := GetNewServiceIDs(etc.DBConn, agencyIDs, yesterdayName, yesterday)
 	if err != nil {
 		log.Println("can't get yesterday serviceIDs", err)
 		return
@@ -134,7 +136,7 @@ func NewHereQuery(lat, lon, swlat, swlon, nelat, nelon float64, routeTypes []int
 	tomorrowMinSec := 0
 	tomorrowMaxSec := departureLookaheadSecs
 	tomorrowSecDiff := int(tomorrow.Sub(today).Seconds())
-	tomorrowServiceIDs, err := GetNewServiceIDs(etc.DBConn, agencyID, tomorrowName, tomorrow)
+	tomorrowServiceIDs, err := GetNewServiceIDs(etc.DBConn, agencyIDs, tomorrowName, tomorrow)
 	if err != nil {
 		log.Println("can't get tomorrow serviceIDs", err)
 		return

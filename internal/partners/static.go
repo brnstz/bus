@@ -20,7 +20,7 @@ func (p static) Precache(agencyID, routeID string, directionID int) error {
 
 	today := etc.BaseTime(now)
 	todayName := strings.ToLower(now.Format("Monday"))
-	todayIDs, err := models.GetNewServiceIDs(etc.DBConn, agencyID, todayName, today)
+	todayIDs, err := models.GetNewServiceIDs(etc.DBConn, []string{agencyID}, todayName, today)
 	if err != nil {
 		log.Println("can't get serviceIDs", err)
 		return err
