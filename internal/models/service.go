@@ -1,9 +1,11 @@
 package models
 
 import (
+	"fmt"
 	"log"
 	"time"
 
+	"github.com/brnstz/bus/internal/etc"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -13,7 +15,7 @@ type Service struct {
 	RouteID string
 }
 
-func GetNewServiceIDs(db sqlx.Ext, agencyID string, day string, now time.Time) (serviceIDs []string, err error) {
+func GetNewServiceIDs(db sqlx.Ext, agencyIDs []string, day string, now time.Time) (serviceIDs []string, err error) {
 
 	var normalIDs []string
 	var addedIDs []string
@@ -37,41 +39,41 @@ func GetNewServiceIDs(db sqlx.Ext, agencyID string, day string, now time.Time) (
 	//   * has a start_date before now
 	//   * has the maximum start date of those
 
-	q := `
+	q := fmt.Sprintf(`
 		SELECT service_id 
 		FROM   service 
 		WHERE  day = $1 AND
 			   end_date >= $2 AND
 			   start_date <= $3 AND 
-			   agency_id = $4
-	`
+			   agency_id IN (%s)
+	`, etc.CreateIDs(agencyIDs))
 
-	err = sqlx.Select(db, &normalIDs, q, day, now, now, agencyID)
+	err = sqlx.Select(db, &normalIDs, q, day, now, now)
 	if err != nil {
-		log.Println("can't scan service ids", err, q, day, now, agencyID)
+		log.Println("can't scan service ids", err, q, day, now, agencyIDs)
 		return
 	}
 
 	// Get services added / removed
-	q = `
+	q = fmt.Sprintf(`
 		SELECT service_id 
 		FROM   service_exception
 		WHERE  exception_date = $1 AND
-			   agency_id = $2 AND
-			   exception_type = $3
-	`
+			   agency_id IN (%s) AND
+			   exception_type = $2
+	`, etc.CreateIDs(agencyIDs))
 
 	// Added
-	err = sqlx.Select(db, &addedIDs, q, now, agencyID, ServiceAdded)
+	err = sqlx.Select(db, &addedIDs, q, now, ServiceAdded)
 	if err != nil {
-		log.Println("can't scan service ids", err, q, day, now, agencyID, ServiceAdded)
+		log.Println("can't scan service ids", err, q, day, now, agencyIDs, ServiceAdded)
 		return
 	}
 
 	// Removed
-	err = sqlx.Select(db, &removedIDs, q, now, agencyID, ServiceRemoved)
+	err = sqlx.Select(db, &removedIDs, q, now, ServiceRemoved)
 	if err != nil {
-		log.Println("can't scan service ids", err, q, day, now, agencyID, ServiceRemoved)
+		log.Println("can't scan service ids", err, q, day, now, agencyIDs, ServiceRemoved)
 		return
 	}
 
@@ -94,7 +96,7 @@ func GetNewServiceIDs(db sqlx.Ext, agencyID string, day string, now time.Time) (
 	return
 }
 
-func getServiceIDsByDay(db sqlx.Ext, agencyID, routeID, day string, now time.Time) (serviceIDs []string, err error) {
+func getServiceIDsByDay(db sqlx.Ext, agencyIDs []string, routeID, day string, now time.Time) (serviceIDs []string, err error) {
 	var normalIDs []string
 	var addedIDs []string
 	var removedIDs []string
@@ -111,45 +113,45 @@ func getServiceIDsByDay(db sqlx.Ext, agencyID, routeID, day string, now time.Tim
 	//   * has a start_date before now
 	//   * has the maximum start date of those
 
-	q := `
+	q := fmt.Sprintf(`
 		SELECT service_id 
 		FROM   service_route_day 
 		WHERE  day = $1 AND
 			   end_date >= $2 AND
 			   start_date <= $3 AND 
 			   route_id = $4 AND
-			   agency_id = $5
+			   agency_id IN (%s)
 		ORDER BY start_date DESC
 		LIMIT 1
-	`
+	`, etc.CreateIDs(agencyIDs))
 
-	err = sqlx.Select(db, &normalIDs, q, day, now, now, routeID, agencyID)
+	err = sqlx.Select(db, &normalIDs, q, day, now, now, routeID)
 	if err != nil {
-		log.Println("can't scan service ids", err, q, day, now, routeID, agencyID)
+		log.Println("can't scan service ids", err, q, day, now, routeID, agencyIDs)
 		return
 	}
 
 	// Get services added / removed
-	q = `
+	q = fmt.Sprintf(`
 		SELECT service_id 
 		FROM   service_route_exception
 		WHERE  exception_date = $1 AND
 			   route_id = $2 AND
-			   agency_id = $3 AND
-			   exception_type = $4
-	`
+			   agency_id IN (%s) AND
+			   exception_type = $3
+	`, etc.CreateIDs(agencyIDs))
 
 	// Added
-	err = sqlx.Select(db, &addedIDs, q, now, routeID, agencyID, ServiceAdded)
+	err = sqlx.Select(db, &addedIDs, q, now, routeID, ServiceAdded)
 	if err != nil {
-		log.Println("can't scan service ids", err, q, day, now, routeID, agencyID, ServiceAdded)
+		log.Println("can't scan service ids", err, q, day, now, routeID, agencyIDs, ServiceAdded)
 		return
 	}
 
 	// Removed
-	err = sqlx.Select(db, &removedIDs, q, now, routeID, agencyID, ServiceRemoved)
+	err = sqlx.Select(db, &removedIDs, q, now, routeID, ServiceRemoved)
 	if err != nil {
-		log.Println("can't scan service ids", err, q, day, now, routeID, agencyID, ServiceRemoved)
+		log.Println("can't scan service ids", err, q, day, now, routeID, agencyIDs, ServiceRemoved)
 		return
 	}
 

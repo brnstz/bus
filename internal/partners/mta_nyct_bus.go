@@ -58,7 +58,7 @@ func (p mtaNYCBus) Live(agencyID, routeID, stopID string, directionID int) (d []
 
 	stopPointRef := fmt.Sprint("MTA_", stopID)
 
-	u := p.getURL(routeID, directionID)
+	u := p.getURL(agencyID, routeID, directionID)
 
 	b, err := etc.RedisGet(u)
 	if err != nil {
