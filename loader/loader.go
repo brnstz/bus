@@ -1,7 +1,6 @@
 package loader
 
 import (
-	"encoding/csv"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -123,32 +122,6 @@ func (l *Loader) load() {
 	l.loadShapes()
 
 	l.updateRouteShapes()
-}
-
-func getcsv(dir, name string) (*csv.Reader, io.Closer) {
-
-	f, err := os.Open(path.Join(dir, name))
-	if err != nil {
-		panic(err)
-	}
-
-	r := csv.NewReader(f)
-	r.LazyQuotes = true
-
-	return r, f
-}
-
-// find index of col in header
-
-func find(header []string, col string) int {
-	for i := 0; i < len(header); i++ {
-		if header[i] == col {
-			return i
-		}
-	}
-
-	log.Fatalf("can't find header col %v", col)
-	return -1
 }
 
 // skipRoute returns true if we should skip this route given our routeFilter
@@ -894,18 +867,23 @@ func LoadOnce() {
 		// FIXME: do this in Go, need to make it integrated with loader
 		dir, err := ioutil.TempDir(conf.Loader.TmpDir, "")
 		if err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
 		cmd := exec.Command("wget", url, "-O", path.Join(dir, "file.zip"))
 		err = cmd.Run()
 		if err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
 
 		cmd = exec.Command("unzip", path.Join(dir, "file.zip"), "-d", dir)
 		err = cmd.Run()
 		if err != nil {
-			panic(err)
+			log.Fatal(err)
+		}
+
+		err = prepare(url, dir)
+		if err != nil {
+			log.Fatal(err)
 		}
 
 		func() {
