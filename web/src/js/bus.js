@@ -28,7 +28,7 @@ function Bus() {
     var self = this;
 
     var nofilter = [];
-    var trainsOnly = [0, 1, 2];
+    var highfilter = [0, 1, 2, 4];
     var initialLat = localStorage.getItem("lat");
     var initialLon = localStorage.getItem("lon");
 
@@ -66,11 +66,11 @@ function Bus() {
 
     // zoomRouteTypes maps zoom levels to the route types they should send
     self.zoomRouteTypes = {
-        10: trainsOnly,
-        11: trainsOnly,
-        12: trainsOnly,
-        13: trainsOnly,
-        14: trainsOnly,
+        10: highfilter,
+        11: highfilter,
+        12: highfilter,
+        13: highfilter,
+        14: highfilter,
         15: nofilter,
         16: nofilter,
         17: nofilter,
