@@ -16,6 +16,70 @@ func prepare(url, dir string) error {
 
 	case "http://web.mta.info/developers/data/mnr/google_transit.zip":
 		return mnr(dir)
+
+	case "http://web.mta.info/developers/data/lirr/google_transit.zip":
+		return lirr(dir)
+	}
+
+	return nil
+}
+
+// lirr adds agency_id to routes.txt
+func lirr(dir string) error {
+
+	// Get the incoming file
+	routeFile := path.Join(dir, "routes.txt")
+	inFH, err := os.Open(routeFile)
+	if err != nil {
+		return err
+	}
+	r := csv.NewReader(inFH)
+	r.LazyQuotes = true
+
+	// Create an outgoing csv file for transformed data
+	w, outFH := writecsvtmp(dir)
+	defer outFH.Close()
+	defer os.Remove(outFH.Name())
+
+	header, err := r.Read()
+	if err != nil {
+		return err
+	}
+
+	header = append(header, "agency_id")
+	err = w.Write(header)
+	if err != nil {
+		return err
+	}
+
+	for {
+		rec, err := r.Read()
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			return err
+		}
+
+		rec = append(rec, "LI")
+
+		err = w.Write(rec)
+		if err != nil {
+			return err
+		}
+
+	}
+
+	w.Flush()
+	err = outFH.Close()
+	if err != nil {
+		return err
+	}
+
+	err = os.Rename(outFH.Name(), routeFile)
+	if err != nil {
+		return err
 	}
 
 	return nil
