@@ -654,6 +654,12 @@ func (l *Loader) loadCalendarDates() {
 func (l *Loader) loadCalendars() {
 	var i int
 
+	_, err := os.Stat(path.Join(l.dir, "calendar.txt"))
+	if err != nil {
+		log.Printf("error getting calendar, assuming doesnt exist %+v", err)
+		return
+	}
+
 	cal, fh := getcsv(l.dir, "calendar.txt")
 	defer fh.Close()
 
