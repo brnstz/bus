@@ -129,8 +129,6 @@ func GetFakeRouteShapes(db sqlx.Ext) ([]*FakeShape, error) {
 			continue
 		}
 
-		log.Println("need a fake shape for", v)
-
 		// Otherwise we're good to continue
 
 		// Get the trip ID that has most points to represent for
