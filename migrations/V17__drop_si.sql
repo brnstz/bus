@@ -1,0 +1,9 @@
+DELETE FROM fake_shape WHERE agency_id = 'NYC DOT';
+DELETE FROM route WHERE agency_id = 'NYC DOT';
+DELETE FROM route_shape WHERE agency_id = 'NYC DOT';
+DELETE FROM scheduled_stop_time WHERE agency_id = 'NYC DOT';
+DELETE FROM service_route_day WHERE agency_id = 'NYC DOT';
+DELETE FROM service_route_exception WHERE agency_id = 'NYC DOT';
+DELETE FROM shape WHERE agency_id = 'NYC DOT';
+DELETE FROM stop WHERE agency_id = 'NYC DOT';
+DELETE FROM trip WHERE agency_id = 'NYC DOT';

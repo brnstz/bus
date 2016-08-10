@@ -13,15 +13,15 @@ import (
 // stop serves more than one route, there are multiple distinct
 // entries for that stop.
 type Stop struct {
-	StopID   string `json:"stop_id" db:"stop_id" upsert:"key"`
-	RouteID  string `json:"route_id" db:"route_id" upsert:"key"`
-	AgencyID string `json:"agency_id" db:"agency_id" upsert:"key"`
-	Name     string `json:"stop_name" db:"stop_name"`
+	StopID      string `json:"stop_id" db:"stop_id" upsert:"key"`
+	RouteID     string `json:"route_id" db:"route_id" upsert:"key"`
+	AgencyID    string `json:"agency_id" db:"agency_id" upsert:"key"`
+	DirectionID int    `json:"direction_id" db:"direction_id" upsert:"key"`
+	Name        string `json:"stop_name" db:"stop_name"`
 
 	UniqueID string `json:"unique_id" db:"-" upsert:"omit"`
 
-	DirectionID int    `json:"direction_id" db:"direction_id"`
-	Headsign    string `json:"headsign" db:"headsign"`
+	Headsign string `json:"headsign" db:"headsign"`
 
 	Lat float64 `json:"lat" db:"lat" upsert:"omit"`
 	Lon float64 `json:"lon" db:"lon" upsert:"omit"`
@@ -148,7 +148,7 @@ func (ss sortableStops) Less(i, j int) bool {
 		return d1 < d2
 
 	case byType:
-		return ss.stops[i].RouteType < ss.stops[j].RouteType
+		return routeTypeSort[ss.stops[i].RouteType] < routeTypeSort[ss.stops[j].RouteType]
 
 	case byRoute:
 		return ss.stops[i].RouteID < ss.stops[j].RouteID

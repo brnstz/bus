@@ -555,6 +555,7 @@ func (l *Loader) loadUniqueStop() {
 
 		trips, exists := l.stopTrips[rec[stopIdx]]
 		if exists {
+
 			for _, trip := range trips {
 				if l.skipRoute(l.tripRoute[trip]) {
 					continue

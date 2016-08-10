@@ -40,6 +40,19 @@ var (
 
 	// routeTypeInt maps route_id strings to int codes
 	routeTypeInt = map[string]int{}
+
+	// routeTypeSort is a mapping of route types to their sort value
+	// mostly we want ferrys to show up before buses for now.
+	routeTypeSort = map[int]int{
+		Tram:      0,
+		Subway:    1,
+		Rail:      2,
+		Ferry:     3,
+		Bus:       4,
+		CableCar:  5,
+		Gondola:   6,
+		Funicular: 7,
+	}
 )
 
 func init() {
