@@ -55,12 +55,9 @@ Route.prototype.onMap = function(bounds) {
     for (var i = 0; i < self.api.route_shapes.length; i++) {
         var shape = self.api.route_shapes[i];
 
-        // Check each point
-        for (var j = 0; j < shape.shapes.length; j++) {
-            var point = L.latLng(shape.shapes[j].lat, shape.shapes[j].lon);
-            if (bounds.contains(point) === true) {
-                return true;
-            }
+        var found = util.checkBounds(bounds, shape);
+        if (found === true) {
+            return true;
         }
     }
 
