@@ -149,6 +149,8 @@ func (l *Loader) loadRoutes() {
 	routeColorIdx := find(header, "route_color")
 	routeTextColorIdx := find(header, "route_text_color")
 	routeAgencyIdx := find(header, "agency_id")
+	routeShortNameIdx := find(header, "route_short_name")
+	routeLongNameIdx := find(header, "route_long_name")
 
 	for i = 0; ; i++ {
 		rec, err := f.Read()
@@ -172,9 +174,12 @@ func (l *Loader) loadRoutes() {
 		routeColor := rec[routeColorIdx]
 		routeTextColor := rec[routeTextColorIdx]
 		agencyID := rec[routeAgencyIdx]
+		shortName := rec[routeShortNameIdx]
+		longName := rec[routeLongNameIdx]
 
 		r, err := models.NewRoute(
 			route, routeType, routeColor, routeTextColor, agencyID,
+			shortName, longName,
 		)
 		if err != nil {
 			log.Fatalf("%v on line %v of routes.txt", err, i)
