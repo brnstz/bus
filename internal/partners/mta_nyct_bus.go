@@ -20,7 +20,7 @@ var (
 type mtaNYCBus struct{}
 
 func (p mtaNYCBus) getURL(agencyID, routeID string, directionID int) string {
-	lineRef := fmt.Sprint("%v_", agencyID, routeID)
+	lineRef := fmt.Sprintf("%v_%v", agencyID, routeID)
 
 	q := url.Values{}
 	q.Set("key", conf.Partner.BustimeAPIKey)
