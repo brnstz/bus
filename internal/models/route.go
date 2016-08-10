@@ -70,6 +70,8 @@ type Route struct {
 	TypeName  string `json:"route_type_name" db:"-" upsert:"omit"`
 	Color     string `json:"route_color" db:"route_color"`
 	TextColor string `json:"route_text_color" db:"route_text_color"`
+	ShortName string `json:"route_short_name" db:"route_short_name"`
+	LongName  string `json:"route_long_name" db:"route_long_name"`
 
 	UniqueID    string        `json:"unique_id" db:"-" upsert:"omit"`
 	RouteShapes []*RouteShape `json:"route_shapes" upsert:"omit"`
@@ -117,7 +119,7 @@ func checkColor(color, def string) string {
 
 // NewRoute creates a Route given incoming data, typically from a routes.txt
 // file
-func NewRoute(id string, rtype int, color, textColor, agencyID string) (r *Route, err error) {
+func NewRoute(id string, rtype int, color, textColor, agencyID, shortName, longName string) (r *Route, err error) {
 
 	color = checkColor(color, defaultColor)
 	textColor = checkColor(textColor, defaultTextColor)
@@ -133,6 +135,8 @@ func NewRoute(id string, rtype int, color, textColor, agencyID string) (r *Route
 		Color:     color,
 		TextColor: textColor,
 		AgencyID:  agencyID,
+		ShortName: shortName,
+		LongName:  longName,
 	}
 
 	err = r.Initialize()

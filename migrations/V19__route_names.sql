@@ -1,0 +1,2 @@
+ALTER TABLE route ADD COLUMN route_short_name TEXT NOT NULL DEFAULT '';
+ALTER TABLE route ADD COLUMN route_long_name TEXT NOT NULL DEFAULT '';
