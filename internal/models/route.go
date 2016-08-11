@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"log"
 	"strings"
 
@@ -169,11 +170,13 @@ func GetAllRoutes(db sqlx.Ext, agencyID string) (routes []*Route, err error) {
 }
 
 // test func for static json file
-func GetPreloadRoutes(db sqlx.Ext, agencyID string) (routes []*Route, err error) {
-	err = sqlx.Select(db, &routes,
-		`SELECT * FROM route WHERE agency_id = $1 AND route_type != $2`,
-		agencyID, Bus,
+func GetPreloadRoutes(db sqlx.Ext, agencyIDs []string) (routes []*Route, err error) {
+	q := fmt.Sprintf(
+		`SELECT * FROM route WHERE route_type != $1 AND agency_id IN (%s)`,
+		etc.CreateIDs(agencyIDs),
 	)
+
+	err = sqlx.Select(db, &routes, q, Bus)
 	if err != nil {
 		return
 	}
