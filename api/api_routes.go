@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/brnstz/bus/internal/conf"
 	"github.com/brnstz/bus/internal/etc"
 	"github.com/brnstz/bus/internal/models"
 )
@@ -22,7 +23,7 @@ type routesResp struct {
 func InitRouteCache() error {
 	// getAll subway/train routes so we can pre-render them. Including
 	// buses would be too much
-	routes, err := models.GetPreloadRoutes(etc.DBConn, "MTA NYCT")
+	routes, err := models.GetPreloadRoutes(etc.DBConn, conf.Partner.AgencyIDs)
 	if err != nil {
 		log.Println("can't get routes", err)
 		return err

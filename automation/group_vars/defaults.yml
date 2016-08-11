@@ -15,6 +15,6 @@ web_dir: "/usr/local/bus/web"
 api_addr: "0.0.0.0:8000"
 load_forever: true
 initial_db_backup: "http://pub.brnstz.com.s3-website-us-east-1.amazonaws.com/bus/backups/busdump-latest.sql.gz"
-agency_ids: "MTA NYCT,MTABC,NYC DOT"
+agency_ids: "MTA NYCT,MTABC,NYC DOT,MTA MNR,LI,PATH"
 mta_bustime_api_key: "FIXME"
 mta_datamine_api_key: "FIXME"

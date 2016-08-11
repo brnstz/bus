@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"log"
+	"strconv"
 
 	"github.com/brnstz/bus/internal/etc"
 	"github.com/brnstz/upsert"
@@ -44,7 +45,7 @@ type Stop struct {
 }
 
 func (s *Stop) Initialize() error {
-	s.UniqueID = s.AgencyID + "|" + s.RouteID + "|" + s.StopID
+	s.UniqueID = s.AgencyID + "|" + s.RouteID + "|" + s.StopID + "|" + strconv.Itoa(s.DirectionID)
 
 	// If there is a route type defined, then load its name. Ignore errors.
 	s.RouteTypeName = routeTypeString[s.RouteType]
