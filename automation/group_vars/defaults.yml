@@ -9,6 +9,7 @@ gtfs_urls:
     - "http://www.nyc.gov/html/dot/downloads/misc/siferry-gtfs.zip"
     - "http://web.mta.info/developers/data/mnr/google_transit.zip"
     - "http://web.mta.info/developers/data/lirr/google_transit.zip"
+    - "http://data.trilliumtransit.com/gtfs/path-nj-us/path-nj-us.zip"
 route_filter: []
 web_dir: "/usr/local/bus/web"
 api_addr: "0.0.0.0:8000"

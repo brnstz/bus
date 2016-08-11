@@ -34,14 +34,23 @@ func writecsvtmp(dir string) (*csv.Writer, *os.File) {
 	return w, outFH
 }
 
-// find index of col in header
+// find index of col in header or panic
 func find(header []string, col string) int {
+	idx := maybeFind(header, col)
+	if idx >= 0 {
+		return idx
+	}
+
+	panic(fmt.Sprintf("can't find header col %v", col))
+}
+
+// maybeFind index of col in header, return -1 if not found
+func maybeFind(header []string, col string) int {
 	for i := 0; i < len(header); i++ {
 		if header[i] == col {
 			return i
 		}
 	}
 
-	panic(fmt.Sprintf("can't find header col %v", col))
 	return -1
 }
