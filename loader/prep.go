@@ -2,6 +2,7 @@ package loader
 
 import (
 	"encoding/csv"
+	"errors"
 	"io"
 	"os"
 	"path"
@@ -19,15 +20,29 @@ func prepare(url, dir string) error {
 
 	case "http://web.mta.info/developers/data/lirr/google_transit.zip":
 		return lirr(dir)
+
+	case "http://data.trilliumtransit.com/gtfs/path-nj-us/path-nj-us.zip":
+		return njpath(dir)
 	}
 
 	return nil
 }
 
-// lirr adds agency_id to routes.txt
-func lirr(dir string) error {
+type amods map[string]amod
 
-	// Get the incoming file
+type amod struct {
+	// skip this row completely
+	skip   bool
+	newVal string
+}
+
+func modifyAgencies(dir string, mods amods) error {
+	// appendedHeader is true if we need to append "agency_id", false
+	// otherwise
+	var appendedHeader bool
+	var currentAgency string
+
+	// Open up routes file as csv reader
 	routeFile := path.Join(dir, "routes.txt")
 	inFH, err := os.Open(routeFile)
 	if err != nil {
@@ -41,29 +56,71 @@ func lirr(dir string) error {
 	defer outFH.Close()
 	defer os.Remove(outFH.Name())
 
+	// Read the existing header
 	header, err := r.Read()
 	if err != nil {
 		return err
 	}
 
-	header = append(header, "agency_id")
+	// Try to find agency id idx. If there is no agency_id header,
+	// then add one.
+	agencyIdx := maybeFind(header, "agency_id")
+	if agencyIdx == -1 {
+		appendedHeader = true
+		header = append(header, "agency_id")
+	}
+
+	// Write header to the output file
 	err = w.Write(header)
 	if err != nil {
 		return err
 	}
 
 	for {
+		// Read until EOF or error
 		rec, err := r.Read()
 		if err == io.EOF {
 			break
 		}
-
 		if err != nil {
 			return err
 		}
 
-		rec = append(rec, "LI")
+		if appendedHeader {
+			// If there was an appended error, current value is blank
+			currentAgency = ""
+		} else {
+			// Otherwise get the actual value
+			currentAgency = rec[agencyIdx]
+		}
 
+		mod, ok := mods[currentAgency]
+		// skip if requested
+		if ok && mod.skip {
+			continue
+		}
+
+		if ok && appendedHeader {
+			// We found an empty "" => "newVal" with appended header, we must
+			// append it. Basically if we're appending the header, the old
+			// value must by definition be blank
+			rec = append(rec, mod.newVal)
+
+		} else if ok && !appendedHeader {
+			// We found a "oldVal" => "newVal" with no need to append.
+			rec[agencyIdx] = mod.newVal
+
+		} else if !ok && appendedHeader {
+			// Return an error if we didn't find a value but we needed
+			// to append agency
+			err = errors.New("no new value found and no existing agency")
+			return err
+		} else if !ok {
+			// Skip if it wasn't found
+			continue
+		}
+
+		// Write modified record to output
 		err = w.Write(rec)
 		if err != nil {
 			return err
@@ -71,86 +128,48 @@ func lirr(dir string) error {
 
 	}
 
+	// Flush and close output
 	w.Flush()
 	err = outFH.Close()
 	if err != nil {
 		return err
 	}
 
+	// Rename to official name in same dir
 	err = os.Rename(outFH.Name(), routeFile)
 	if err != nil {
 		return err
 	}
 
+	// Success!
 	return nil
+}
+
+// njpath modifies agency_id to PATH
+func njpath(dir string) error {
+	return modifyAgencies(dir,
+		amods{
+			"151": amod{false, "PATH"},
+		},
+	)
+}
+
+func lirr(dir string) error {
+	return modifyAgencies(dir,
+		amods{
+			"": amod{false, "LI"},
+		},
+	)
 }
 
 // mnr modifies the agency id to standardize on simply "MTA MNR" rather than
 // different numeric ids. Skip anything that isn't agency_id == 1.
 func mnr(dir string) error {
-
-	// Get the incoming file
-	routeFile := path.Join(dir, "routes.txt")
-	inFH, err := os.Open(routeFile)
-	if err != nil {
-		return err
-	}
-	r := csv.NewReader(inFH)
-	r.LazyQuotes = true
-
-	// Create an outgoing csv file for transformed data
-	w, outFH := writecsvtmp(dir)
-	defer outFH.Close()
-	defer os.Remove(outFH.Name())
-
-	header, err := r.Read()
-	if err != nil {
-		return err
-	}
-
-	agencyIdx := find(header, "agency_id")
-	err = w.Write(header)
-	if err != nil {
-		return err
-	}
-
-	for {
-		rec, err := r.Read()
-		if err == io.EOF {
-			break
-		}
-
-		if err != nil {
-			return err
-		}
-
-		agencyID := rec[agencyIdx]
-
-		if agencyID != "1" {
-			continue
-		}
-
-		rec[agencyIdx] = "MTA MNR"
-
-		err = w.Write(rec)
-		if err != nil {
-			return err
-		}
-
-	}
-
-	w.Flush()
-	err = outFH.Close()
-	if err != nil {
-		return err
-	}
-
-	err = os.Rename(outFH.Name(), routeFile)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return modifyAgencies(dir,
+		amods{
+			"1": amod{false, "MTA MNR"},
+		},
+	)
 }
 
 // siFerry preps the Staten Island Ferry download by adding a direction id
