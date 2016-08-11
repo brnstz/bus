@@ -876,19 +876,12 @@ func LoadOnce() {
 
 		log.Printf("starting %v", url)
 
-		// FIXME: do this in Go, need to make it integrated with loader
 		dir, err := ioutil.TempDir(conf.Loader.TmpDir, "")
 		if err != nil {
 			log.Fatal(err)
 		}
-		cmd := exec.Command("wget", url, "-O", path.Join(dir, "file.zip"))
-		err = cmd.Run()
-		if err != nil {
-			log.Fatal(err)
-		}
 
-		cmd = exec.Command("unzip", path.Join(dir, "file.zip"), "-d", dir)
-		err = cmd.Run()
+		err = download(url, dir)
 		if err != nil {
 			log.Fatal(err)
 		}
