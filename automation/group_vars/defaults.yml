@@ -18,5 +18,12 @@ initial_db_backup: "http://pub.brnstz.com.s3-website-us-east-1.amazonaws.com/bus
 agency_ids: "MTA NYCT,MTABC,NYC DOT,MTA MNR,LI,PATH"
 mta_bustime_api_key: "FIXME"
 mta_datamine_api_key: "FIXME"
-njtransit_username: "FIXME"
-njtransit_password: "FIXME"
+
+# https://datasource.njtransit.com
+njtransit_live_username: "FIXME"
+njtransit_live_password: "FIXME"
+
+# https://www.njtransit.com/mt/mt_servlet.srv?hdnPageAction=MTDevLoginTo
+njtransit_feed_username: "FIXME"
+njtransit_feed_password: "FIXME"
+
