@@ -49,7 +49,7 @@ type PartnerSpec struct {
 	// precacher should be hitting
 	// Default: "MTA NYCT"
 	// Environment variable: $BUS_AGENCY_IDS (comma-delimited list)
-	AgencyIDs []string `envconfig:"agency_ids" default:"MTA NYCT,MTABC,NYC DOT,MTA MNR,LI,PATH,NJT,NJB"`
+	AgencyIDs []string `envconfig:"agency_ids" default:"MTA NYCT,MTABC,NYC DOT,MTA MNR,LI,PATH,NJT"`
 }
 
 // DBSpec is our database config used by both busapi and busloader
