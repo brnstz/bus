@@ -81,28 +81,31 @@ func njtDL(dlURL, dir string) error {
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	// Run login
+	// Run login and close body (we don't need it)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
 	}
-	b, err := ioutil.ReadAll(resp.Body)
-	defer resp.Body.Close()
+	err = resp.Body.Close()
+	if err != nil {
+		return err
+	}
 
+	// Get the cookie value
 	for _, v := range resp.Cookies() {
 		if v.Name == "JSESSIONID" {
 			sessionID = v.Value
 		}
 	}
 
-	// Get the actual download page
+	// Get the actual download page and add our session cookie
 	req, err = http.NewRequest("GET", dlURL, nil)
 	if err != nil {
 		return err
 	}
 	req.AddCookie(&http.Cookie{Name: "JSESSIONID", Value: sessionID})
 
-	// Run login
+	// Run download, get zipfile response and send to unzip
 	resp, err = http.DefaultClient.Do(req)
 	if err != nil {
 		return err
