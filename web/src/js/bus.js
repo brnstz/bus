@@ -319,7 +319,7 @@ Bus.prototype.createRow = function(stop, i) {
     var route = self.routes[stop.api.agency_id + "|" + stop.api.route_id];
 
     var opacity = 0;
-    if (self.current_stop && stop.id == self.current_stop.id) {
+    if (self.current_stop && stop.api.unique_id == self.current_stop.api.unique_id) {
         opacity = stop.table_fg_opacity;
     } else {
         opacity = stop.table_bg_opacity;
@@ -439,13 +439,13 @@ Bus.prototype.clickHandler = function(stop) {
 
     return function(e) {
 
-        if (self.current_stop && self.current_stop.id == stop.id) {
+        if (self.current_stop && self.current_stop.api.unique_id == stop.api.unique_id) {
             // If it's the current stop, then just recenter
             self.map.setView([stop.api.lat, stop.api.lon]);
             return;
 
         } else if (self.current_stop) {
-            $(self.rows[self.current_stop.id]).css({
+            $(self.rows[self.current_stop.api.unique_id]).css({
                 "opacity": self.current_stop.table_bg_opacity
             });
         }
@@ -474,7 +474,7 @@ Bus.prototype.clickHandler = function(stop) {
 
                 var route = self.routes[stop.api.agency_id + "|" + stop.api.route_id];
                 var trip = self.trips[stop.api.agency_id + "|" + stop.api.departures[0].trip_id]
-                var row = self.rows[stop.id];
+                var row = self.rows[stop.api.unique_id];
                 var sl = trip.createStopsLabels(stop.api);
                 var stops = sl[0];
                 var labels = sl[1];
@@ -561,14 +561,14 @@ Bus.prototype.updateStops = function() {
         stop = self.stopList[i];
 
         // If the current stop shows up after first, then ignore it
-        if (i != 0 && self.current_stop && self.current_stop.id == stop.id) {
+        if (i != 0 && self.current_stop && self.current_stop.api.unique_id == stop.api.unique_id) {
             continue;
         }
 
         var row = self.createRow(stop, i);
 
         // Put into row
-        self.rows[stop.id] = row;
+        self.rows[stop.api.unique_id] = row;
 
         // Add to row display
         $(tbody).append(row);
@@ -579,7 +579,7 @@ Bus.prototype.updateStops = function() {
 
     // Set first result to current stop if none selected
     if (self.current_stop == null && self.stopList.length > 0) {
-        var row = self.rows[self.stopList[0].id];
+        var row = self.rows[self.stopList[0].api.unique_id];
         $(row).trigger("click");
     }
 
