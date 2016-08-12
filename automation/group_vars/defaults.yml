@@ -1,4 +1,9 @@
 gtfs_urls: 
+    - "http://www.nyc.gov/html/dot/downloads/misc/siferry-gtfs.zip"
+    - "http://web.mta.info/developers/data/mnr/google_transit.zip"
+    - "http://web.mta.info/developers/data/lirr/google_transit.zip"
+    - "http://data.trilliumtransit.com/gtfs/path-nj-us/path-nj-us.zip"
+    - "https://www.njtransit.com/mt/mt_servlet.srv?hdnPageAction=MTDevResourceDownloadTo&Category=rail"
     - "http://web.mta.info/developers/data/nyct/subway/google_transit.zip"
     - "http://web.mta.info/developers/data/nyct/bus/google_transit_bronx.zip"
     - "http://web.mta.info/developers/data/nyct/bus/google_transit_brooklyn.zip"
@@ -6,19 +11,19 @@ gtfs_urls:
     - "http://web.mta.info/developers/data/nyct/bus/google_transit_queens.zip"
     - "http://web.mta.info/developers/data/nyct/bus/google_transit_staten_island.zip"
     - "http://web.mta.info/developers/data/busco/google_transit.zip"
-    - "http://www.nyc.gov/html/dot/downloads/misc/siferry-gtfs.zip"
-    - "http://web.mta.info/developers/data/mnr/google_transit.zip"
-    - "http://web.mta.info/developers/data/lirr/google_transit.zip"
-    - "http://data.trilliumtransit.com/gtfs/path-nj-us/path-nj-us.zip"
-    - "https://www.njtransit.com/mt/mt_servlet.srv?hdnPageAction=MTDevResourceDownloadTo&Category=rail"
-    - "https://www.njtransit.com/mt/mt_servlet.srv?hdnPageAction=MTDevResourceDownloadTo&Category=bus"
+    # - "https://www.njtransit.com/mt/mt_servlet.srv?hdnPageAction=MTDevResourceDownloadTo&Category=bus"
+ 
 route_filter: []
 web_dir: "/usr/local/bus/web"
 api_addr: "0.0.0.0:8000"
 load_forever: true
 initial_db_backup: "http://pub.brnstz.com.s3-website-us-east-1.amazonaws.com/bus/backups/busdump-latest.sql.gz"
-agency_ids: "MTA NYCT,MTABC,NYC DOT,MTA MNR,LI,PATH"
+agency_ids: "MTA NYCT,MTABC,NYC DOT,MTA MNR,LI,PATH,NJT"
+
+# http://bustime.mta.info/
 mta_bustime_api_key: "FIXME"
+
+# http://datamine.mta.info/
 mta_datamine_api_key: "FIXME"
 
 # https://datasource.njtransit.com
