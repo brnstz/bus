@@ -35,7 +35,7 @@ type CacheSpec struct {
 // PartnerSpec includes config values specific to certain live partner
 // APIs, used by busprecache and busapi
 type PartnerSpec struct {
-	// BusAPIKey is the API key for accessing http://bustime.mta.info/
+	// BustimeAPIKey is the API key for accessing http://bustime.mta.info/
 	// Default: None
 	// Environment variable: $BUS_MTA_BUSTIME_API_KEY
 	BustimeAPIKey string `envconfig:"mta_bustime_api_key" required:"true"`
@@ -49,7 +49,7 @@ type PartnerSpec struct {
 	// precacher should be hitting
 	// Default: "MTA NYCT"
 	// Environment variable: $BUS_AGENCY_IDS (comma-delimited list)
-	AgencyIDs []string `envconfig:"agency_ids" default:"MTA NYCT,MTABC,NYC DOT,MTA MNR,LI,PATH"`
+	AgencyIDs []string `envconfig:"agency_ids" default:"MTA NYCT,MTABC,NYC DOT,MTA MNR,LI,PATH,NJT,NJB"`
 }
 
 // DBSpec is our database config used by both busapi and busloader
@@ -121,4 +121,16 @@ type LoaderSpec struct {
 	// Default: true
 	// Environment variable: $BUS_LOAD_FOREVER
 	LoadForever bool `envconfig:"load_forever" default:"false"`
+
+	// njtransit_feed_username: is the username for accessing:
+	//    https://www.njtransit.com/mt/mt_servlet.srv?hdnPageAction=MTDevLoginTo
+	// Default: None
+	// Environment variable: $BUS_NJTRANSIT_FEED_USERNAME
+	NJTransitFeedUsername string `envconfig:"njtransit_feed_username" required:"true"`
+
+	// njtransit_feed_password: is the password for accessing:
+	//    https://www.njtransit.com/mt/mt_servlet.srv?hdnPageAction=MTDevLoginTo
+	// Default: None
+	// Environment variable: $BUS_NJTRANSIT_FEED_PASSWORD
+	NJTransitFeedPassword string `envconfig:"njtransit_feed_password" required:"true"`
 }
