@@ -149,8 +149,8 @@ func (l *Loader) loadRoutes() {
 	routeColorIdx := find(header, "route_color")
 	routeTextColorIdx := find(header, "route_text_color")
 	routeAgencyIdx := find(header, "agency_id")
-	routeShortNameIdx := find(header, "route_short_name")
-	routeLongNameIdx := find(header, "route_long_name")
+	routeShortNameIdx := maybeFind(header, "route_short_name")
+	routeLongNameIdx := maybeFind(header, "route_long_name")
 
 	for i = 0; ; i++ {
 		rec, err := f.Read()
@@ -174,8 +174,20 @@ func (l *Loader) loadRoutes() {
 		routeColor := rec[routeColorIdx]
 		routeTextColor := rec[routeTextColorIdx]
 		agencyID := rec[routeAgencyIdx]
-		shortName := rec[routeShortNameIdx]
-		longName := rec[routeLongNameIdx]
+
+		var shortName, longName string
+
+		if routeShortNameIdx < 0 {
+			shortName = ""
+		} else {
+			shortName = rec[routeShortNameIdx]
+		}
+
+		if routeLongNameIdx < 0 {
+			longName = ""
+		} else {
+			longName = rec[routeLongNameIdx]
+		}
 
 		r, err := models.NewRoute(
 			route, routeType, routeColor, routeTextColor, agencyID,
