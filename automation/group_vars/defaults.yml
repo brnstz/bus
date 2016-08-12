@@ -10,6 +10,8 @@ gtfs_urls:
     - "http://web.mta.info/developers/data/mnr/google_transit.zip"
     - "http://web.mta.info/developers/data/lirr/google_transit.zip"
     - "http://data.trilliumtransit.com/gtfs/path-nj-us/path-nj-us.zip"
+    - "https://www.njtransit.com/mt/mt_servlet.srv?hdnPageAction=MTDevResourceDownloadTo&Category=rail"
+    - "https://www.njtransit.com/mt/mt_servlet.srv?hdnPageAction=MTDevResourceDownloadTo&Category=bus"
 route_filter: []
 web_dir: "/usr/local/bus/web"
 api_addr: "0.0.0.0:8000"
