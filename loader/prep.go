@@ -3,6 +3,7 @@ package loader
 import (
 	"encoding/csv"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"path"
@@ -346,6 +347,10 @@ func njtrail(dir string) error {
 		case "Raritan Valley Line":
 			rec[rcIdx] = "FAA634"
 			rec[rtIdx] = "000000"
+
+		default:
+			return fmt.Errorf("unrecognized NJT line: %s", name)
+
 		}
 
 		err = w.Write(rec)
