@@ -23,6 +23,9 @@ func prepare(url, dir string) error {
 
 	case "http://data.trilliumtransit.com/gtfs/path-nj-us/path-nj-us.zip":
 		return njpath(dir)
+
+	case "https://www.njtransit.com/mt/mt_servlet.srv?hdnPageAction=MTDevResourceDownloadTo&Category=rail":
+		return njtrail(dir)
 	}
 
 	return nil
@@ -252,5 +255,118 @@ func siFerry(dir string) error {
 		return err
 	}
 
+	return nil
+}
+
+// njtrail adds route_color and route_text_color to NJT files
+func njtrail(dir string) error {
+	// Open up routes file as csv reader
+	routeFile := path.Join(dir, "routes.txt")
+	inFH, err := os.Open(routeFile)
+	if err != nil {
+		return err
+	}
+	r := csv.NewReader(inFH)
+	r.LazyQuotes = true
+
+	// Create an outgoing csv file for transformed data
+	w, outFH := writecsvtmp(dir)
+	defer outFH.Close()
+	defer os.Remove(outFH.Name())
+
+	// Read the existing header
+	header, err := r.Read()
+	if err != nil {
+		return err
+	}
+
+	nameIdx := find(header, "route_long_name")
+	rcIdx := find(header, "route_color")
+
+	header = append(header, "route_text_color")
+	rtIdx := len(header) - 1
+
+	// Write header to the output file
+	err = w.Write(header)
+	if err != nil {
+		return err
+	}
+
+	for {
+		// Read until EOF or error
+		rec, err := r.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+
+		// Add one space to rec to allow for text color
+		rec = append(rec, "")
+
+		name := rec[nameIdx]
+		switch name {
+		case "Atlantic City Rail Line":
+			rec[rcIdx] = "005DAB"
+			rec[rtIdx] = "FFFFFF"
+
+		case "Montclair-Boonton Line":
+			rec[rcIdx] = "FAA634"
+			rec[rtIdx] = "FFFFFF"
+
+		case "Hudson-Bergen Light Rail", "Newark Light Rail", "Riverline Light Rail":
+			rec[rcIdx] = "63F519"
+			rec[rtIdx] = "000000"
+
+		case "Main/Bergen County Line":
+			rec[rcIdx] = "FFD006"
+			rec[rtIdx] = "000000"
+
+		case "Port Jervis Line":
+			rec[rcIdx] = "BBCBE2"
+			rec[rtIdx] = "000000"
+
+		case "Morris & Essex Line", "Gladstone Branch":
+			rec[rcIdx] = "00A850"
+			rec[rtIdx] = "FFFFFF"
+
+		case "Northeast Corridor", "Princeton Shuttle":
+			rec[rcIdx] = "EE3A43"
+			rec[rtIdx] = "FFFFFF"
+
+		case "North Jersey Coast Line":
+			rec[rcIdx] = "00A3E4"
+			rec[rtIdx] = "000000"
+
+		case "Pasack Valley Line":
+			rec[rcIdx] = "A0218C"
+			rec[rtIdx] = "FFFFFF"
+
+		case "Raritan Valley Line":
+			rec[rcIdx] = "FAA634"
+			rec[rtIdx] = "000000"
+		}
+
+		err = w.Write(rec)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Flush and close output
+	w.Flush()
+	err = outFH.Close()
+	if err != nil {
+		return err
+	}
+
+	// Rename to official name in same dir
+	err = os.Rename(outFH.Name(), routeFile)
+	if err != nil {
+		return err
+	}
+
+	// Success!
 	return nil
 }
