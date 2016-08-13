@@ -107,6 +107,7 @@ func (rs *routeService) fullID() string {
 // getRouteServiceIDs returns the current relevant serviceIDs for these
 // agencies but also with route info for further filtering
 func getRouteServiceIDs(db sqlx.Ext, agencyIDs []string, day string, now time.Time) (relevant map[string]bool, err error) {
+
 	var rawNormalIDs []*routeService
 	var normalIDs []*routeService
 	var addedIDs []*routeService
@@ -129,7 +130,7 @@ func getRouteServiceIDs(db sqlx.Ext, agencyIDs []string, day string, now time.Ti
 			   end_date >= $2 AND
 			   start_date <= $3 AND 
 			   agency_id IN (%s)
-		ORDER BY start_date DESC
+		ORDER BY agency_id, route_id, start_date DESC
 	`, inAgencyIDs)
 
 	err = sqlx.Select(db, &rawNormalIDs, q, day, now, now)
@@ -141,6 +142,7 @@ func getRouteServiceIDs(db sqlx.Ext, agencyIDs []string, day string, now time.Ti
 	// Keep only the first value for each unique id
 	var lastID string
 	for _, v := range rawNormalIDs {
+
 		id := v.uniqueID()
 		// If it's the same as last time, then skip
 		if id == lastID {
@@ -177,17 +179,17 @@ func getRouteServiceIDs(db sqlx.Ext, agencyIDs []string, day string, now time.Ti
 	}
 
 	for _, v := range removedIDs {
-		removed[v.uniqueID()] = true
+		removed[v.fullID()] = true
 	}
 
 	for _, v := range normalIDs {
-		if !removed[v.uniqueID()] {
+		if !removed[v.fullID()] {
 			serviceIDs = append(serviceIDs, v)
 		}
 	}
 
 	for _, v := range addedIDs {
-		if !removed[v.uniqueID()] {
+		if !removed[v.fullID()] {
 			serviceIDs = append(serviceIDs, v)
 		}
 	}
