@@ -338,14 +338,6 @@ Bus.prototype.createRow = function(stop, i) {
     // Create and append the cell containing the route identifier
     // with colored background
     var routeID = null;
-    /*
-    if (stop.live == true) {
-        routeID = $("<td class='rowroute'>" + stop.api.route_id + "<br><img src='img/radio1.svg' width=20 height=20></td>");
-    } else {
-        routeID = $("<td class='rowroute'>" + stop.api.route_id + "</td>");
-    }
-    */
-
 
     routeID = $("<td class='rowroute'>" + stop.api.route_id + "<br><img src='img/compass_plain.svg' style='transform: rotate(" + stop.api.departures[0].compass_dir + "deg);' width=20 height=20></td>");
 
