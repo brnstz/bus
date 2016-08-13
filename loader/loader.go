@@ -22,7 +22,7 @@ var (
 	datefmt     = "20060102"
 	loaderBreak = time.Hour * 24
 
-	views = []string{"here_trip", "service", "service_exception"}
+	views = []string{"here_trip", "service", "service_exception", "region"}
 
 	logp = 1000
 )
