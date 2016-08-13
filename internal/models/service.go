@@ -100,9 +100,13 @@ func (rs *routeService) uniqueID() string {
 	return rs.AgencyID + "|" + rs.RouteID
 }
 
+func (rs *routeService) fullID() string {
+	return rs.AgencyID + "|" + rs.RouteID + "|" + rs.ServiceID
+}
+
 // getRouteServiceIDs returns the current relevant serviceIDs for these
-// routes
-func getRouteServiceIDs(db sqlx.Ext, agencyIDs, routeIDs []string, day string, now time.Time) (relevant map[string][]string, err error) {
+// agencies but also with route info for further filtering
+func getRouteServiceIDs(db sqlx.Ext, agencyIDs []string, day string, now time.Time) (relevant map[string]bool, err error) {
 	var rawNormalIDs []*routeService
 	var normalIDs []*routeService
 	var addedIDs []*routeService
@@ -110,10 +114,11 @@ func getRouteServiceIDs(db sqlx.Ext, agencyIDs, routeIDs []string, day string, n
 	var serviceIDs []*routeService
 
 	inAgencyIDs := etc.CreateIDs(agencyIDs)
-	inRouteIDs := etc.CreateIDs(routeIDs)
 
 	removed := map[string]bool{}
-	relevant = map[string][]string{}
+
+	// agency_id|route_id|service_id => true/false
+	relevant = map[string]bool{}
 
 	// Select all service
 
@@ -123,10 +128,9 @@ func getRouteServiceIDs(db sqlx.Ext, agencyIDs, routeIDs []string, day string, n
 		WHERE  day = $1 AND
 			   end_date >= $2 AND
 			   start_date <= $3 AND 
-			   route_id IN (%s) AND
 			   agency_id IN (%s)
 		ORDER BY start_date DESC
-	`, inRouteIDs, inAgencyIDs)
+	`, inAgencyIDs)
 
 	err = sqlx.Select(db, &rawNormalIDs, q, day, now, now)
 	if err != nil {
@@ -155,21 +159,20 @@ func getRouteServiceIDs(db sqlx.Ext, agencyIDs, routeIDs []string, day string, n
 		FROM   service_route_exception
 		WHERE  exception_date = $1 AND
 			   exception_type = $2 AND
-			   route_id  IN (%s) AND
 			   agency_id IN (%s) 
-	`, inRouteIDs, inAgencyIDs)
+	`, inAgencyIDs)
 
 	// Added
 	err = sqlx.Select(db, &addedIDs, q, now, ServiceAdded)
 	if err != nil {
-		log.Println("can't scan service ids", err, q, day, now, routeIDs, agencyIDs, ServiceAdded)
+		log.Println("can't scan service ids", err, q, day, now, agencyIDs, ServiceAdded)
 		return
 	}
 
 	// Removed
 	err = sqlx.Select(db, &removedIDs, q, now, ServiceRemoved)
 	if err != nil {
-		log.Println("can't scan service ids", err, q, day, now, routeIDs, agencyIDs, ServiceRemoved)
+		log.Println("can't scan service ids", err, q, day, now, agencyIDs, ServiceRemoved)
 		return
 	}
 
@@ -190,7 +193,7 @@ func getRouteServiceIDs(db sqlx.Ext, agencyIDs, routeIDs []string, day string, n
 	}
 
 	for _, v := range serviceIDs {
-		relevant[v.uniqueID()] = append(relevant[v.uniqueID()], v.ServiceID)
+		relevant[v.fullID()] = true
 	}
 
 	return

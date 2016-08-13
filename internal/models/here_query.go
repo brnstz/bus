@@ -84,20 +84,23 @@ type HereQuery struct {
 	YesterdaySecDiff       int
 	YesterdayDepartureBase time.Time
 	YesterdayServiceIDs    []string
-	YesterdayServiceIDMap  map[string]bool
+	//YesterdayServiceIDMap    map[string]bool
+	YesterdayRelevantIDs map[string]bool
 
 	TodayDepartureMin  int
 	TodayDepartureMax  int
 	TodayDepartureBase time.Time
 	TodayServiceIDs    []string
-	TodayServiceIDMap  map[string]bool
+	//TodayServiceIDMap    map[string]bool
+	TodayRelevantIDs map[string]bool
 
 	TomorrowDepartureMin  int
 	TomorrowDepartureMax  int
 	TomorrowSecDiff       int
 	TomorrowDepartureBase time.Time
 	TomorrowServiceIDs    []string
-	TomorrowServiceIDMap  map[string]bool
+	//TomorrowServiceIDMap  map[string]bool
+	TomorrowRelevantIDs map[string]bool
 
 	Limit int `db:"limit"`
 
@@ -119,6 +122,11 @@ func NewHereQuery(lat, lon, swlat, swlon, nelat, nelon float64, routeTypes []int
 		log.Println("can't get today serviceIDs", err)
 		return
 	}
+	todayRelevantIDs, err := getRouteServiceIDs(etc.DBConn, agencyIDs, todayName, today)
+	if err != nil {
+		log.Println("can't get today relevent IDs", err)
+		return
+	}
 
 	yesterday := today.AddDate(0, 0, -1)
 	yesterdayName := strings.ToLower(yesterday.Format("Monday"))
@@ -130,6 +138,11 @@ func NewHereQuery(lat, lon, swlat, swlon, nelat, nelon float64, routeTypes []int
 		log.Println("can't get yesterday serviceIDs", err)
 		return
 	}
+	yesterdayRelevantIDs, err := getRouteServiceIDs(etc.DBConn, agencyIDs, yesterdayName, yesterday)
+	if err != nil {
+		log.Println("can't get yesterday relevent IDs", err)
+		return
+	}
 
 	tomorrow := today.AddDate(0, 0, 1)
 	tomorrowName := strings.ToLower(tomorrow.Format("Monday"))
@@ -139,6 +152,11 @@ func NewHereQuery(lat, lon, swlat, swlon, nelat, nelon float64, routeTypes []int
 	tomorrowServiceIDs, err := GetAgencyServiceIDs(etc.DBConn, agencyIDs, tomorrowName, tomorrow)
 	if err != nil {
 		log.Println("can't get tomorrow serviceIDs", err)
+		return
+	}
+	tomorrowRelevantIDs, err := getRouteServiceIDs(etc.DBConn, agencyIDs, tomorrowName, tomorrow)
+	if err != nil {
+		log.Println("can't get tomorrow relevent IDs", err)
 		return
 	}
 
@@ -179,18 +197,21 @@ func NewHereQuery(lat, lon, swlat, swlon, nelat, nelon float64, routeTypes []int
 		TodayDepartureMin:  todayMinSec,
 		TodayDepartureMax:  todayMaxSec,
 		TodayDepartureBase: today,
+		TodayRelevantIDs:   todayRelevantIDs,
 
 		YesterdayServiceIDs:    yesterdayServiceIDs,
 		YesterdayDepartureMin:  yesterdayMinSec,
 		YesterdayDepartureMax:  yesterdayMaxSec,
 		YesterdayDepartureBase: yesterday,
 		YesterdaySecDiff:       yesterdaySecDiff,
+		YesterdayRelevantIDs:   yesterdayRelevantIDs,
 
 		TomorrowServiceIDs:    tomorrowServiceIDs,
 		TomorrowDepartureMin:  tomorrowMinSec,
 		TomorrowDepartureMax:  tomorrowMaxSec,
 		TomorrowDepartureBase: tomorrow,
 		TomorrowSecDiff:       tomorrowSecDiff,
+		TomorrowRelevantIDs:   tomorrowRelevantIDs,
 	}
 
 	hq.LineString = fmt.Sprintf(
@@ -219,20 +240,22 @@ func NewHereQuery(lat, lon, swlat, swlon, nelat, nelon float64, routeTypes []int
 
 	hq.Query = hq.Query + hereOrderLimit
 
-	hq.YesterdayServiceIDMap = map[string]bool{}
-	for _, k := range hq.YesterdayServiceIDs {
-		hq.YesterdayServiceIDMap[k] = true
-	}
+	/*
+		hq.YesterdayServiceIDMap = map[string]bool{}
+		for _, k := range hq.YesterdayServiceIDs {
+			hq.YesterdayServiceIDMap[k] = true
+		}
 
-	hq.TodayServiceIDMap = map[string]bool{}
-	for _, k := range hq.TodayServiceIDs {
-		hq.TodayServiceIDMap[k] = true
-	}
+		hq.TodayServiceIDMap = map[string]bool{}
+		for _, k := range hq.TodayServiceIDs {
+			hq.TodayServiceIDMap[k] = true
+		}
 
-	hq.TomorrowServiceIDMap = map[string]bool{}
-	for _, k := range hq.TomorrowServiceIDs {
-		hq.TomorrowServiceIDMap[k] = true
-	}
+		hq.TomorrowServiceIDMap = map[string]bool{}
+		for _, k := range hq.TomorrowServiceIDs {
+			hq.TomorrowServiceIDMap[k] = true
+		}
+	*/
 
 	return
 }
