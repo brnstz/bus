@@ -160,6 +160,8 @@ func (h *HereResult) createDepartures() (departures []*Departure, err error) {
 	}
 
 	for i := range departureSecs {
+		relID := h.AgencyID + "|" + h.RouteID + "|" + h.ServiceID
+
 		departureSec, err = strconv.Atoi(strings.TrimSpace(departureSecs[i]))
 		if err != nil {
 			log.Println("can't parse departure sec", err)
@@ -186,17 +188,17 @@ func (h *HereResult) createDepartures() (departures []*Departure, err error) {
 
 		if departureSec >= h.HQ.YesterdayDepartureMin &&
 			departureSec <= h.HQ.YesterdayDepartureMax &&
-			h.HQ.YesterdayServiceIDMap[h.ServiceID] {
+			h.HQ.YesterdayRelevantIDs[relID] {
 			departureBase = h.HQ.YesterdayDepartureBase
 
 		} else if departureSec >= h.HQ.TodayDepartureMin &&
 			departureSec <= h.HQ.TodayDepartureMax &&
-			h.HQ.TodayServiceIDMap[h.ServiceID] {
+			h.HQ.TodayRelevantIDs[relID] {
 			departureBase = h.HQ.TodayDepartureBase
 
 		} else if departureSec >= h.HQ.TomorrowDepartureMin &&
 			departureSec <= h.HQ.TomorrowDepartureMax &&
-			h.HQ.TomorrowServiceIDMap[h.ServiceID] {
+			h.HQ.TomorrowRelevantIDs[relID] {
 			departureBase = h.HQ.TomorrowDepartureBase
 
 		} else {
