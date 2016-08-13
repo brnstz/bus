@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/brnstz/bus/internal/conf"
 	"github.com/brnstz/bus/internal/etc"
 )
 
@@ -109,8 +108,12 @@ type HereQuery struct {
 
 func NewHereQuery(lat, lon, swlat, swlon, nelat, nelon float64, routeTypes []int, now time.Time) (hq *HereQuery, err error) {
 
-	// FIXME: hard coded, we need a lat/lon to agencyID mapping
-	agencyIDs := conf.Partner.AgencyIDs
+	agencyIDs, err := getRegionAgencyIDs(etc.DBConn, swlat, swlon, nelat, nelon)
+	if err != nil {
+		log.Println("can't get agency IDs for region", err)
+		return
+	}
+
 	log.Println("here are the agency IDs", agencyIDs)
 
 	today := etc.BaseTime(now)
