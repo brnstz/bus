@@ -160,6 +160,9 @@ func (h *HereResult) createDepartures() (departures []*Departure, err error) {
 	}
 
 	for i := range departureSecs {
+		if h.RouteID == "M15" {
+			log.Println(h.ServiceID)
+		}
 		relID := h.AgencyID + "|" + h.RouteID + "|" + h.ServiceID
 
 		departureSec, err = strconv.Atoi(strings.TrimSpace(departureSecs[i]))
