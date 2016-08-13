@@ -27,18 +27,33 @@ var homeControl = L.Control.extend({
 function Bus() {
     var self = this;
 
+
+    // When at a close zoom level, we don't use a route type filter
     var nofilter = [];
+
+    // At a wider level, we only want trains (0-2) and ferrys (4)
     var highfilter = [0, 1, 2, 4];
+
+    // See if we stored our last location in local storage
     var initialLat = localStorage.getItem("lat");
     var initialLon = localStorage.getItem("lon");
 
+    // default location when there are no results or we never visited
+    // before
+    self.timesSquare = {
+        lat: 40.758895,
+        lon: -73.9873197,
+    };
+
+    // If we didn't, default to Times Square
     if (!(initialLat && initialLon)) {
-        // default to Times Square
-        initialLat = 40.758895;
-        initialLon = -73.9873197;
+        initialLat = self.timesSquare.lat;
+        initialLon = self.timesSquare.lon;
     }
 
     self.defaultZoom = 16;
+    self.maxZoom = 17;
+    self.minZoom = 8;
 
     // JSON-encoded Bloom filter (of routes that we have loaded) as 
     // returned by "here" API. Send this back to each "here" request
@@ -50,15 +65,15 @@ function Bus() {
 
     // tileOptions is passed to Leatlef JS for drawing the map
     self.tileOptions = {
-        maxZoom: 17,
-        minZoom: 10,
+        maxZoom: self.maxZoom,
+        minZoom: self.minZoom,
         opacity: 1.0,
     };
 
     // mapOptions is the initial options sent on creation of the map
     self.mapOptions = {
-        maxZoom: 17,
-        minZoom: 10,
+        maxZoom: self.maxZoom,
+        minZoom: self.minZoom,
         zoom: self.defaultZoom,
 
         center: [initialLat, initialLon]
@@ -373,7 +388,16 @@ Bus.prototype.createEmptyRow = function() {
     };
 
     var row = $("<tr>");
-    var td = $("<td>No results in this area.</td>");
+    var td = $("<td>");
+    var a = $("<a href='#'>Times Square</a>").click(function() {
+        self.map.setView([self.timesSquare.lat, self.timesSquare.lon], self.defaultZoom);
+        self.getHere();
+        return false;
+    });
+
+    $(td).append("No departures in this area. Try ");
+    $(td).append(a);
+    $(td).append("?");
     $(row).css(cellCSS);
     $(row).append(td);
 
