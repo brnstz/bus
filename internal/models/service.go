@@ -15,30 +15,20 @@ type Service struct {
 	RouteID string
 }
 
-func GetNewServiceIDs(db sqlx.Ext, agencyIDs []string, day string, now time.Time) (serviceIDs []string, err error) {
+// GetAgencyServiceIDs returns all possible serviceIDs for this day / time /
+// agency for the initial query. However, these values may be later filtered
+// by getRouteServiceIDs
+func GetAgencyServiceIDs(db sqlx.Ext, agencyIDs []string, day string, now time.Time) (serviceIDs []string, err error) {
 
 	var normalIDs []string
 	var addedIDs []string
 	var removedIDs []string
 
+	inAgencyIDs := etc.CreateIDs(agencyIDs)
+
 	removed := map[string]bool{}
 
-	// FIXME: do we want to select all service IDs that are valid
-	// in this time window or just the max start date (most recent one)
-	// Experience with MTA data suggests we only want one.
-
-	// Previously we deduped this by route_id, but with bus / train data mixed
-	// the agency_id is not unique enough to dedupe in same way. The main
-	// problem is when we get updated files for services that haven't started yet
-	// and these dates overlap with the previous service. We should probably
-	// make the fix in the loader / materialized view.
-
-	// Select the service_id that:
-	//   * matches our agencyID, day
-	//   * has an end_date after now
-	//   * has a start_date before now
-	//   * has the maximum start date of those
-
+	// Select all serviceIDs matching our agencies and within our time window
 	q := fmt.Sprintf(`
 		SELECT service_id 
 		FROM   service 
@@ -46,7 +36,7 @@ func GetNewServiceIDs(db sqlx.Ext, agencyIDs []string, day string, now time.Time
 			   end_date >= $2 AND
 			   start_date <= $3 AND 
 			   agency_id IN (%s)
-	`, etc.CreateIDs(agencyIDs))
+	`, inAgencyIDs)
 
 	err = sqlx.Select(db, &normalIDs, q, day, now, now)
 	if err != nil {
@@ -59,9 +49,9 @@ func GetNewServiceIDs(db sqlx.Ext, agencyIDs []string, day string, now time.Time
 		SELECT service_id 
 		FROM   service_exception
 		WHERE  exception_date = $1 AND
-			   agency_id IN (%s) AND
-			   exception_type = $2
-	`, etc.CreateIDs(agencyIDs))
+			   exception_type = $2 AND
+			   agency_id IN (%s)
+	`, inAgencyIDs)
 
 	// Added
 	err = sqlx.Select(db, &addedIDs, q, now, ServiceAdded)
@@ -77,16 +67,20 @@ func GetNewServiceIDs(db sqlx.Ext, agencyIDs []string, day string, now time.Time
 		return
 	}
 
+	// Create mapping for removed IDs
 	for _, v := range removedIDs {
 		removed[v] = true
 	}
 
+	// Add all values from the service table that haven't been removed
 	for _, v := range normalIDs {
 		if !removed[v] {
 			serviceIDs = append(serviceIDs, v)
 		}
 	}
 
+	// Add all values from the service_execption table that haven't been
+	// removed
 	for _, v := range addedIDs {
 		if !removed[v] {
 			serviceIDs = append(serviceIDs, v)
@@ -96,79 +90,107 @@ func GetNewServiceIDs(db sqlx.Ext, agencyIDs []string, day string, now time.Time
 	return
 }
 
-func getServiceIDsByDay(db sqlx.Ext, agencyIDs []string, routeID, day string, now time.Time) (serviceIDs []string, err error) {
-	var normalIDs []string
-	var addedIDs []string
-	var removedIDs []string
+type routeService struct {
+	AgencyID  string `db:"agency_id"`
+	RouteID   string `db:"route_id"`
+	ServiceID string `db:"service_id"`
+}
+
+func (rs *routeService) uniqueID() string {
+	return rs.AgencyID + "|" + rs.RouteID
+}
+
+// getRouteServiceIDs returns the current relevant serviceIDs for these
+// routes
+func getRouteServiceIDs(db sqlx.Ext, agencyIDs, routeIDs []string, day string, now time.Time) (relevant map[string][]string, err error) {
+	var rawNormalIDs []*routeService
+	var normalIDs []*routeService
+	var addedIDs []*routeService
+	var removedIDs []*routeService
+	var serviceIDs []*routeService
+
+	inAgencyIDs := etc.CreateIDs(agencyIDs)
+	inRouteIDs := etc.CreateIDs(routeIDs)
 
 	removed := map[string]bool{}
+	relevant = map[string][]string{}
 
-	// FIXME: do we want to select all service IDs that are valid
-	// in this time window or just the max start date (most recent one)
-	// Experience with MTA data suggests we only want one.
-
-	// Select the service_id that:
-	//   * matches our agencyID, routeID, day
-	//   * has an end_date after now
-	//   * has a start_date before now
-	//   * has the maximum start date of those
+	// Select all service
 
 	q := fmt.Sprintf(`
-		SELECT service_id 
+		SELECT agency_id, route_id, service_id
 		FROM   service_route_day 
 		WHERE  day = $1 AND
 			   end_date >= $2 AND
 			   start_date <= $3 AND 
-			   route_id = $4 AND
+			   route_id IN (%s) AND
 			   agency_id IN (%s)
 		ORDER BY start_date DESC
-		LIMIT 1
-	`, etc.CreateIDs(agencyIDs))
+	`, inRouteIDs, inAgencyIDs)
 
-	err = sqlx.Select(db, &normalIDs, q, day, now, now, routeID)
+	err = sqlx.Select(db, &rawNormalIDs, q, day, now, now)
 	if err != nil {
-		log.Println("can't scan service ids", err, q, day, now, routeID, agencyIDs)
+		log.Println("can't scan service ids", err, q, day, now, agencyIDs)
 		return
+	}
+
+	// Keep only the first value for each unique id
+	var lastID string
+	for _, v := range rawNormalIDs {
+		id := v.uniqueID()
+		// If it's the same as last time, then skip
+		if id == lastID {
+			continue
+		}
+		// Add to normal list
+		normalIDs = append(normalIDs, v)
+
+		// Set up for next iteration
+		lastID = id
 	}
 
 	// Get services added / removed
 	q = fmt.Sprintf(`
-		SELECT service_id 
+		SELECT agency_id, route_id, service_id 
 		FROM   service_route_exception
 		WHERE  exception_date = $1 AND
-			   route_id = $2 AND
-			   agency_id IN (%s) AND
-			   exception_type = $3
-	`, etc.CreateIDs(agencyIDs))
+			   exception_type = $2 AND
+			   route_id  IN (%s) AND
+			   agency_id IN (%s) 
+	`, inRouteIDs, inAgencyIDs)
 
 	// Added
-	err = sqlx.Select(db, &addedIDs, q, now, routeID, ServiceAdded)
+	err = sqlx.Select(db, &addedIDs, q, now, ServiceAdded)
 	if err != nil {
-		log.Println("can't scan service ids", err, q, day, now, routeID, agencyIDs, ServiceAdded)
+		log.Println("can't scan service ids", err, q, day, now, routeIDs, agencyIDs, ServiceAdded)
 		return
 	}
 
 	// Removed
-	err = sqlx.Select(db, &removedIDs, q, now, routeID, ServiceRemoved)
+	err = sqlx.Select(db, &removedIDs, q, now, ServiceRemoved)
 	if err != nil {
-		log.Println("can't scan service ids", err, q, day, now, routeID, agencyIDs, ServiceRemoved)
+		log.Println("can't scan service ids", err, q, day, now, routeIDs, agencyIDs, ServiceRemoved)
 		return
 	}
 
 	for _, v := range removedIDs {
-		removed[v] = true
+		removed[v.uniqueID()] = true
 	}
 
 	for _, v := range normalIDs {
-		if !removed[v] {
+		if !removed[v.uniqueID()] {
 			serviceIDs = append(serviceIDs, v)
 		}
 	}
 
 	for _, v := range addedIDs {
-		if !removed[v] {
+		if !removed[v.uniqueID()] {
 			serviceIDs = append(serviceIDs, v)
 		}
+	}
+
+	for _, v := range serviceIDs {
+		relevant[v.uniqueID()] = append(relevant[v.uniqueID()], v.ServiceID)
 	}
 
 	return
