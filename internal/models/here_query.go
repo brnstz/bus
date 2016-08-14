@@ -217,14 +217,7 @@ func NewHereQuery(lat, lon, swlat, swlon, nelat, nelon float64, routeTypes []int
 		TomorrowRelevantIDs:   tomorrowRelevantIDs,
 	}
 
-	hq.LineString = fmt.Sprintf(
-		`LINESTRING(%f %f, %f %f, %f %f, %f %f, %f %f)`,
-		hq.SWLat, hq.SWLon,
-		hq.SWLat, hq.NELon,
-		hq.NELat, hq.NELon,
-		hq.NELat, hq.SWLon,
-		hq.SWLat, hq.SWLon,
-	)
+	hq.LineString = etc.BoundsToLinestring(hq.SWLat, hq.SWLon, hq.NELat, hq.NELon)
 
 	hq.PointString = fmt.Sprintf(
 		`POINT(%f %f)`,

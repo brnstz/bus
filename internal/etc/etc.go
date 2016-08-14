@@ -248,3 +248,15 @@ func Bearing(lat1, lon1, lat2, lon2 float64) float64 {
 
 	return math.Atan2(y, x) * deg
 }
+
+// BoundsToLineString takes incoming sw/ne coords and creates a PG linestring
+func BoundsToLineString(swlat, swlon, nelat, nelon float64) string {
+	return fmt.Sprintf(
+		`LINESTRING(%f %f, %f %f, %f %f, %f %f, %f %f)`,
+		swlat, swlon,
+		swlat, nelon,
+		nelat, nelon,
+		nelat, swlon,
+		swlat, swlon,
+	)
+}

@@ -639,7 +639,15 @@ Bus.prototype.updateRoutes = function() {
 Bus.prototype.getInitialRoutes = function() {
     var self = this;
 
-    var url = '/api/routes';
+    var bounds = self.map.getBounds();
+    var sw = bounds.getSouthWest();
+    var ne = bounds.getNorthEast();
+
+    var url = '/api/routes' +
+        '?sw_lat=' + encodeURIComponent(sw.lat) +
+        '&sw_lon=' + encodeURIComponent(sw.lng) +
+        '&ne_lat=' + encodeURIComponent(ne.lat) +
+        '&ne_lon=' + encodeURIComponent(ne.lng);
 
     $.ajax(url, {
         dataType: "json",

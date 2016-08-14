@@ -1,26 +1,22 @@
 package api
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 
-	"github.com/brnstz/bus/internal/conf"
-	"github.com/brnstz/bus/internal/etc"
 	"github.com/brnstz/bus/internal/models"
-)
-
-// FIXME: this is a temporary hack that will only work with one city
-
-var (
-	routeCache []byte
 )
 
 type routesResp struct {
 	Routes []*models.Route `json:"routes"`
 }
 
-func InitRouteCache() error {
+/*
+var (
+	routeCache []byte
+)
+
+func InitRouteCache(agencyIDs []string) error {
 	// getAll subway/train routes so we can pre-render them. Including
 	// buses would be too much
 	routes, err := models.GetPreloadRoutes(etc.DBConn, conf.Partner.AgencyIDs)
@@ -42,9 +38,44 @@ func InitRouteCache() error {
 	routeCache = b
 	return nil
 }
+*/
+
+func GetRouteCache(regionID string) error {
+
+}
 
 func getRoutes(w http.ResponseWriter, r *http.Request) {
 	var err error
+
+	swlat, err := floatOrDie(r.FormValue("sw_lat"))
+	if err != nil {
+		apiErr(w, err)
+		return
+	}
+
+	swlon, err := floatOrDie(r.FormValue("sw_lon"))
+	if err != nil {
+		apiErr(w, err)
+		return
+	}
+
+	nelat, err := floatOrDie(r.FormValue("ne_lat"))
+	if err != nil {
+		apiErr(w, err)
+		return
+	}
+
+	nelon, err := floatOrDie(r.FormValue("ne_lon"))
+	if err != nil {
+		apiErr(w, err)
+		return
+	}
+
+	regionIDs, err := models.GetRegions(swlat, swlon, nelat, nelon)
+
+	for _, v := range regionIDs {
+
+	}
 
 	if len(routeCache) < 0 {
 		log.Println("routeCache should be initialized before API is started")
