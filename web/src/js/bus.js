@@ -523,7 +523,8 @@ Bus.prototype.clickHandler = function(stop) {
                     self.clickedTripLayer.addLayer(lines[i]);
                 }
 
-                // First stop goes on the clicked trip layer (so we always see it)
+                // First stop goes on the clicked trip layer (so we always see
+                // it)
                 if (stops.length > 0) {
                     self.clickedTripLayer.addLayer(stops[0]);
                 }
@@ -604,10 +605,12 @@ Bus.prototype.updateStops = function() {
     }
 
     // Set first result to current stop if none selected
+    /* FIXME
     if (self.current_stop == null && self.stopList.length > 0) {
         var row = self.rows[self.stopList[0].api.unique_id];
         $(row).trigger("click");
     }
+    */
 
     if (self.stopList.length === 0) {
         $(tbody).append(self.createEmptyRow());
