@@ -84,23 +84,20 @@ type HereQuery struct {
 	YesterdaySecDiff       int
 	YesterdayDepartureBase time.Time
 	YesterdayServiceIDs    []string
-	//YesterdayServiceIDMap    map[string]bool
-	YesterdayRelevantIDs map[string]bool
+	YesterdayRelevantIDs   map[string]bool
 
 	TodayDepartureMin  int
 	TodayDepartureMax  int
 	TodayDepartureBase time.Time
 	TodayServiceIDs    []string
-	//TodayServiceIDMap    map[string]bool
-	TodayRelevantIDs map[string]bool
+	TodayRelevantIDs   map[string]bool
 
 	TomorrowDepartureMin  int
 	TomorrowDepartureMax  int
 	TomorrowSecDiff       int
 	TomorrowDepartureBase time.Time
 	TomorrowServiceIDs    []string
-	//TomorrowServiceIDMap  map[string]bool
-	TomorrowRelevantIDs map[string]bool
+	TomorrowRelevantIDs   map[string]bool
 
 	Limit int `db:"limit"`
 
@@ -239,23 +236,6 @@ func NewHereQuery(lat, lon, swlat, swlon, nelat, nelon float64, routeTypes []int
 	}
 
 	hq.Query = hq.Query + hereOrderLimit
-
-	/*
-		hq.YesterdayServiceIDMap = map[string]bool{}
-		for _, k := range hq.YesterdayServiceIDs {
-			hq.YesterdayServiceIDMap[k] = true
-		}
-
-		hq.TodayServiceIDMap = map[string]bool{}
-		for _, k := range hq.TodayServiceIDs {
-			hq.TodayServiceIDMap[k] = true
-		}
-
-		hq.TomorrowServiceIDMap = map[string]bool{}
-		for _, k := range hq.TomorrowServiceIDs {
-			hq.TomorrowServiceIDMap[k] = true
-		}
-	*/
 
 	return
 }
