@@ -36,6 +36,8 @@ const (
 			route_type,
 			route_color,
 			route_text_color,
+			route_short_name, 
+			route_long_name,
 
 			trip_headsign,
 

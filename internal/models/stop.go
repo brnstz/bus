@@ -36,6 +36,12 @@ type Stop struct {
 	RouteTypeName  string `json:"route_type_name" db:"-" upsert:"omit"`
 	RouteColor     string `json:"route_color" db:"-" upsert:"omit"`
 	RouteTextColor string `json:"route_text_color" db:"-" upsert:"omit"`
+	RouteShortName string `json:"route_short_name" db:"-" upsert:"omit"`
+	RouteLongName  string `json:"route_long_name" db:"-" upsert:"omit"`
+
+	// DisplayName is
+	DisplayName  string `json:"display_name" db:"-" upsert:"omit"`
+	TripHeadsign string `json:"trip_headsign" db:"-" upsert:"omit"`
 
 	Seq int `json:"seq" db:"stop_sequence" upsert:"omit"`
 
@@ -44,11 +50,44 @@ type Stop struct {
 	Vehicles   []Vehicle    `json:"vehicles,omitempty" db:"-" upsert:"omit"`
 }
 
+func (s *Stop) displayName() (string, error) {
+
+	prefOrder := []string{s.RouteShortName, s.RouteLongName, s.RouteID}
+
+	switch s.AgencyID {
+
+	// Long Island and Metro North naturally view routes as their headsign
+	// as a special case
+	case "LI", "MTA MNR":
+		return s.TripHeadsign, nil
+
+	// Otherwise, first look for a short route name, then use the long route
+	// name and finally fall back to id
+	default:
+
+		for _, v := range prefOrder {
+			if len(v) > 0 {
+				return v, nil
+			}
+		}
+	}
+
+	return "", fmt.Errorf("no possible display name for %v", s)
+}
+
 func (s *Stop) Initialize() error {
+	var err error
+
 	s.UniqueID = s.AgencyID + "|" + s.RouteID + "|" + s.StopID + "|" + strconv.Itoa(s.DirectionID)
 
 	// If there is a route type defined, then load its name. Ignore errors.
 	s.RouteTypeName = routeTypeString[s.RouteType]
+
+	s.DisplayName, err = s.displayName()
+	if err != nil {
+		log.Println(err)
+		return err
+	}
 
 	return nil
 }
