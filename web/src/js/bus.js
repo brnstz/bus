@@ -366,7 +366,7 @@ Bus.prototype.createRow = function(stop, i) {
 
 
     var datatd = $("<td>");
-    var headsign = $('<span class="headsign">' + stop.api.headsign + '</span>');
+    var headsign = $('<span class="headsign">' + stop.api.trip_headsign + '</span>');
     var departures = $('<span><br>' + stop.departures + '</span>');
     $(row).append(routeID);
     $(datatd).append(headsign);
