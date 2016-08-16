@@ -54,7 +54,6 @@ type HereResult struct {
 }
 
 func (h *HereResult) createStop() (stop *Stop, err error) {
-	log.Println("here i am", h.RouteShortName, h.RouteLongName)
 
 	stop = &Stop{
 		StopID:      h.StopID,
@@ -165,9 +164,6 @@ func (h *HereResult) createDepartures() (departures []*Departure, err error) {
 	}
 
 	for i := range departureSecs {
-		if h.RouteID == "M15" {
-			log.Println(h.ServiceID)
-		}
 		relID := h.AgencyID + "|" + h.RouteID + "|" + h.ServiceID
 
 		departureSec, err = strconv.Atoi(strings.TrimSpace(departureSecs[i]))
@@ -283,10 +279,10 @@ func GetHereResults(db sqlx.Ext, hq *HereQuery) (stops []*Stop, stopRoutes map[s
 
 		for _, departure := range here.Departures {
 
-			routeDir := fmt.Sprintf("%v|%v", here.Route.UniqueID, here.Stop.DirectionID)
+			routeHead := fmt.Sprintf("%v|%v", here.Route.UniqueID, here.Stop.TripHeadsign)
 
 			_, stopExists := sm[here.Stop.UniqueID]
-			_, routeExists := rm[routeDir]
+			_, routeExists := rm[routeHead]
 
 			// Ignore when the route / direction already exists, but stop is not
 			// the same
@@ -299,7 +295,7 @@ func GetHereResults(db sqlx.Ext, hq *HereQuery) (stops []*Stop, stopRoutes map[s
 				sm[here.Stop.UniqueID] = here.Stop
 			}
 			if !routeExists {
-				rm[routeDir] = here.Route
+				rm[routeHead] = here.Route
 			}
 
 			// Get the stop and append the current departure
