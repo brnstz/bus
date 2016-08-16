@@ -3,10 +3,9 @@ function StopGroups(stops) {
 
     self.stops = stops;
     self.groups = {};
+    self.keys = [];
 
     self.createGroups();
-
-    console.log(self.groups);
 }
 
 StopGroups.prototype.addToGroup = function(stop) {
@@ -20,11 +19,42 @@ StopGroups.prototype.addToGroup = function(stop) {
             route_color: stop.api.route_color,
             route_text_color: stop.api.route_text_color,
             stops: [stop],
+            compass_dir: stop.api.departures[0].compass_dir
         };
+
+        // Add it to ordered list of keys
+        self.keys.push(key);
+
     } else {
         // Otherwise just append
         self.groups[key].stops.push(stop);
     }
+};
+
+StopGroups.prototype.init = function(sg) {
+    var self = this;
+    var display_names = {};
+    var min_departure = null;
+    var now = new Date();
+
+    for (var i = 0; i < sg.stops.length; i++) {
+        var stop = sg.stops[i];
+
+        // Record all route display names
+        display_names[stop.api.display_name] = true;
+
+        // Get the first departure
+        var t = new Date(stop.api.departures[0].time);
+        if (min_departure == null) {
+            min_departure = t;
+        } else if (t < min_departure) {
+            min_departure = t;
+        }
+    };
+
+    sg.display_names = Object.keys(display_names).join(", ");
+    sg.stop_name = sg.stops[0].api.stop_name;
+    sg.min_departure = min_departure;
 };
 
 StopGroups.prototype.createGroups = function() {
@@ -37,8 +67,15 @@ StopGroups.prototype.createGroups = function() {
     //  }
     // 
     for (var i = 0; i < self.stops.length; i++) {
-        console.log("yup", self.stops[i]);
         self.addToGroup(self.stops[i]);
+    }
+
+    // Put any finishing touches on the final groups
+    for (var i = 0; i < self.keys.length; i++) {
+        var key = self.keys[i];
+        var sg = self.groups[key];
+
+        self.init(sg);
     }
 };
 

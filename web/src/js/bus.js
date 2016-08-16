@@ -1,13 +1,13 @@
 // bus is our controller for the bus application. It handles drawing to the
 // screen and managing objects.
-var bus = new Bus();
+var StopGroups = require("./stop_groups.js");
 var util = require("./util.js");
 var Stop = require("./stop.js");
 var Route = require("./route.js");
 var Trip = require("./trip.js");
 var LayerZoom = require("./layer_zoom.js");
-var StopGroups = require("./stop_groups.js");
 var isMobile = require("ismobilejs");
+var bus = new Bus();
 
 var youAreHere = L.icon({
     iconUrl: 'img/here_blue3.svg',
@@ -55,9 +55,8 @@ function Bus() {
     self.maxZoom = 17;
     self.minZoom = 8;
 
-    // JSON-encoded Bloom filter (of routes that we have loaded) as 
-    // returned by "here" API. Send this back to each "here" request
-    // for an update.
+    // JSON-encoded Bloom filter (of routes that we have loaded) as returned by
+    // "here" API. Send this back to each "here" request for an update.
     self.filter = '';
 
     // tileURL is passed to Leaflet JS for drawing the map
@@ -94,9 +93,14 @@ function Bus() {
     // map is our Leaflet JS map object
     self.map = null;
 
-    // stopList is the list of results in the order returned by the API 
-    // (i.e., distance from location)
-    self.stopList = [];
+    // FIXME: we should use only topgroups
+    // stopList is the list of results in the order returned by the
+    // API (i.e., distance from location)
+    //self.stopList = [];
+
+    // stop groups is a mapping of unique ids that groups
+    // stops together (e.g., NQR going nw)
+    self.stopGroups = new StopGroups([]);
 
     // routes is a mapping from route's unique id to route object
     self.routes = {};
@@ -128,9 +132,10 @@ function Bus() {
     // Bus route shapes
     self.busRouteLayer = L.featureGroup();
 
-    // layerZooms is a list of LayerZoom objects for each layer on our map.
-    // Layers will also be brought to front in order, so "back" layers should
-    // go toward the beginning of the list and "front" layers toward the end.
+    // layerZooms is a list of LayerZoom objects for each layer on our
+    // map. Layers will also be brought to front in order, so "back"
+    // layers should go toward the beginning of the list and "front"
+    // layers toward the end.
     self.layerZooms = [];
 
     // true while updating
@@ -143,8 +148,8 @@ function Bus() {
     // The current inflight "here" req if any.
     self.here_req = null;
 
-    // Increment the request id so we don't display results for oudated
-    // requests.
+    // Increment the request id so we don't display results for
+    // oudated requests.
     self.here_req_id = 0;
 }
 
@@ -294,20 +299,21 @@ Bus.prototype.geolocate = function() {
 // stops and routes
 Bus.prototype.parseHere = function(data) {
     var self = this;
+    var stoplist = [];
 
     if (data.stops) {
-        // Reset list of stops
-        self.stopList = [];
 
         // Create a stop object for each result and save to our list
         for (var i = 0; i < data.stops.length; i++) {
             var s = new Stop(data.stops[i]);
-            self.stopList[i] = s;
+            stoplist[i] = s;
         }
 
-        var sg = new StopGroups(self.stopList);
+        self.stopGroups = new StopGroups(stoplist);
+
     } else {
-        self.stopList = [];
+        self.stopGroups = new StopGroups([]);
+
     }
 
     if (data.routes) {
@@ -329,13 +335,39 @@ Bus.prototype.parseHere = function(data) {
     }
 };
 
+Bus.prototype.createGroupRow = function(sg) {
+    var self = this;
+    var now = new Date();
+    var mins = parseInt((sg.min_departure - now) / 1000 / 60)
+
+    var cellCSS = {
+        "color": sg.route_text_color,
+        "background-color": sg.route_color,
+    }
+
+    var row = $("<tr>");
+    $(row).css(cellCSS);
+
+    var td1 = $("<td class='rowroute'>" + "<img src='img/compass_plain.svg' style='transform: rotate(" + sg.compass_dir + "deg);' width=20 height=20></td>");
+    var td2 = $("<td class='rowroute'>" + sg.display_names + "</td>");
+    var td3 = $("<td class='rowroute'>" + sg.stop_name + "</td>");
+    var td4 = $("<td class='rowroute'>" + mins + " min</td>");
+
+    $(row).append(td1);
+    $(row).append(td2);
+    $(row).append(td3);
+    $(row).append(td4);
+
+    return row;
+};
+
 // createRow creates a results row for this stop
 Bus.prototype.createRow = function(stop, i) {
     var self = this;
 
     var route = self.routes[stop.api.agency_id + "|" + stop.api.route_id];
+    var opacity;
 
-    var opacity = 0;
     if (self.current_stop && stop.api.unique_id == self.current_stop.api.unique_id) {
         opacity = stop.table_fg_opacity;
     } else {
@@ -406,8 +438,8 @@ Bus.prototype.createEmptyRow = function() {
     return row;
 };
 
-// getRoute returns a promise to get a route when it was a false positive
-// in the bloom filter
+// getRoute returns a promise to get a route when it was a false positive in
+// the bloom filter
 Bus.prototype.getRoute = function(agency_id, route_id) {
     var self = this;
 
@@ -578,6 +610,15 @@ Bus.prototype.updateStops = function() {
     var tbody = $("<tbody>");
     var results = $("#results");
 
+    for (var i = 0; i < self.stopGroups.keys.length; i++) {
+        var key = self.stopGroups.keys[i];
+        var sg = self.stopGroups.groups[key];
+        var row = self.createGroupRow(sg);
+        $(tbody).append(row);
+    }
+
+    /* 
+     // FIXME: This is how we used to draw rows
     // If there's a current stop, show it first
     if (self.current_stop != null) {
         self.stopList.unshift(self.current_stop);
@@ -603,18 +644,19 @@ Bus.prototype.updateStops = function() {
         var handler = self.clickHandler(stop);
         $(row).click(handler);
     }
+    */
 
     // Set first result to current stop if none selected
-    /* FIXME
+    /* FIXME: this is how we used to click the first result
     if (self.current_stop == null && self.stopList.length > 0) {
         var row = self.rows[self.stopList[0].api.unique_id];
         $(row).trigger("click");
     }
-    */
 
     if (self.stopList.length === 0) {
         $(tbody).append(self.createEmptyRow());
     }
+    */
 
     // Destroy and recreate results
     $(table).append(tbody);
