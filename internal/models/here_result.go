@@ -42,6 +42,8 @@ type HereResult struct {
 	RouteType      int    `db:"route_type"`
 	RouteColor     string `db:"route_color"`
 	RouteTextColor string `db:"route_text_color"`
+	RouteShortName string `db:"route_short_name"`
+	RouteLongName  string `db:"route_long_name"`
 
 	HQ *HereQuery
 
@@ -52,6 +54,8 @@ type HereResult struct {
 }
 
 func (h *HereResult) createStop() (stop *Stop, err error) {
+	log.Println("here i am", h.RouteShortName, h.RouteLongName)
+
 	stop = &Stop{
 		StopID:      h.StopID,
 		RouteID:     h.RouteID,
@@ -67,8 +71,9 @@ func (h *HereResult) createStop() (stop *Stop, err error) {
 		RouteColor:     h.RouteColor,
 		RouteTextColor: h.RouteTextColor,
 
-		// FIXME: is seq even needed?
-		//Seq: h.StopSequence,
+		RouteShortName: h.RouteShortName,
+		RouteLongName:  h.RouteLongName,
+		TripHeadsign:   h.TripHeadsign,
 	}
 	err = stop.Initialize()
 	if err != nil {
