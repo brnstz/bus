@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"net/url"
 	"path"
 	"strconv"
 
@@ -57,7 +58,13 @@ func NewHandler() http.Handler {
 }
 
 func getIndex(w http.ResponseWriter, r *http.Request) {
-	switch r.RequestURI {
+	u, err := url.Parse(r.RequestURI)
+	if err != nil {
+		apiErr(w, err)
+		return
+	}
+
+	switch u.Path {
 	case "/", "/index.html":
 
 	default:
