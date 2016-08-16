@@ -6,6 +6,7 @@ var Stop = require("./stop.js");
 var Route = require("./route.js");
 var Trip = require("./trip.js");
 var LayerZoom = require("./layer_zoom.js");
+var StopGroups = require("./stop_groups.js");
 var isMobile = require("ismobilejs");
 
 var youAreHere = L.icon({
@@ -26,7 +27,6 @@ var homeControl = L.Control.extend({
 
 function Bus() {
     var self = this;
-
 
     // When at a close zoom level, we don't use a route type filter
     var nofilter = [];
@@ -304,6 +304,8 @@ Bus.prototype.parseHere = function(data) {
             var s = new Stop(data.stops[i]);
             self.stopList[i] = s;
         }
+
+        var sg = new StopGroups(self.stopList);
     } else {
         self.stopList = [];
     }

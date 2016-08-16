@@ -38,9 +38,9 @@ type Stop struct {
 	RouteShortName string `json:"route_short_name" db:"-" upsert:"omit"`
 	RouteLongName  string `json:"route_long_name" db:"-" upsert:"omit"`
 
-	// DisplayName is
-	DisplayName  string `json:"display_name" db:"-" upsert:"omit"`
-	TripHeadsign string `json:"trip_headsign" db:"-" upsert:"omit"`
+	DisplayName   string `json:"display_name" db:"-" upsert:"omit"`
+	GroupExtraKey string `json:"group_extra_key" db:"-" upsert:"omit"`
+	TripHeadsign  string `json:"trip_headsign" db:"-" upsert:"omit"`
 
 	Seq int `json:"seq" db:"stop_sequence" upsert:"omit"`
 
@@ -49,34 +49,41 @@ type Stop struct {
 	Vehicles   []Vehicle    `json:"vehicles,omitempty" db:"-" upsert:"omit"`
 }
 
-func (s *Stop) displayName() (string, error) {
-
-	prefOrder := []string{s.RouteShortName, s.RouteLongName, s.RouteID}
-	for _, v := range prefOrder {
-		if len(v) > 0 {
-			return v, nil
-		}
-	}
-
+func (s *Stop) groupExtraKey() (string, error) {
 	/*
+		Theoretically it would be cool to join trains coming in from suburbs
+		toward Penn Station at places like Secaucus where different routes
+		join, but for another time...
 		switch s.AgencyID {
+
+		case "NJT":
+			if s.DirectionID == 0 {
+				return s.TripHeadsign
+			} else {
+				return s.RouteColor
+			}
 
 		// Long Island and Metro North naturally view routes as their headsign
 		// as a special case
 		case "LI", "MTA MNR":
 			return s.TripHeadsign, nil
 
-		// Otherwise, first look for a short route name, then use the long route
-		// name and finally fall back to id
-		default:
-
-			for _, v := range prefOrder {
-				if len(v) > 0 {
-					return v, nil
-				}
-			}
 		}
 	*/
+
+	return s.RouteColor, nil
+}
+
+func (s *Stop) displayName() (string, error) {
+
+	// First look for a short route name, then use the long route
+	// name and finally fall back to id
+	prefOrder := []string{s.RouteShortName, s.RouteLongName, s.RouteID}
+	for _, v := range prefOrder {
+		if len(v) > 0 {
+			return v, nil
+		}
+	}
 
 	return "", fmt.Errorf("no possible display name for %v", s)
 }
@@ -90,6 +97,12 @@ func (s *Stop) Initialize() error {
 	s.RouteTypeName = routeTypeString[s.RouteType]
 
 	s.DisplayName, err = s.displayName()
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	s.GroupExtraKey, err = s.groupExtraKey()
 	if err != nil {
 		log.Println(err)
 		return err

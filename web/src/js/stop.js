@@ -35,7 +35,8 @@ function Stop(api) {
     // and add any other info we want as a sibling data piece.
     self.api = api;
 
-    self.id = self.api.agency_id + "|" + self.api.route_id + "|" + self.api.stop_id;
+    // FIXME: I think this is both wrong and unnecessary
+    // self.id = self.api.agency_id + "|" + self.api.route_id + "|" + self.api.stop_id;
 
     self.map_fg_opacity = 1.0;
 
