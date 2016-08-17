@@ -9,11 +9,6 @@ body {
     margin: 0 auto;
 }
 
-.headsign { 
-    font-size: 10px;
-    font-weight: bold;
-}
-
 table.results {
     width: 100%;
     table-layout: fixed;
@@ -22,16 +17,6 @@ table.results {
 table.results td {
     height: 40px;
     padding-left: 10px;
-}
-
-tr.stoprow td.pad {
-    background-color: '#ffffff'
-}
-
-tr.stoprow td {
-    /*padding-left: 30px; */
-    overflow: hidden;
-    white-space: nowrap;
 }
 
 #results {
@@ -58,9 +43,34 @@ tr.stoprow td {
     margin-bottom: 5px;
 }
 
-.stop {
-
+/* the actual stop */
+tr.stoprow td {
+    font-size: 12px;
+    overflow: hidden;
+    white-space: nowrap;
 }
+
+tr.stoprow span.headsign {
+    font-size: 14px;
+}
+
+tr.stoprow_selected {
+    opacity: 0.9
+}
+
+tr.stoprow_unselected {
+    opacity: 0.8
+}
+
+/* the stop group */
+tr.stopgrouprow_selected {
+    opacity: 1.0
+}
+
+tr.stopgrouprow_unselected {
+    opacity: 1.0
+}
+
 
 .sgdir {
     width: 10%;
@@ -69,11 +79,11 @@ tr.stoprow td {
 }
 
 .routenames {
-    font-size: 14px;
+    font-size: 18px;
 }
 
 .stopname {
-    font-size: 10px;
+    font-size: 12px;
     text-transform: uppercase;
 }
 

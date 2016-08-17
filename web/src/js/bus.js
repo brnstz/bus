@@ -345,7 +345,7 @@ Bus.prototype.createGroupRow = function(sg) {
         "background-color": sg.route_color,
     }
 
-    var row = $("<tr>");
+    var row = $("<tr class='stopgrouprow_unselected'>");
     $(row).css(cellCSS);
 
     var td1 = $("<td class='sgdir'>" + "<img src='img/compass_plain.svg' style='transform: rotate(" + sg.compass_dir + "deg);' width=20 height=20></td>");
@@ -393,7 +393,7 @@ Bus.prototype.createRow = function(stop, i) {
     };
 
     // Create our row object
-    var row = $("<tr class='stoprow'>");
+    var row = $("<tr class='stoprow stoprow_unselected'>");
     $(row).css(cellCSS);
 
     var blank = $("<td>");
