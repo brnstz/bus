@@ -8,7 +8,7 @@ const (
 	midnightSecs = 86400
 
 	// maximum departures to return in a result
-	MaxDepartures = 5
+	MaxDepartures = 6
 )
 
 type Departure struct {

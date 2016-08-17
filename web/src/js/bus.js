@@ -354,12 +354,10 @@ Bus.prototype.createGroupRow = function(sg) {
         "<br>" +
         "<span class='stopname'>" + sg.stop_name + "</span>" +
         "</td>");
-    //var td3 = $("<td class='rowroute'>" + sg.stop_name + "</td>");
     var td4 = $("<td class='sgmin'>" + mins + " min</td>");
 
     $(row).append(td1);
     $(row).append(td2);
-    //$(row).append(td3);
     $(row).append(td4);
 
     return row;
@@ -369,46 +367,44 @@ Bus.prototype.createGroupRow = function(sg) {
 Bus.prototype.createRow = function(stop, i) {
     var self = this;
 
-    var route = self.routes[stop.api.agency_id + "|" + stop.api.route_id];
     var opacity;
 
+    /*
     if (self.current_stop && stop.api.unique_id == self.current_stop.api.unique_id) {
         opacity = stop.table_fg_opacity;
     } else {
         opacity = stop.table_bg_opacity;
     }
+    */
+
+    if (i == 0) {
+        opacity = 0.9;
+    } else {
+        opacity = 0.7;
+    }
 
     var cellCSS = {
-        "color": route.api.route_text_color,
-        "background-color": route.api.route_color,
+        "color": stop.api.route_text_color,
+        "background-color": stop.api.route_color,
+        // FIXME
         "opacity": opacity
+            //"color": '#000000',
+            //"background-color": '#ffffff'
     };
 
     // Create our row object
-    var row = $("<tr>");
+    var row = $("<tr class='stoprow'>");
     $(row).css(cellCSS);
 
-    // Create and append the cell containing the route identifier
-    // with colored background
-    var routeID = null;
-    /*
-    if (stop.live == true) {
-        routeID = $("<td class='rowroute'>" + stop.api.route_id + "<br><img src='img/radio1.svg' width=20 height=20></td>");
-    } else {
-        routeID = $("<td class='rowroute'>" + stop.api.route_id + "</td>");
-    }
-    */
-
-
-    routeID = $("<td class='rowroute'>" + stop.api.route_id + "<br><img src='img/compass_plain.svg' style='transform: rotate(" + stop.api.departures[0].compass_dir + "deg);' width=20 height=20></td>");
-
-
-    var datatd = $("<td>");
-    var headsign = $('<span class="headsign">' + stop.api.trip_headsign + '</span>');
+    var blank = $("<td>");
+    var datatd = $("<td colspan='2'>");
+    var headsign = $('<span class="headsign">' +
+        stop.api.trip_headsign +
+        '</span>');
     var departures = $('<span><br>' + stop.departures + '</span>');
-    $(row).append(routeID);
     $(datatd).append(headsign);
     $(datatd).append(departures);
+    $(row).append(blank);
     $(row).append(datatd);
 
     return row;
@@ -492,8 +488,6 @@ Bus.prototype.getTrip = function(agency_id, route_id, trip_id) {
 
     return promise;
 };
-
-
 
 // clickHandler highlights the marker and the row for this stop_id
 Bus.prototype.clickHandler = function(stop) {
@@ -614,53 +608,54 @@ Bus.prototype.updateStops = function() {
     var tbody = $("<tbody>");
     var results = $("#results");
 
-    for (var i = 0; i < self.stopGroups.keys.length; i++) {
-        var key = self.stopGroups.keys[i];
-        var sg = self.stopGroups.groups[key];
-        var row = self.createGroupRow(sg);
-        $(tbody).append(row);
-    }
-
-    /* 
-     // FIXME: This is how we used to draw rows
+    // FIXME: This is how we used to draw rows
     // If there's a current stop, show it first
+    /*
     if (self.current_stop != null) {
         self.stopList.unshift(self.current_stop);
     }
 
-    for (var i = 0; i < self.stopList.length; i++) {
-        // create the stop row and stops
-        stop = self.stopList[i];
-
-        // If the current stop shows up after first, then ignore it
-        if (i != 0 && self.current_stop && self.current_stop.api.unique_id == stop.api.unique_id) {
-            continue;
-        }
-
-        var row = self.createRow(stop, i);
-
-        // Put into row
-        self.rows[stop.api.unique_id] = row;
-
-        // Add to row display
-        $(tbody).append(row);
-
-        var handler = self.clickHandler(stop);
-        $(row).click(handler);
-    }
-    */
-
     // Set first result to current stop if none selected
-    /* FIXME: this is how we used to click the first result
     if (self.current_stop == null && self.stopList.length > 0) {
         var row = self.rows[self.stopList[0].api.unique_id];
         $(row).trigger("click");
     }
 
-    if (self.stopList.length === 0) {
+    // If the current stop shows up after first, then ignore it
+            if (i != 0 && self.current_stop && self.current_stop.api.unique_id == stop.api.unique_id) {
+                continue;
+            }
+
+
+    */
+
+    for (var i = 0; i < self.stopGroups.keys.length; i++) {
+        var key = self.stopGroups.keys[i];
+        var sg = self.stopGroups.groups[key];
+        var row = self.createGroupRow(sg);
+        $(tbody).append(row);
+
+        for (var j = 0; j < sg.stops.length && i < 1; j++) {
+            // create the stop row and stops
+            stop = sg.stops[j];
+
+            var row = self.createRow(stop, j);
+
+            // Put into row
+            self.rows[stop.api.unique_id] = row;
+
+            // Add to row display
+            $(tbody).append(row);
+
+            var handler = self.clickHandler(stop);
+            $(row).click(handler);
+        }
+    }
+
+
+    if (self.stopGroups.keys.length === 0) {
         $(tbody).append(self.createEmptyRow());
     }
-    */
 
     // Destroy and recreate results
     $(table).append(tbody);
