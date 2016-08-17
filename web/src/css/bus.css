@@ -24,6 +24,16 @@ table.results td {
     padding-left: 10px;
 }
 
+tr.stoprow td.pad {
+    background-color: '#ffffff'
+}
+
+tr.stoprow td {
+    /*padding-left: 30px; */
+    overflow: hidden;
+    white-space: nowrap;
+}
+
 #results {
     padding-top: 0.5vh;
     height: 49vh;
@@ -47,12 +57,13 @@ table.results td {
 #refresh {
     margin-bottom: 5px;
 }
-#rowroute {
-    vertical-align: middle;
+
+.stop {
+
 }
 
 .sgdir {
-    width: 25%;
+    width: 10%;
     overflow: hidden;
     white-space: nowrap;
 }
@@ -67,7 +78,7 @@ table.results td {
 }
 
 .sgroutes {
-    width: 50%; 
+    width: 65%; 
     overflow: hidden;
     white-space: nowrap;
     font-size: 8px;
