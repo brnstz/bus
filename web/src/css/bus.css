@@ -64,7 +64,7 @@ tr.stoprow_unselected {
 
 /* the stop group */
 tr.stopgrouprow_selected {
-    opacity: 1.0
+    opacity: 0.8
 }
 
 tr.stopgrouprow_unselected {
