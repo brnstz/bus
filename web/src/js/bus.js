@@ -488,28 +488,35 @@ Bus.prototype.groupClickHandler = function(sg) {
             var group_row = self.group_rows[this_key];
 
             if (this_sg == sg) {
+                // If this is the clicked sg, then set its css
+                // class to selected and toggle child elements
+
                 $(group_row).removeClass("stopgrouprow_unselected").addClass("stopgrouprow_selected");
-                for (var i = 0; i < sg.stops.length; i++) {
+                for (var j = 0; j < sg.stops.length; j++) {
                     // create the stop row and stops
-                    stop = sg.stops[i];
+                    stop = sg.stops[j];
 
                     var row = self.rows[stop.api.unique_id];
                     $(row).toggle();
 
-                    if (i == 0) {
+                    // FIXME: only do this on toggling on
+                    if (j == 0) {
                         $(row).trigger("click");
                     }
                 }
             } else {
+                // If this is not the clicked sg, then hide
                 $(group_row).removeClass("stopgrouprow_selected").addClass("stopgrouprow_unselected");
 
-                for (var i = 0; i < this_sg.stops.length; i++) {
+                /* this is visually confusing
+                for (var j = 0; j < this_sg.stops.length; j++) {
                     // create the stop row and stops
-                    stop = this_sg.stops[i];
+                    stop = this_sg.stops[j];
 
                     var row = self.rows[stop.api.unique_id];
                     $(row).hide();
                 }
+                */
             }
         }
 
