@@ -105,14 +105,18 @@ function Bus() {
     // routes is a mapping from route's unique id to route object
     self.routes = {};
 
-    // rows is stop ids mapped to rows in the results table
+    // rows is stop unique ids mapped to rows in the results table
     self.rows = {};
+
+    // group_rows is stopgroup key mapped to rows in results table 
+    self.group_rows = {};
 
     // trip is a mapping from trip's unique id to trip object
     self.trips = {};
 
     // current_stop is current stop that is clicked
     self.current_stop = null;
+    self.current_stop_group = null;
 
     // The current clicked trip
     self.clickedTripLayer = L.featureGroup();
@@ -364,32 +368,12 @@ Bus.prototype.createGroupRow = function(sg) {
 };
 
 // createRow creates a results row for this stop
-Bus.prototype.createRow = function(stop, i) {
+Bus.prototype.createRow = function(stop) {
     var self = this;
-
-    var opacity;
-
-    /*
-    if (self.current_stop && stop.api.unique_id == self.current_stop.api.unique_id) {
-        opacity = stop.table_fg_opacity;
-    } else {
-        opacity = stop.table_bg_opacity;
-    }
-    */
-
-    if (i == 0) {
-        opacity = 0.9;
-    } else {
-        opacity = 0.7;
-    }
 
     var cellCSS = {
         "color": stop.api.route_text_color,
         "background-color": stop.api.route_color,
-        // FIXME
-        "opacity": opacity
-            //"color": '#000000',
-            //"background-color": '#ffffff'
     };
 
     // Create our row object
@@ -404,8 +388,11 @@ Bus.prototype.createRow = function(stop, i) {
     var departures = $('<span><br>' + stop.departures + '</span>');
     $(datatd).append(headsign);
     $(datatd).append(departures);
+    $(row).hide();
+
     $(row).append(blank);
     $(row).append(datatd);
+
 
     return row;
 };
@@ -489,6 +476,46 @@ Bus.prototype.getTrip = function(agency_id, route_id, trip_id) {
     return promise;
 };
 
+Bus.prototype.groupClickHandler = function(sg) {
+    var self = this;
+
+    return function(e) {
+        self.current_stop_group = sg;
+
+        for (var i = 0; i < self.stopGroups.keys.length; i++) {
+            var this_key = self.stopGroups.keys[i];
+            var this_sg = self.stopGroups.groups[this_key];
+            var group_row = self.group_rows[this_key];
+
+            if (this_sg == sg) {
+                $(group_row).removeClass("stopgrouprow_unselected").addClass("stopgrouprow_selected");
+                for (var i = 0; i < sg.stops.length; i++) {
+                    // create the stop row and stops
+                    stop = sg.stops[i];
+
+                    var row = self.rows[stop.api.unique_id];
+                    $(row).toggle();
+
+                    if (i == 0) {
+                        $(row).trigger("click");
+                    }
+                }
+            } else {
+                $(group_row).removeClass("stopgrouprow_selected").addClass("stopgrouprow_unselected");
+
+                for (var i = 0; i < this_sg.stops.length; i++) {
+                    // create the stop row and stops
+                    stop = this_sg.stops[i];
+
+                    var row = self.rows[stop.api.unique_id];
+                    $(row).hide();
+                }
+            }
+        }
+
+    };
+}
+
 // clickHandler highlights the marker and the row for this stop_id
 Bus.prototype.clickHandler = function(stop) {
     var self = this;
@@ -496,14 +523,13 @@ Bus.prototype.clickHandler = function(stop) {
     return function(e) {
 
         if (self.current_stop && self.current_stop.api.unique_id == stop.api.unique_id) {
+            // FIXME: do we want to do this?
             // If it's the current stop, then just recenter
-            self.map.setView([stop.api.lat, stop.api.lon]);
+            //self.map.setView([stop.api.lat, stop.api.lon]);
             return;
 
         } else if (self.current_stop) {
-            $(self.rows[self.current_stop.api.unique_id]).css({
-                "opacity": self.current_stop.table_bg_opacity
-            });
+            $(self.rows[self.current_stop.api.unique_id]).removeClass("stoprow_selected").addClass("stoprow_unselected");
         }
 
         var route_promise;
@@ -536,9 +562,7 @@ Bus.prototype.clickHandler = function(stop) {
                 var labels = sl[1];
                 var lines = trip.createLines(stop.api, route.api);
                 var vehicles = stop.createVehicles(route.api);
-                $(row).css({
-                    "opacity": stop.table_fg_opacity
-                });
+                $(row).addClass("stoprow_selected").removeClass("stoprow_unselected");
 
                 // Clear previous layer elements
                 self.clickedTripLayer.clearLayers();
@@ -632,14 +656,20 @@ Bus.prototype.updateStops = function() {
     for (var i = 0; i < self.stopGroups.keys.length; i++) {
         var key = self.stopGroups.keys[i];
         var sg = self.stopGroups.groups[key];
-        var row = self.createGroupRow(sg);
-        $(tbody).append(row);
+        var group_row = self.createGroupRow(sg);
 
-        for (var j = 0; j < sg.stops.length && i < 1; j++) {
+        self.group_rows[key] = group_row;
+
+        $(tbody).append(group_row);
+
+        var group_handler = self.groupClickHandler(sg);
+        $(group_row).click(group_handler);
+
+        for (var j = 0; j < sg.stops.length; j++) {
             // create the stop row and stops
             stop = sg.stops[j];
 
-            var row = self.createRow(stop, j);
+            var row = self.createRow(stop);
 
             // Put into row
             self.rows[stop.api.unique_id] = row;
@@ -652,7 +682,7 @@ Bus.prototype.updateStops = function() {
         }
     }
 
-
+    // If it's empty then add the empty row
     if (self.stopGroups.keys.length === 0) {
         $(tbody).append(self.createEmptyRow());
     }

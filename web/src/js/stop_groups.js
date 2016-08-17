@@ -1,6 +1,9 @@
 function StopGroups(stops) {
     var self = this;
 
+    // allow for 8 possible directions
+    self.roundfactor = 360 / 8;
+
     self.stops = stops;
     self.groups = {};
     self.keys = [];
@@ -11,7 +14,9 @@ function StopGroups(stops) {
 StopGroups.prototype.addToGroup = function(stop) {
     var self = this;
 
-    var key = stop.api.agency_id + "|" + stop.api.stop_id + "|" + stop.api.departures[0].compass_dir + "|" + stop.api.group_extra_key;
+    var roundedCompass = Math.round(stop.api.departures[0].compass_dir / self.roundfactor) * self.roundfactor;
+
+    var key = stop.api.agency_id + "|" + stop.api.stop_id + "|" + roundedCompass + "|" + stop.api.group_extra_key;
 
     if (!self.groups[key]) {
         // If this is the first stop for this group, then create 
@@ -19,7 +24,7 @@ StopGroups.prototype.addToGroup = function(stop) {
             route_color: stop.api.route_color,
             route_text_color: stop.api.route_text_color,
             stops: [stop],
-            compass_dir: stop.api.departures[0].compass_dir
+            compass_dir: roundedCompass
         };
 
         // Add it to ordered list of keys
