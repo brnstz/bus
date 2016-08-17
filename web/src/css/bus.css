@@ -55,7 +55,7 @@ tr.stoprow span.headsign {
 }
 
 tr.stoprow_selected {
-    opacity: 0.9
+    opacity: 1.0
 }
 
 tr.stoprow_unselected {
@@ -68,9 +68,8 @@ tr.stopgrouprow_selected {
 }
 
 tr.stopgrouprow_unselected {
-    opacity: 1.0
+    opacity: 0.8
 }
-
 
 .sgdir {
     width: 10%;
