@@ -14,6 +14,16 @@ body {
     font-weight: bold;
 }
 
+table.results {
+    width: 100%;
+    table-layout: fixed;
+}
+
+table.results td {
+    height: 40px;
+    padding-left: 10px;
+}
+
 #results {
     padding-top: 0.5vh;
     height: 49vh;
@@ -39,6 +49,34 @@ body {
 }
 #rowroute {
     vertical-align: middle;
+}
+
+.sgdir {
+    width: 25%;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.routenames {
+    font-size: 14px;
+}
+
+.stopname {
+    font-size: 10px;
+    text-transform: uppercase;
+}
+
+.sgroutes {
+    width: 50%; 
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 8px;
+}
+
+.sgmin {
+    width: 25%;
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 #loading {

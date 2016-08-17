@@ -348,14 +348,18 @@ Bus.prototype.createGroupRow = function(sg) {
     var row = $("<tr>");
     $(row).css(cellCSS);
 
-    var td1 = $("<td class='rowroute'>" + "<img src='img/compass_plain.svg' style='transform: rotate(" + sg.compass_dir + "deg);' width=20 height=20></td>");
-    var td2 = $("<td class='rowroute'>" + sg.display_names + "</td>");
-    var td3 = $("<td class='rowroute'>" + sg.stop_name + "</td>");
-    var td4 = $("<td class='rowroute'>" + mins + " min</td>");
+    var td1 = $("<td class='sgdir'>" + "<img src='img/compass_plain.svg' style='transform: rotate(" + sg.compass_dir + "deg);' width=20 height=20></td>");
+    var td2 = $("<td class='sgroutes'>" +
+        "<span class='routenames'>" + sg.display_names + "</span>" +
+        "<br>" +
+        "<span class='stopname'>" + sg.stop_name + "</span>" +
+        "</td>");
+    //var td3 = $("<td class='rowroute'>" + sg.stop_name + "</td>");
+    var td4 = $("<td class='sgmin'>" + mins + " min</td>");
 
     $(row).append(td1);
     $(row).append(td2);
-    $(row).append(td3);
+    //$(row).append(td3);
     $(row).append(td4);
 
     return row;
@@ -606,7 +610,7 @@ Bus.prototype.updateStops = function() {
     }
 
     // Create new table
-    var table = $("<table class='table'>");
+    var table = $("<table class='results'>");
     var tbody = $("<tbody>");
     var results = $("#results");
 
