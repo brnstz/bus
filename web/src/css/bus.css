@@ -12,6 +12,7 @@ body {
 table.results {
     width: 100%;
     table-layout: fixed;
+    border-collapse: collapse;
 }
 
 table.results td {
@@ -52,33 +53,20 @@ tr.stoprow td {
     font-size: 12px;
     overflow: hidden;
     white-space: nowrap;
+
+    padding-top: 10px;
+    padding-bottom: 10px;
 }
 
 tr.stoprow span.headsign {
     font-size: 14px;
 }
 
-tr.stoprow_selected {
-   /* opacity: 1.0 */
-}
-
-tr.stoprow_unselected {
-   /* opacity: 1.0 */
-}
-
-/* the stop group */
-tr.stopgrouprow_selected {
-   /* opacity: 1.0 */
-}
-
-tr.stopgrouprow_unselected {
-   /* opacity: 1.0 */
-}
-
 .sgdir {
     width: 10%;
     overflow: hidden;
     white-space: nowrap;
+    margin: auto;
 }
 
 .routenames {
