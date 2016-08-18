@@ -19,6 +19,10 @@ table.results td {
     padding-left: 10px;
 }
 
+table.results tr {
+    margin: 5px;
+}
+
 #results {
     padding-top: 0.5vh;
     height: 49vh;
@@ -55,20 +59,20 @@ tr.stoprow span.headsign {
 }
 
 tr.stoprow_selected {
-    opacity: 1.0
+   /* opacity: 1.0 */
 }
 
 tr.stoprow_unselected {
-    opacity: 0.8
+   /* opacity: 1.0 */
 }
 
 /* the stop group */
 tr.stopgrouprow_selected {
-    opacity: 0.8
+   /* opacity: 1.0 */
 }
 
 tr.stopgrouprow_unselected {
-    opacity: 0.8
+   /* opacity: 1.0 */
 }
 
 .sgdir {

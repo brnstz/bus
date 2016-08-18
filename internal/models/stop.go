@@ -41,6 +41,7 @@ type Stop struct {
 
 	DisplayName      string `json:"display_name" db:"-" upsert:"omit"`
 	RouteAndHeadsign string `json:"route_and_headsign" db:"-" upsert:"omit"`
+	JustHeadsign     string `json:"just_headsign" db:"-" upsert:"omit"`
 	GroupExtraKey    string `json:"group_extra_key" db:"-" upsert:"omit"`
 	TripHeadsign     string `json:"trip_headsign" db:"-" upsert:"omit"`
 
@@ -88,6 +89,11 @@ func (s *Stop) routeAndHeadsign() (string, error) {
 	}
 }
 
+// justHeadsign shows just the headsign and arrow always
+func (s *Stop) justHeadsign() (string, error) {
+	return "➔ " + s.TripHeadsign, nil
+}
+
 func (s *Stop) displayName() (string, error) {
 
 	// Special case for SBS buses. This is mostly because I prefer
@@ -126,6 +132,12 @@ func (s *Stop) Initialize() error {
 	}
 
 	s.RouteAndHeadsign, err = s.routeAndHeadsign()
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	s.JustHeadsign, err = s.justHeadsign()
 	if err != nil {
 		log.Println(err)
 		return err

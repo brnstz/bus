@@ -60,6 +60,8 @@ StopGroups.prototype.init = function(sg) {
     sg.display_names = Object.keys(display_names).join(", ");
     sg.stop_name = sg.stops[0].api.stop_name;
     sg.min_departure = min_departure;
+
+    // FIXME: sort keys by min departure
 };
 
 StopGroups.prototype.createGroups = function() {
