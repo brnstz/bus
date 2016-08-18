@@ -350,7 +350,7 @@ Bus.prototype.createGroupRow = function(sg) {
     var cellCSS = {
         "color": sg.route_text_color,
         "background-color": sg.route_color,
-        "border-width": "4px",
+        "border-width": "5px",
         "border-style": "solid",
         "border-color": "#ffffff"
     }
@@ -391,7 +391,11 @@ Bus.prototype.createRow = function(stop, sg) {
 
     var cellCSS = {
         "color": stop.api.route_text_color,
-        "background-color": util.hexToRGBA(stop.api.route_color, self.bg_alpha)
+        "background-color": util.hexToRGBA(stop.api.route_color, self.bg_alpha),
+        "border-width": "5px",
+        "border-style": "solid",
+        "border-color": "#ffffff"
+
     };
 
     // Create our row object
