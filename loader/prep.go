@@ -27,6 +27,9 @@ func prepare(url, dir string) error {
 
 	case "https://www.njtransit.com/mt/mt_servlet.srv?hdnPageAction=MTDevResourceDownloadTo&Category=rail":
 		return njtrail(dir)
+
+	case "http://web.mta.info/developers/data/nyct/subway/google_transit.zip":
+		return mtasubway(dir)
 	}
 
 	return nil
@@ -374,4 +377,47 @@ func njtrail(dir string) error {
 
 	// Success!
 	return nil
+}
+
+// mtasubway changes the color of 6X to same color as 6
+func mtasubway(dir string) error {
+	rw, err := newRewrite(dir, "routes.txt")
+	if err != nil {
+		return err
+	}
+	defer rw.clean()
+
+	// Write header to the output file, unmodified
+	err = rw.w.Write(rw.header)
+	if err != nil {
+		return err
+	}
+
+	routeIdx := find(rw.header, "route_id")
+	routeColorIdx := find(rw.header, "route_color")
+
+	for {
+		// Read until EOF or error
+		rec, err := rw.r.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+
+		routeID := rec[routeIdx]
+
+		// 6X should be same color as 6
+		if routeID == "6X" {
+			rec[routeColorIdx] = "00933C"
+		}
+
+		err = rw.w.Write(rec)
+		if err != nil {
+			return err
+		}
+	}
+
+	return rw.finish()
 }
