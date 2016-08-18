@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/brnstz/bus/internal/etc"
 	"github.com/brnstz/upsert"
@@ -38,9 +39,10 @@ type Stop struct {
 	RouteShortName string `json:"route_short_name" db:"-" upsert:"omit"`
 	RouteLongName  string `json:"route_long_name" db:"-" upsert:"omit"`
 
-	DisplayName   string `json:"display_name" db:"-" upsert:"omit"`
-	GroupExtraKey string `json:"group_extra_key" db:"-" upsert:"omit"`
-	TripHeadsign  string `json:"trip_headsign" db:"-" upsert:"omit"`
+	DisplayName      string `json:"display_name" db:"-" upsert:"omit"`
+	RouteAndHeadsign string `json:"route_and_headsign" db:"-" upsert:"omit"`
+	GroupExtraKey    string `json:"group_extra_key" db:"-" upsert:"omit"`
+	TripHeadsign     string `json:"trip_headsign" db:"-" upsert:"omit"`
 
 	Seq int `json:"seq" db:"stop_sequence" upsert:"omit"`
 
@@ -74,7 +76,28 @@ func (s *Stop) groupExtraKey() (string, error) {
 	return s.RouteColor, nil
 }
 
+// routeAndHeadsign is shown on the actual stop like G -> COURT SQ. But for
+// things like LIRR we don't want the route. Just -> MONTAUK ➔ ➞  ➶
+func (s *Stop) routeAndHeadsign() (string, error) {
+	switch s.AgencyID {
+	case "MTA NYCT", "MTABC":
+		return s.DisplayName + " ➔ " + s.TripHeadsign, nil
+
+	default:
+		return "➔ " + s.TripHeadsign, nil
+	}
+}
+
 func (s *Stop) displayName() (string, error) {
+
+	// Special case for SBS buses. This is mostly because I prefer
+	// things like M15+ as opposed to M15-SBS
+	switch s.AgencyID {
+	case "MTA NYCT", "MTABC":
+		if strings.HasSuffix(s.RouteShortName, "-SBS") {
+			return s.RouteID, nil
+		}
+	}
 
 	// First look for a short route name, then use the long route
 	// name and finally fall back to id
@@ -97,6 +120,12 @@ func (s *Stop) Initialize() error {
 	s.RouteTypeName = routeTypeString[s.RouteType]
 
 	s.DisplayName, err = s.displayName()
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	s.RouteAndHeadsign, err = s.routeAndHeadsign()
 	if err != nil {
 		log.Println(err)
 		return err
