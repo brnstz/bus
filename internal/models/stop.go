@@ -71,8 +71,7 @@ func (s *Stop) groupExtraKey() (string, error) {
 		}
 	*/
 
-	//return s.RouteColor, nil
-	return "", nil
+	return s.RouteColor, nil
 }
 
 func (s *Stop) displayName() (string, error) {
