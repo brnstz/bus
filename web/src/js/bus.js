@@ -350,9 +350,12 @@ Bus.prototype.createGroupRow = function(sg) {
     var cellCSS = {
         "color": sg.route_text_color,
         "background-color": sg.route_color,
+        "border-width": "4px",
+        "border-style": "solid",
+        "border-color": "#ffffff"
     }
 
-    var row = $("<tr class='stopgrouprow_unselected'>");
+    var row = $("<tr class='stopgrouprow'>");
     $(row).css(cellCSS);
 
     var td1 = $("<td class='sgdir'>" + "<img src='img/compass_plain.svg' style='transform: rotate(" + sg.compass_dir + "deg);' width=20 height=20></td>");
@@ -390,10 +393,9 @@ Bus.prototype.createRow = function(stop, sg) {
         "color": stop.api.route_text_color,
         "background-color": util.hexToRGBA(stop.api.route_color, self.bg_alpha)
     };
-    console.log("css says", cellCSS);
 
     // Create our row object
-    var row = $("<tr class='stoprow stoprow_unselected'>");
+    var row = $("<tr class='stoprow'>");
     $(row).css(cellCSS);
 
     var blank = $("<td>");
@@ -496,6 +498,7 @@ Bus.prototype.groupClickHandler = function(sg) {
     var self = this;
 
     return function(e) {
+        var last_sg = self.current_stop_group;
         self.current_stop_group = sg;
 
         for (var i = 0; i < self.stopGroups.keys.length; i++) {
@@ -507,7 +510,6 @@ Bus.prototype.groupClickHandler = function(sg) {
                 // If this is the clicked sg, then set its css
                 // class to selected and toggle child elements
 
-                $(group_row).removeClass("stopgrouprow_unselected").addClass("stopgrouprow_selected");
                 for (var j = 0; j < sg.stops.length; j++) {
                     // create the stop row and stops
                     stop = sg.stops[j];
@@ -515,27 +517,22 @@ Bus.prototype.groupClickHandler = function(sg) {
                     var row = self.rows[stop.api.unique_id];
                     $(row).toggle();
 
-                    // FIXME: only do this on toggling on
-                    if (j == 0) {
-                        $(row).trigger("click");
+                    // If we're opening up the sg, then click its
+                    // first child
+                    if (last_sg != sg) {
+                        if (j == 0) {
+                            $(row).trigger("click");
+                        }
+                    };
+
+                    // If we just hid the currently clicked guy, then unselect
+                    // him
+                    if (($(row).css("display") == "none") && self.current_stop == stop) {
+                        self.current_stop = null;
                     }
                 }
-            } else {
-                // If this is not the clicked sg, then hide
-                $(group_row).removeClass("stopgrouprow_selected").addClass("stopgrouprow_unselected");
-
-                /* this is visually confusing
-                for (var j = 0; j < this_sg.stops.length; j++) {
-                    // create the stop row and stops
-                    stop = this_sg.stops[j];
-
-                    var row = self.rows[stop.api.unique_id];
-                    $(row).hide();
-                }
-                */
             }
         }
-
     };
 }
 
@@ -556,9 +553,7 @@ Bus.prototype.clickHandler = function(stop) {
                 "color": self.current_stop.api.route_text_color,
                 "background-color": util.hexToRGBA(self.current_stop.api.route_color, self.bg_alpha)
             };
-            console.log("css says here", cellCSS);
 
-            //$(self.rows[self.current_stop.api.unique_id]).removeClass("stoprow_selected").addClass("stoprow_unselected").css(cellCSS);
             $(self.rows[self.current_stop.api.unique_id]).css(cellCSS);
         }
 
@@ -598,9 +593,6 @@ Bus.prototype.clickHandler = function(stop) {
                 };
 
                 $(row).css(cellCSS);
-
-                //$(row).addClass("stoprow_selected").removeClass("stoprow_unselected").css(cellCSS);
-                //console.log("css says here 2", cellCSS);
 
                 // Clear previous layer elements
                 self.clickedTripLayer.clearLayers();
