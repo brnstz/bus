@@ -345,8 +345,8 @@ Bus.prototype.createGroupRow = function(sg) {
     var mins = parseInt((sg.min_departure - now) / 1000 / 60)
 
     var cellCSS = {
-        //   "color": sg.route_text_color,
-        //  "background-color": sg.route_color,
+        "color": sg.route_text_color,
+        "background-color": sg.route_color,
     }
 
     var row = $("<tr class='stopgrouprow_unselected'>");
