@@ -344,6 +344,7 @@ Bus.prototype.createGroupRow = function(sg) {
     var now = new Date();
     var mins = parseInt((sg.min_departure - now) / 1000 / 60)
 
+
     var cellCSS = {
         "color": sg.route_text_color,
         "background-color": sg.route_color,
@@ -358,7 +359,12 @@ Bus.prototype.createGroupRow = function(sg) {
         "<br>" +
         "<span class='stopname'>" + sg.stop_name + "</span>" +
         "</td>");
-    var td4 = $("<td class='sgmin'>" + mins + " min</td>");
+    var td4;
+    if (mins < 1) {
+        td4 = $("<td class='sgmin'>now</td>");
+    } else {
+        td4 = $("<td class='sgmin'>" + mins + " min</td>");
+    }
 
     $(row).append(td1);
     $(row).append(td2);
@@ -383,7 +389,7 @@ Bus.prototype.createRow = function(stop) {
     var blank = $("<td>");
     var datatd = $("<td colspan='2'>");
     var headsign = $('<span class="headsign">' +
-        stop.api.trip_headsign +
+        stop.api.route_and_headsign +
         '</span>');
     var departures = $('<span><br>' + stop.departures + '</span>');
     $(datatd).append(headsign);
