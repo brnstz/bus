@@ -157,6 +157,7 @@ function Bus() {
     self.here_req_id = 0;
 
     self.bg_alpha = 0.50;
+    self.fg_alpha = 0.90;
 }
 
 // init is run when the page initially loads
@@ -349,7 +350,7 @@ Bus.prototype.createGroupRow = function(sg) {
 
     var cellCSS = {
         "color": sg.route_text_color,
-        "background-color": sg.route_color,
+        "background-color": util.hexToRGBA(sg.route_color, self.bg_alpha),
         "border-width": "5px",
         "border-style": "solid",
         "border-color": "#ffffff"
@@ -427,7 +428,7 @@ Bus.prototype.createEmptyRow = function() {
     var cellCSS = {
         "color": "#222222",
         "background-color": "#ffffff",
-        "opacity": 1.0
+        "opacity": 1.0,
     };
 
     var row = $("<tr>");
@@ -498,46 +499,168 @@ Bus.prototype.getTrip = function(agency_id, route_id, trip_id) {
     return promise;
 };
 
+// do everything need to select a group
+Bus.prototype.groupSelect = function(sg) {
+    var self = this;
+
+    // Set the currently selected group
+    self.current_stop_group = sg;
+
+    var group_row = self.group_rows[sg.key];
+
+    var cellCSS = {
+        "color": sg.route_text_color,
+        "background-color": util.hexToRGBA(sg.route_color, self.fg_alpha)
+    };
+    $(group_row).css(cellCSS);
+
+    // Look at each stop
+    for (var i = 0; i < sg.stops.length; i++) {
+
+        // Get the stop and its row
+        var stop = sg.stops[i];
+        var row = self.rows[stop.api.unique_id];
+
+        // Show all stops for this group
+        $(row).show();
+
+        // And select the first stop
+        if (i == 0) {
+            self.stopSelect(stop);
+        }
+    }
+}
+
+Bus.prototype.groupUnselect = function(sg) {
+    var self = this;
+
+    // Set the currently selected group
+    self.current_stop_group = null;
+
+    // Look at each stop
+    for (var i = 0; i < sg.stops.length; i++) {
+
+        // Get the stop and its row
+        var stop = sg.stops[i];
+        var row = self.rows[stop.api.unique_id];
+
+        // Hide all stops for this group
+        $(row).hide();
+
+        if (self.current_stop == stop) {
+            self.stopUnselect(stop);
+        }
+    }
+};
+
 Bus.prototype.groupClickHandler = function(sg) {
     var self = this;
 
     return function(e) {
-        var last_sg = self.current_stop_group;
-        self.current_stop_group = sg;
-
-        for (var i = 0; i < self.stopGroups.keys.length; i++) {
-            var this_key = self.stopGroups.keys[i];
-            var this_sg = self.stopGroups.groups[this_key];
-            var group_row = self.group_rows[this_key];
-
-            if (this_sg == sg) {
-                // If this is the clicked sg, then set its css
-                // class to selected and toggle child elements
-
-                for (var j = 0; j < sg.stops.length; j++) {
-                    // create the stop row and stops
-                    stop = sg.stops[j];
-
-                    var row = self.rows[stop.api.unique_id];
-                    $(row).toggle();
-
-                    // If we're opening up the sg, then click its
-                    // first child
-                    if (last_sg != sg) {
-                        if (j == 0) {
-                            $(row).trigger("click");
-                        }
-                    };
-
-                    // If we just hid the currently clicked guy, then unselect
-                    // him
-                    if (($(row).css("display") == "none") && self.current_stop == stop) {
-                        self.current_stop = null;
-                    }
-                }
-            }
+        if (self.current_stop_group == sg) {
+            return self.groupUnselect(sg);
+        } else {
+            return self.groupSelect(sg);
         }
     };
+};
+
+Bus.prototype.stopSelect = function(stop) {
+    var self = this;
+
+    var route_promise;
+    var trip_promise;
+
+    if (!self.routes[stop.api.agency_id + "|" + stop.api.route_id]) {
+        console.log("getting route via promise", stop.api.agency_id, stop.api.route_id);
+        route_promise = self.getRoute(stop.api.agency_id, stop.api.route_id);
+    } else {
+        route_promise = $("<div>").promise();
+    }
+
+    if (!self.trips[stop.api.agency_id + "|" + stop.api.departures[0].trip_id]) {
+        console.log("getting trip via promise", stop.api.agency_id, stop.api.route_id, stop.api.departures[0].trip_id);
+
+        trip_promise = self.getTrip(stop.api.agency_id, stop.api.route_id, stop.api.departures[0].trip_id);
+    } else {
+        trip_promise = $("<div>").promise();
+    }
+
+    route_promise.done(function() {
+        trip_promise.done(function() {
+
+            var route = self.routes[stop.api.agency_id + "|" + stop.api.route_id];
+            var trip = self.trips[stop.api.agency_id + "|" + stop.api.departures[0].trip_id]
+            var row = self.rows[stop.api.unique_id];
+            var sl = trip.createStopsLabels(stop.api);
+            var stops = sl[0];
+            var labels = sl[1];
+            var lines = trip.createLines(stop.api, route.api);
+            var vehicles = stop.createVehicles(route.api);
+            var cellCSS = {
+                "color": stop.api.route_text_color,
+                "background-color": util.hexToRGBA(stop.api.route_color, self.fg_alpha)
+            };
+
+            $(row).css(cellCSS);
+
+            // Clear previous layer elements
+            self.clickedTripLayer.clearLayers();
+            self.stopLayer.clearLayers();
+            self.stopLabelLayer.clearLayers();
+            self.vehicleLayer.clearLayers();
+
+            // Add new elements
+
+            // Draw lines 
+            for (var i = 0; i < lines.length; i++) {
+                self.clickedTripLayer.addLayer(lines[i]);
+            }
+
+            // First stop goes on the clicked trip layer (so we always see
+            // it)
+            if (stops.length > 0) {
+                self.clickedTripLayer.addLayer(stops[0]);
+            }
+
+            // Draw stops
+            for (var i = 1; i < stops.length; i++) {
+                self.stopLayer.addLayer(stops[i]);
+            }
+
+            // Add stop labels
+            for (var i = 0; i < labels.length; i++) {
+                //self.stopLabelLayer.addLayer(labels[i]);
+            }
+
+            // Draw vehicles
+            for (var i = 0; i < vehicles.length; i++) {
+                self.vehicleLayer.addLayer(vehicles[i]);
+            }
+
+            self.current_stop = stop;
+        });
+    });
+};
+
+Bus.prototype.stopUnselect = function(stop) {
+    var self = this;
+
+    self.current_stop = null;
+
+    var row = self.rows[stop.api.unique_id];
+    var cellCSS = {
+        "color": stop.api.route_text_color,
+        "background-color": util.hexToRGBA(stop.api.route_color, self.bg_color)
+    };
+
+    $(row).css(cellCSS);
+
+    // Clear previous layer elements
+    self.clickedTripLayer.clearLayers();
+    self.stopLayer.clearLayers();
+    self.stopLabelLayer.clearLayers();
+    self.vehicleLayer.clearLayers();
 }
 
 // clickHandler highlights the marker and the row for this stop_id
@@ -545,99 +668,14 @@ Bus.prototype.clickHandler = function(stop) {
     var self = this;
 
     return function(e) {
-
-        if (self.current_stop && self.current_stop.api.unique_id == stop.api.unique_id) {
-            // FIXME: do we want to do this?
-            // If it's the current stop, then just recenter
-            //self.map.setView([stop.api.lat, stop.api.lon]);
-            return;
-
-        } else if (self.current_stop) {
-            var cellCSS = {
-                "color": self.current_stop.api.route_text_color,
-                "background-color": util.hexToRGBA(self.current_stop.api.route_color, self.bg_alpha)
-            };
-
-            $(self.rows[self.current_stop.api.unique_id]).css(cellCSS);
-        }
-
-        var route_promise;
-        var trip_promise;
-
-        if (!self.routes[stop.api.agency_id + "|" + stop.api.route_id]) {
-            console.log("getting route via promise", stop.api.agency_id, stop.api.route_id);
-            route_promise = self.getRoute(stop.api.agency_id, stop.api.route_id);
+        if (self.current_stop == stop) {
+            return self.stopUnselect(stop);
         } else {
-            route_promise = $("<div>").promise();
+            return self.stopSelect(stop);
         }
-
-        if (!self.trips[stop.api.agency_id + "|" + stop.api.departures[0].trip_id]) {
-            console.log("getting trip via promise", stop.api.agency_id, stop.api.route_id, stop.api.departures[0].trip_id);
-
-            trip_promise = self.getTrip(stop.api.agency_id, stop.api.route_id, stop.api.departures[0].trip_id);
-        } else {
-            trip_promise = $("<div>").promise();
-        }
-
-        route_promise.done(function() {
-            trip_promise.done(function() {
-
-
-                var route = self.routes[stop.api.agency_id + "|" + stop.api.route_id];
-                var trip = self.trips[stop.api.agency_id + "|" + stop.api.departures[0].trip_id]
-                var row = self.rows[stop.api.unique_id];
-                var sl = trip.createStopsLabels(stop.api);
-                var stops = sl[0];
-                var labels = sl[1];
-                var lines = trip.createLines(stop.api, route.api);
-                var vehicles = stop.createVehicles(route.api);
-                var cellCSS = {
-                    "color": stop.api.route_text_color,
-                    "background-color": util.hexToRGBA(stop.api.route_color, 1.0)
-                };
-
-                $(row).css(cellCSS);
-
-                // Clear previous layer elements
-                self.clickedTripLayer.clearLayers();
-                self.stopLayer.clearLayers();
-                self.stopLabelLayer.clearLayers();
-                self.vehicleLayer.clearLayers();
-
-                // Add new elements
-
-                // Draw lines 
-                for (var i = 0; i < lines.length; i++) {
-                    self.clickedTripLayer.addLayer(lines[i]);
-                }
-
-                // First stop goes on the clicked trip layer (so we always see
-                // it)
-                if (stops.length > 0) {
-                    self.clickedTripLayer.addLayer(stops[0]);
-                }
-
-                // Draw stops
-                for (var i = 1; i < stops.length; i++) {
-                    self.stopLayer.addLayer(stops[i]);
-                }
-
-                // Add stop labels
-                for (var i = 0; i < labels.length; i++) {
-                    //self.stopLabelLayer.addLayer(labels[i]);
-                }
-
-                // Draw vehicles
-                for (var i = 0; i < vehicles.length; i++) {
-                    self.vehicleLayer.addLayer(vehicles[i]);
-                }
-
-                self.current_stop = stop;
-            });
-        });
-
     };
-}
+
+};
 
 // updateStops runs any manipulation necessary after parsing stops
 // into stopList
