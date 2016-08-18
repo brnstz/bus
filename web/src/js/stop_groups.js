@@ -38,22 +38,15 @@ StopGroups.prototype.addToGroup = function(stop) {
 
 StopGroups.prototype.init = function(sg) {
     var self = this;
-    var seen_colors = {};
-    var display_names = [];
-    var display_styles = [];
+    var display_names = {};
     var min_departure = null;
     var now = new Date();
 
     for (var i = 0; i < sg.stops.length; i++) {
         var stop = sg.stops[i];
-        var css = {
-            "background-color": stop.api.route_color,
-            "color": stop.api.route_text_color,
-            "text-align": "center",
-            "padding": "10px",
-            "margin": "auto"
-        }
-        var color_key = stop.api.display_name + "|" + stop.api.route_color;
+
+        // Record all route display names
+        display_names[stop.api.display_name] = true;
 
         // Get the first departure
         var t = new Date(stop.api.departures[0].time);
@@ -62,20 +55,9 @@ StopGroups.prototype.init = function(sg) {
         } else if (t < min_departure) {
             min_departure = t;
         }
-
-        if (seen_colors[color_key]) {
-            continue;
-        }
-
-        seen_colors[color_key] = true;
-
-        var display_name = "<span>" + stop.api.display_name + "</span>"
-        display_names.push(display_name);
-        display_styles.push(css);
     };
 
-    sg.display_names = display_names;
-    sg.display_styles = display_styles;
+    sg.display_names = Object.keys(display_names).join(", ");
     sg.stop_name = sg.stops[0].api.stop_name;
     sg.min_departure = min_departure;
 };
@@ -84,8 +66,7 @@ StopGroups.prototype.createGroups = function() {
     var self = this;
 
     // mapping of:
-    // "
-    //agency_id | stop_id | compass_dir | extra_group_key " => {
+    // "agency_id|stop_id|compass_dir|extra_group_key" => {
     //      stops: [list of stops],
     //      etc..
     //  }
