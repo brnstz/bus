@@ -44,3 +44,13 @@ module.exports.checkBounds = function(bounds, shape) {
 
     return false;
 }
+
+// stolen/modified from: 
+// http://stackoverflow.com/questions/21646738/convert-hex-to-rgba
+module.exports.hexToRGBA = function(hex, newAlpha) {
+    var r = parseInt(hex.slice(1, 3), 16);
+    var g = parseInt(hex.slice(3, 5), 16);
+    var b = parseInt(hex.slice(5, 7), 16);
+
+    return "rgba(" + r + ", " + g + ", " + b + ", " + newAlpha + ")";
+}

@@ -155,6 +155,8 @@ function Bus() {
     // Increment the request id so we don't display results for
     // oudated requests.
     self.here_req_id = 0;
+
+    self.bg_alpha = 0.50;
 }
 
 // init is run when the page initially loads
@@ -374,13 +376,21 @@ Bus.prototype.createGroupRow = function(sg) {
 };
 
 // createRow creates a results row for this stop
-Bus.prototype.createRow = function(stop) {
+Bus.prototype.createRow = function(stop, sg) {
     var self = this;
+
+    var headsign_style;
+    if (sg.stops.length > 1) {
+        headsign_style = stop.api.route_and_headsign;
+    } else {
+        headsign_style = stop.api.just_headsign;
+    }
 
     var cellCSS = {
         "color": stop.api.route_text_color,
-        "background-color": stop.api.route_color,
+        "background-color": util.hexToRGBA(stop.api.route_color, self.bg_alpha)
     };
+    console.log("css says", cellCSS);
 
     // Create our row object
     var row = $("<tr class='stoprow stoprow_unselected'>");
@@ -389,7 +399,7 @@ Bus.prototype.createRow = function(stop) {
     var blank = $("<td>");
     var datatd = $("<td colspan='2'>");
     var headsign = $('<span class="headsign">' +
-        stop.api.route_and_headsign +
+        headsign_style +
         '</span>');
     var departures = $('<span><br>' + stop.departures + '</span>');
     $(datatd).append(headsign);
@@ -542,7 +552,14 @@ Bus.prototype.clickHandler = function(stop) {
             return;
 
         } else if (self.current_stop) {
-            $(self.rows[self.current_stop.api.unique_id]).removeClass("stoprow_selected").addClass("stoprow_unselected");
+            var cellCSS = {
+                "color": self.current_stop.api.route_text_color,
+                "background-color": util.hexToRGBA(self.current_stop.api.route_color, self.bg_alpha)
+            };
+            console.log("css says here", cellCSS);
+
+            //$(self.rows[self.current_stop.api.unique_id]).removeClass("stoprow_selected").addClass("stoprow_unselected").css(cellCSS);
+            $(self.rows[self.current_stop.api.unique_id]).css(cellCSS);
         }
 
         var route_promise;
@@ -575,7 +592,15 @@ Bus.prototype.clickHandler = function(stop) {
                 var labels = sl[1];
                 var lines = trip.createLines(stop.api, route.api);
                 var vehicles = stop.createVehicles(route.api);
-                $(row).addClass("stoprow_selected").removeClass("stoprow_unselected");
+                var cellCSS = {
+                    "color": stop.api.route_text_color,
+                    "background-color": util.hexToRGBA(stop.api.route_color, 1.0)
+                };
+
+                $(row).css(cellCSS);
+
+                //$(row).addClass("stoprow_selected").removeClass("stoprow_unselected").css(cellCSS);
+                //console.log("css says here 2", cellCSS);
 
                 // Clear previous layer elements
                 self.clickedTripLayer.clearLayers();
@@ -682,7 +707,7 @@ Bus.prototype.updateStops = function() {
             // create the stop row and stops
             stop = sg.stops[j];
 
-            var row = self.createRow(stop);
+            var row = self.createRow(stop, sg);
 
             // Put into row
             self.rows[stop.api.unique_id] = row;
