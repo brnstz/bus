@@ -24,7 +24,8 @@ StopGroups.prototype.addToGroup = function(stop) {
             route_color: stop.api.route_color,
             route_text_color: stop.api.route_text_color,
             stops: [stop],
-            compass_dir: roundedCompass
+            compass_dir: roundedCompass,
+            key: key
         };
 
         // Add it to ordered list of keys
