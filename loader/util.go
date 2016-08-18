@@ -54,3 +54,57 @@ func maybeFind(header []string, col string) int {
 
 	return -1
 }
+
+type rewrite struct {
+	inFH *os.File
+	r    *csv.Reader
+
+	outFH *os.File
+	w     *csv.Writer
+
+	header   []string
+	filepath string
+}
+
+func (rw *rewrite) finish() (err error) {
+	rw.w.Flush()
+
+	err = rw.outFH.Close()
+	if err != nil {
+		return err
+	}
+
+	return os.Rename(rw.outFH.Name(), rw.filepath)
+}
+
+func (rw *rewrite) clean() (err error) {
+	err = rw.outFH.Close()
+	if err != nil {
+		return err
+	}
+
+	return os.Remove(rw.outFH.Name())
+}
+
+func newRewrite(dir, filename string) (rw *rewrite, err error) {
+	rw = &rewrite{}
+
+	rw.filepath = path.Join(dir, "routes.txt")
+	rw.inFH, err = os.Open(rw.filepath)
+	if err != nil {
+		return
+	}
+	rw.r = csv.NewReader(rw.inFH)
+	rw.r.LazyQuotes = true
+
+	// Create an outgoing csv file for transformed data
+	rw.w, rw.outFH = writecsvtmp(dir)
+
+	// Read the existing header
+	rw.header, err = rw.r.Read()
+	if err != nil {
+		return
+	}
+
+	return
+}
