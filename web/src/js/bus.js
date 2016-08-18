@@ -344,22 +344,20 @@ Bus.prototype.createGroupRow = function(sg) {
     var now = new Date();
     var mins = parseInt((sg.min_departure - now) / 1000 / 60)
 
+    var cellCSS = {
+        //   "color": sg.route_text_color,
+        //  "background-color": sg.route_color,
+    }
+
     var row = $("<tr class='stopgrouprow_unselected'>");
-    var dis
+    $(row).css(cellCSS);
 
     var td1 = $("<td class='sgdir'>" + "<img src='img/compass_plain.svg' style='transform: rotate(" + sg.compass_dir + "deg);' width=20 height=20></td>");
-    var td2 = $("<td class='sgroutes'></td>");
-    var span = $("<span class='routenames'></span>");
-    for (var i = 0; i < sg.display_names.length; i++) {
-        console.log(sg.display_names[i], "hello");
-        var dn = $("<span>" + sg.display_names[i] + "</span>");
-        $(dn).css(sg.display_styles[i]);
-    }
-    $(span).append(dn);
-    $(span).append("<br>");
-    $(span).append("<span class='stopname'>" + sg.stop_name + "</span>");
-
-    $(td2).append(span);
+    var td2 = $("<td class='sgroutes'>" +
+        "<span class='routenames'>" + sg.display_names + "</span>" +
+        "<br>" +
+        "<span class='stopname'>" + sg.stop_name + "</span>" +
+        "</td>");
     var td4 = $("<td class='sgmin'>" + mins + " min</td>");
 
     $(row).append(td1);
