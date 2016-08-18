@@ -503,11 +503,14 @@ Bus.prototype.getTrip = function(agency_id, route_id, trip_id) {
 Bus.prototype.groupSelect = function(sg) {
     var self = this;
 
+    sg.expanded = true;
+
     // Set the currently selected group
     self.current_stop_group = sg;
 
-    var group_row = self.group_rows[sg.key];
+    sg.expanded = true;
 
+    var group_row = self.group_rows[sg.key];
     var cellCSS = {
         "color": sg.route_text_color,
         "background-color": util.hexToRGBA(sg.route_color, self.fg_alpha)
@@ -526,7 +529,18 @@ Bus.prototype.groupSelect = function(sg) {
 
         // And select the first stop
         if (i == 0) {
+            console.log("calling stop", stop);
             self.stopSelect(stop);
+        }
+    }
+
+    // Unselect all others
+    for (var i = 0; i < self.stopGroups.keys.length; i++) {
+        var key = self.stopGroups.keys[i];
+        var this_sg = self.stopGroups.groups[key];
+
+        if (this_sg != sg) {
+            self.groupUnselect(this_sg);
         }
     }
 }
@@ -534,8 +548,39 @@ Bus.prototype.groupSelect = function(sg) {
 Bus.prototype.groupUnselect = function(sg) {
     var self = this;
 
-    // Set the currently selected group
-    self.current_stop_group = null;
+    var group_row = self.group_rows[sg.key];
+    var cellCSS = {
+        "color": sg.route_text_color,
+        "background-color": util.hexToRGBA(sg.route_color, self.bg_alpha)
+    };
+    $(group_row).css(cellCSS);
+
+    // Look at each stop
+    for (var i = 0; i < sg.stops.length; i++) {
+
+        // Get the stop and its row
+        var stop = sg.stops[i];
+        var row = self.rows[stop.api.unique_id];
+
+        console.log("stop", stop.api.stop_id, i);
+
+        if (stop == self.current_stop) {
+            self.stopUnselect(stop);
+        }
+    }
+}
+
+Bus.prototype.groupUnexpand = function(sg) {
+    var self = this;
+
+    sg.expanded = false;
+
+    var group_row = self.group_rows[sg.key];
+    var cellCSS = {
+        "color": sg.route_text_color,
+        "background-color": util.hexToRGBA(sg.route_color, self.bg_alpha)
+    };
+    $(group_row).css(cellCSS);
 
     // Look at each stop
     for (var i = 0; i < sg.stops.length; i++) {
@@ -547,7 +592,7 @@ Bus.prototype.groupUnselect = function(sg) {
         // Hide all stops for this group
         $(row).hide();
 
-        if (self.current_stop == stop) {
+        if (stop == self.current_stop) {
             self.stopUnselect(stop);
         }
     }
@@ -557,8 +602,9 @@ Bus.prototype.groupClickHandler = function(sg) {
     var self = this;
 
     return function(e) {
-        if (self.current_stop_group == sg) {
-            return self.groupUnselect(sg);
+        if (sg.expanded) {
+            return self.groupUnexpand(sg);
+
         } else {
             return self.groupSelect(sg);
         }
@@ -651,7 +697,7 @@ Bus.prototype.stopUnselect = function(stop) {
     var row = self.rows[stop.api.unique_id];
     var cellCSS = {
         "color": stop.api.route_text_color,
-        "background-color": util.hexToRGBA(stop.api.route_color, self.bg_color)
+        "background-color": util.hexToRGBA(stop.api.route_color, self.bg_alpha)
     };
 
     $(row).css(cellCSS);
