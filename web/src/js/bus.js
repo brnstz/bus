@@ -511,7 +511,11 @@ Bus.prototype.groupSelect = function(sg) {
     var group_row = self.group_rows[sg.key];
     var cellCSS = {
         "color": self.text_color,
-        "background-color": util.hexToRGBA(sg.route_color, self.fg_alpha)
+        "background-color": util.hexToRGBA(sg.route_color, self.fg_alpha),
+
+        "border-bottom-width": "1px",
+        "border-bottom-color": "#000000",
+        "border-bottom-style": "dashed"
     };
     $(group_row).css(cellCSS);
 
@@ -524,6 +528,21 @@ Bus.prototype.groupSelect = function(sg) {
 
         // Show all stops for this group
         $(row).show();
+
+        if (i == 0) {
+            $(row).css({
+                "border-top": "0",
+                "border-bottom": "0"
+            });
+        } else {
+            $(row).css({
+                "border-top-width": "1px",
+                "border-top-color": "#000000",
+                "border-top-style": "dotted",
+                "border-bottom": "0"
+            });
+
+        }
 
         // And select the first stop
         if (i == 0) {
@@ -849,7 +868,7 @@ Bus.prototype.getHere = function() {
         var bounds = self.map.getBounds();
 
         if (!(route.onMap(bounds) || trip.onMap(bounds))) {
-            self.current_stop = null;
+            self.stopUnselect(stop);
         } else {
             return;
         }
