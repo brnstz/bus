@@ -446,6 +446,11 @@ func TestHereYesterday(t *testing.T) {
 
 	for _, stop := range resp.Stops {
 		for i, departure := range stop.Departures {
+			// Allow API to return more results than we have
+			if i >= len(expectedTimes[stop.Stop_ID]) {
+				continue
+			}
+
 			expectedTime, err := time.Parse(time.RFC3339, expectedTimes[stop.Stop_ID][i])
 			if err != nil {
 				t.Fatal(expectedTimes[stop.Stop_ID][i], err)
@@ -500,6 +505,12 @@ func TestHereToday(t *testing.T) {
 
 	for _, stop := range resp.Stops {
 		for i, departure := range stop.Departures {
+
+			// Allow API to return more results than we have
+			if i >= len(expectedTimes[stop.Stop_ID]) {
+				continue
+			}
+
 			expectedTime, err := time.Parse(time.RFC3339, expectedTimes[stop.Stop_ID][i])
 			if err != nil {
 				t.Fatal(expectedTimes[stop.Stop_ID][i], err)
@@ -553,6 +564,12 @@ func TestHereTomorrow(t *testing.T) {
 
 	for _, stop := range resp.Stops {
 		for i, departure := range stop.Departures {
+
+			// Allow API to return more results than we have
+			if i >= len(expectedTimes[stop.Stop_ID]) {
+				continue
+			}
+
 			expectedTime, err := time.Parse(time.RFC3339, expectedTimes[stop.Stop_ID][i])
 			if err != nil {
 				t.Fatal(expectedTimes[stop.Stop_ID][i], err)
