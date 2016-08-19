@@ -43,6 +43,8 @@ type vehicleRes struct {
 	StopID       string `db:"stop_id"`
 	TripID       string `db:"trip_id"`
 	DepartureSec int    `db:"departure_sec"`
+	TripHeadsign string `db:"trip_headsign"`
+	ServiceID    string `db:"service_id"`
 }
 
 func GetVehicles(agencyID, routeID string, directionID int, serviceIDs []string, minSec int) (vehicles []Vehicle, err error) {
@@ -57,7 +59,7 @@ func GetVehicles(agencyID, routeID string, directionID int, serviceIDs []string,
 		vr := []vehicleRes{}
 
 		q := `
-            SELECT sst.stop_id, sst.trip_id, sst.departure_sec
+            SELECT sst.stop_id, sst.trip_id, sst.departure_sec, trip.headsign AS trip_headsign
             FROM scheduled_stop_time sst
 		    INNER JOIN trip ON sst.agency_id = trip.agency_id AND
                                sst.route_id  = trip.route_id  AND
