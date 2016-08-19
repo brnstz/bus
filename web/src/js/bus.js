@@ -25,6 +25,19 @@ var homeControl = L.Control.extend({
 
 });
 
+var reloadControl = L.Control.extend({
+    options: {
+        position: 'bottomright'
+    },
+
+    onAdd: function(map) {
+        return $("<button id='reload' type='button' class='btn btn-default' onclick='getbus().reload();'><img src='img/reload.svg' height='20' width='20'></button>")[0];
+    }
+
+});
+
+
+
 function Bus() {
     var self = this;
 
@@ -182,6 +195,7 @@ Bus.prototype.init = function() {
     self.layerZooms.push(new LayerZoom(self.clickedTripLayer, 0));
 
     self.map.addControl(new homeControl());
+    self.map.addControl(new reloadControl());
 
     self.getInitialRoutes();
 
@@ -852,6 +866,16 @@ Bus.prototype.getInitialRoutes = function() {
             console.log(xhr, stat, err);
         }
     });
+};
+
+Bus.prototype.reload = function() {
+    var self = this;
+
+    if (self.current_stop != null) {
+        self.stopUnselect(self.current_stop);
+    }
+
+    return self.getHere();
 };
 
 // getHere calls the here API with our current state and updates
