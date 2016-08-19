@@ -152,7 +152,10 @@ function Bus() {
     self.here_req_id = 0;
 
     self.bg_alpha = 0.50;
-    self.fg_alpha = 0.90;
+    self.fg_alpha = 0.80;
+
+    // always do black
+    self.text_color = '#000000';
 }
 
 // init is run when the page initially loads
@@ -344,7 +347,7 @@ Bus.prototype.createGroupRow = function(sg) {
 
 
     var cellCSS = {
-        "color": sg.route_text_color,
+        "color": self.text_color,
         "background-color": util.hexToRGBA(sg.route_color, self.bg_alpha),
         "border-width": "5px",
         "border-style": "solid",
@@ -386,7 +389,7 @@ Bus.prototype.createRow = function(stop, sg) {
     }
 
     var cellCSS = {
-        "color": stop.api.route_text_color,
+        "color": self.text_color,
         "background-color": util.hexToRGBA(stop.api.route_color, self.bg_alpha),
         "border-width": "5px",
         "border-style": "solid",
@@ -507,7 +510,7 @@ Bus.prototype.groupSelect = function(sg) {
 
     var group_row = self.group_rows[sg.key];
     var cellCSS = {
-        "color": sg.route_text_color,
+        "color": self.text_color,
         "background-color": util.hexToRGBA(sg.route_color, self.fg_alpha)
     };
     $(group_row).css(cellCSS);
@@ -544,7 +547,7 @@ Bus.prototype.groupUnselect = function(sg) {
 
     var group_row = self.group_rows[sg.key];
     var cellCSS = {
-        "color": sg.route_text_color,
+        "color": self.text_color,
         "background-color": util.hexToRGBA(sg.route_color, self.bg_alpha)
     };
     $(group_row).css(cellCSS);
@@ -569,7 +572,7 @@ Bus.prototype.groupUnexpand = function(sg) {
 
     var group_row = self.group_rows[sg.key];
     var cellCSS = {
-        "color": sg.route_text_color,
+        "color": self.text_color,
         "background-color": util.hexToRGBA(sg.route_color, self.bg_alpha)
     };
     $(group_row).css(cellCSS);
@@ -650,7 +653,7 @@ Bus.prototype.stopSelect = function(stop) {
             var lines = trip.createLines(stop.api, route.api);
             var vehicles = stop.createVehicles(route.api);
             var cellCSS = {
-                "color": stop.api.route_text_color,
+                "color": self.text_color,
                 "background-color": util.hexToRGBA(stop.api.route_color, self.fg_alpha)
             };
 
@@ -703,7 +706,7 @@ Bus.prototype.stopUnselect = function(stop) {
 
     var row = self.rows[stop.api.unique_id];
     var cellCSS = {
-        "color": stop.api.route_text_color,
+        "color": self.text_color,
         "background-color": util.hexToRGBA(stop.api.route_color, self.bg_alpha)
     };
 
@@ -739,44 +742,11 @@ Bus.prototype.updateStops = function() {
     // Reset rows
     self.rows = {};
 
-    // Ensure that current stop still represents a route that
-    // is on screen
-    if (self.current_stop != null) {
-        stop = self.current_stop;
-        var route = self.routes[stop.api.agency_id + "|" + stop.api.route_id];
-        var trip = self.trips[stop.api.agency_id + "|" + stop.api.departures[0].trip_id]
-        var bounds = self.map.getBounds();
-
-        if (!(route.onMap(bounds) || trip.onMap(bounds))) {
-            self.current_stop = null;
-        }
-    }
 
     // Create new table
     var table = $("<table class='results'>");
     var tbody = $("<tbody>");
     var results = $("#results");
-
-    // FIXME: This is how we used to draw rows
-    // If there's a current stop, show it first
-    /*
-    if (self.current_stop != null) {
-        self.stopList.unshift(self.current_stop);
-    }
-
-    // Set first result to current stop if none selected
-    if (self.current_stop == null && self.stopList.length > 0) {
-        var row = self.rows[self.stopList[0].api.unique_id];
-        $(row).trigger("click");
-    }
-
-    // If the current stop shows up after first, then ignore it
-            if (i != 0 && self.current_stop && self.current_stop.api.unique_id == stop.api.unique_id) {
-                continue;
-            }
-
-
-    */
 
     for (var i = 0; i < self.stopGroups.keys.length; i++) {
         var key = self.stopGroups.keys[i];
@@ -869,6 +839,21 @@ Bus.prototype.getInitialRoutes = function() {
 // the UI with the results
 Bus.prototype.getHere = function() {
     var self = this;
+
+    // Ensure that current stop still represents a route that
+    // is on screen
+    if (self.current_stop != null) {
+        stop = self.current_stop;
+        var route = self.routes[stop.api.agency_id + "|" + stop.api.route_id];
+        var trip = self.trips[stop.api.agency_id + "|" + stop.api.departures[0].trip_id]
+        var bounds = self.map.getBounds();
+
+        if (!(route.onMap(bounds) || trip.onMap(bounds))) {
+            self.current_stop = null;
+        } else {
+            return;
+        }
+    }
 
     $("#loading").css("visibility", "visible");
 
