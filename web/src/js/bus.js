@@ -93,11 +93,6 @@ function Bus() {
     // map is our Leaflet JS map object
     self.map = null;
 
-    // FIXME: we should use only topgroups
-    // stopList is the list of results in the order returned by the
-    // API (i.e., distance from location)
-    //self.stopList = [];
-
     // stop groups is a mapping of unique ids that groups
     // stops together (e.g., NQR going nw)
     self.stopGroups = new StopGroups([]);
@@ -529,7 +524,6 @@ Bus.prototype.groupSelect = function(sg) {
 
         // And select the first stop
         if (i == 0) {
-            console.log("calling stop", stop);
             self.stopSelect(stop);
         }
     }
@@ -561,8 +555,6 @@ Bus.prototype.groupUnselect = function(sg) {
         // Get the stop and its row
         var stop = sg.stops[i];
         var row = self.rows[stop.api.unique_id];
-
-        console.log("stop", stop.api.stop_id, i);
 
         if (stop == self.current_stop) {
             self.stopUnselect(stop);
@@ -635,6 +627,20 @@ Bus.prototype.stopSelect = function(stop) {
     route_promise.done(function() {
         trip_promise.done(function() {
 
+            // Unselect all others
+            for (var i = 0; i < self.stopGroups.keys.length; i++) {
+                var key = self.stopGroups.keys[i];
+                var sg = self.stopGroups.groups[key];
+
+                for (var j = 0; j < sg.stops.length; j++) {
+                    var this_stop = sg.stops[j];
+                    if (this_stop != stop) {
+                        self.stopUnselect(this_stop);
+                    }
+                }
+            }
+
+
             var route = self.routes[stop.api.agency_id + "|" + stop.api.route_id];
             var trip = self.trips[stop.api.agency_id + "|" + stop.api.departures[0].trip_id]
             var row = self.rows[stop.api.unique_id];
@@ -685,6 +691,7 @@ Bus.prototype.stopSelect = function(stop) {
             }
 
             self.current_stop = stop;
+
         });
     });
 };
