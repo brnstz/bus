@@ -551,8 +551,8 @@ Bus.prototype.groupSelect = function(sg) {
         } else {
             $(row).css({
                 "border-top-width": "1px",
-                "border-top-color": "#000000",
-                "border-top-style": "dotted",
+                "border-top-color": "#aaaaaa",
+                "border-top-style": "solid",
                 "border-bottom": "0"
             });
 
