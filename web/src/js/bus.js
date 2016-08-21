@@ -295,6 +295,10 @@ Bus.prototype.geoFailure = function() {
 Bus.prototype.geolocate = function() {
     var self = this;
 
+    if (self.current_stop != null) {
+        self.stopUnselect(self.current_stop);
+    }
+
     if (navigator.geolocation) {
         // Set updating screen
         $("#loading").css("visibility", "visible");
@@ -522,16 +526,7 @@ Bus.prototype.groupSelect = function(sg) {
 
     sg.expanded = true;
 
-    var group_row = self.group_rows[sg.key];
-    var cellCSS = {
-        "color": self.text_color,
-        "background-color": util.hexToRGBA(sg.route_color, self.fg_alpha),
-
-        "border-bottom-width": "1px",
-        "border-bottom-color": "#222222",
-        "border-bottom-style": "solid"
-    };
-    $(group_row).css(cellCSS);
+    self.groupHighlight(sg);
 
     // Look at each stop
     for (var i = 0; i < sg.stops.length; i++) {
@@ -573,6 +568,21 @@ Bus.prototype.groupSelect = function(sg) {
             self.groupUnselect(this_sg);
         }
     }
+}
+
+Bus.prototype.groupHighlight = function(sg) {
+    var self = this;
+
+    var group_row = self.group_rows[sg.key];
+    var cellCSS = {
+        "color": self.text_color,
+        "background-color": util.hexToRGBA(sg.route_color, self.fg_alpha),
+
+        "border-bottom-width": "1px",
+        "border-bottom-color": "#222222",
+        "border-bottom-style": "solid"
+    };
+    $(group_row).css(cellCSS);
 }
 
 Bus.prototype.groupUnselect = function(sg) {
@@ -663,19 +673,26 @@ Bus.prototype.stopSelect = function(stop) {
     route_promise.done(function() {
         trip_promise.done(function() {
 
+            var sg_key = self.stopGroups.getKey(stop);
+            var sg = self.stopGroups.groups[sg_key];
+
             // Unselect all others
             for (var i = 0; i < self.stopGroups.keys.length; i++) {
                 var key = self.stopGroups.keys[i];
-                var sg = self.stopGroups.groups[key];
+                var this_sg = self.stopGroups.groups[key];
 
-                for (var j = 0; j < sg.stops.length; j++) {
-                    var this_stop = sg.stops[j];
+                for (var j = 0; j < this_sg.stops.length; j++) {
+                    var this_stop = this_sg.stops[j];
                     if (this_stop != stop) {
                         self.stopUnselect(this_stop);
                     }
                 }
-            }
 
+                if (sg != this_sg) {
+                    self.groupUnselect(this_sg);
+                }
+            }
+            self.groupHighlight(sg);
 
             var route = self.routes[stop.api.agency_id + "|" + stop.api.route_id];
             var trip = self.trips[stop.api.agency_id + "|" + stop.api.departures[0].trip_id]
