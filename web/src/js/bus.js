@@ -972,8 +972,6 @@ Bus.prototype.getHereAux = function(rtype) {
 
         success: function(data) {
             if (self.here_req_id[rtype] == here_req_now) {
-                console.log("succeeded with", rtype);
-
                 // If our request id is the most recent one, then
                 // process the response and reset the request to null
 
