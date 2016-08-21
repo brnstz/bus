@@ -88,7 +88,7 @@ StopGroups.prototype.init = function(sg) {
         var da = new Date(a.api.departures[0].time);
         var db = new Date(b.api.departures[0].time);
 
-        return da > db;
+        return da - db;
     });
 };
 
