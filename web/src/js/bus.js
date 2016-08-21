@@ -20,7 +20,7 @@ var homeControl = L.Control.extend({
     },
 
     onAdd: function(map) {
-        return $("<button id='geolocate' type='button' class='btn btn-default' onclick='getbus().geolocate();'><img src='img/gps_solid.svg' height='20' width='20'></button>")[0];
+        return $("<button id='geolocate' type='button' class='btn btn-default btn-bus' onclick='getbus().geolocate();'><img src='img/gps_solid.svg' height='20' width='20'></button>")[0];
     }
 
 });
@@ -31,7 +31,7 @@ var reloadControl = L.Control.extend({
     },
 
     onAdd: function(map) {
-        return $("<button id='reload' type='button' class='btn btn-default' onclick='getbus().reload();'><img src='img/reload.svg' height='20' width='20'></button>")[0];
+        return $("<button id='reload' type='button' class='btn btn-default btn-bus' onclick='getbus().reload();'><img src='img/reload.svg' height='20' width='20'></button>")[0];
     }
 
 });
