@@ -25,6 +25,8 @@ type P interface {
 	// returns any Departure and/or Vehicle info that can be appended
 	// to the response.
 	Live(agencyID, routeID, stopID string, directionID int) ([]*models.Departure, []models.Vehicle, error)
+
+	IsLive() bool
 }
 
 // Find returns the correct partner for this route. If there is no

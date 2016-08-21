@@ -19,6 +19,10 @@ var (
 
 type mtaNYCBus struct{}
 
+func (p mtaNYCBus) IsLive() bool {
+	return true
+}
+
 func (p mtaNYCBus) getURL(agencyID, routeID string, directionID int) string {
 	lineRef := fmt.Sprintf("%v_%v", agencyID, routeID)
 

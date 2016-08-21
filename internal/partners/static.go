@@ -14,6 +14,10 @@ import (
 // static is a default partner that reads vehicle locations from the database
 type static struct{}
 
+func (p static) IsLive() bool {
+	return false
+}
+
 func (p static) Precache(agencyID, routeID string, directionID int) error {
 	k := fmt.Sprintf("%v|%v|%v", agencyID, routeID, directionID)
 	now := time.Now()

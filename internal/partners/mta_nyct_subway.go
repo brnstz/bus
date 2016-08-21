@@ -36,6 +36,10 @@ var (
 
 type mtaNYCSubway struct{}
 
+func (p mtaNYCSubway) IsLive() bool {
+	return true
+}
+
 // getURL returns the URL for getting this routeID's feed. Second return
 // value is false if there is no feed to get.
 func (p mtaNYCSubway) getURL(routeID string) (string, bool) {
