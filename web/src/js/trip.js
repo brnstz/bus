@@ -6,8 +6,9 @@ var stopIcon = L.icon({
 });
 
 var hereStopIcon = L.icon({
-    iconUrl: 'img/here_stop3.svg',
-    iconSize: [30, 30]
+    //iconUrl: 'img/here_stop3.svg',
+    iconUrl: 'img/here_red_blink.svg',
+    iconSize: [9, 9]
 });
 
 // Trip is a single instance of a trip
@@ -53,15 +54,13 @@ Trip.prototype.createStopsLabels = function(stop) {
 
     for (var i = 0; i < self.api.stops.length; i++) {
         var tripStop = self.api.stops[i];
-        var icon = null;
+        var here = false;
         var marker = null;
 
         // The first stop gets a bigger radius
         if (tripStop.stop_id == stop.stop_id) {
-            icon = hereStopIcon;
             foundStop = true;
-        } else {
-            icon = stopIcon;
+            here = true;
         }
 
         // Ignore stops until we find our current stop.
@@ -69,9 +68,16 @@ Trip.prototype.createStopsLabels = function(stop) {
             continue;
         }
 
-        var marker = L.marker([tripStop.lat, tripStop.lon], {
-            icon: icon
+        marker = L.marker([tripStop.lat, tripStop.lon], {
+            icon: stopIcon
         });
+        stops.push(marker);
+        if (here) {
+            stops.push(L.marker([tripStop.lat, tripStop.lon], {
+                icon: hereStopIcon
+            }));
+        }
+
         var popup = L.popup({
             autoPan: false,
             closeButton: false,
@@ -79,8 +85,6 @@ Trip.prototype.createStopsLabels = function(stop) {
 
         popup.setContent(tripStop.stop_name);
         popup.setLatLng([tripStop.lat, tripStop.lon]);
-
-        stops.push(marker);
         labels.push(popup);
     }
 
