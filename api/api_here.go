@@ -161,6 +161,7 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 	// use it in case the live tripID cannot be found
 	firstDepart := map[string]*models.Departure{}
 
+	var partner partners.P
 	for _, s := range stops {
 
 		firstDepart[s.UniqueID] = s.Departures[0]
@@ -168,7 +169,7 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 		routes = append(routes, route)
 
 		// Get a live partner or skip it
-		partner, err := partners.Find(*route)
+		partner, err = partners.Find(*route)
 		if err != nil {
 			log.Println(err)
 			continue
@@ -213,7 +214,10 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 	for _, stop := range resp.Stops {
 
 		// Even if we aren't including trips in response, we still
-		// need to do this
+		// need to do this, but we can ignore non-live trips
+		if !partner.IsLive() {
+			continue
+		}
 
 		if len(stop.Departures) < 1 {
 			continue
