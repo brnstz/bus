@@ -151,8 +151,8 @@ function Bus() {
     // oudated requests.
     self.here_req_id = 0;
 
-    self.bg_alpha = 0.50;
-    self.fg_alpha = 0.80;
+    self.bg_alpha = 0.60;
+    self.fg_alpha = 0.90;
 
     // always do black
     self.text_color = '#000000';
