@@ -6,7 +6,6 @@ var stopIcon = L.icon({
 });
 
 var hereStopIcon = L.icon({
-    //iconUrl: 'img/here_stop3.svg',
     iconUrl: 'img/here_red_blink.svg',
     iconSize: [9, 9]
 });
