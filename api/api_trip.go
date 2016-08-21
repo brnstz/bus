@@ -14,7 +14,7 @@ func getTrip(w http.ResponseWriter, r *http.Request) {
 	routeID := r.FormValue("route_id")
 	tripID := r.FormValue("trip_id")
 
-	trip, err := models.GetTrip(etc.DBConn, agencyID, routeID, tripID)
+	trip, err := models.GetTrip(etc.DBConn, agencyID, routeID, tripID, true)
 	if err != nil {
 		log.Println("can't get trip", err)
 		apiErr(w, err)

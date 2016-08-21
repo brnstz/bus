@@ -91,6 +91,18 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	includeRoutes, err := boolOrDie(r.FormValue("routes"))
+	if err != nil {
+		apiErr(w, err)
+		return
+	}
+
+	includeTrips, err := boolOrDie(r.FormValue("trips"))
+	if err != nil {
+		apiErr(w, err)
+		return
+	}
+
 	// Initialize or read incoming bloom filter
 	filter := r.FormValue("filter")
 
@@ -174,6 +186,10 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 
 	// Add any routes to the response that the bloom filter says we don't have
 	for _, route := range routes {
+		if !includeRoutes {
+			break
+		}
+
 		exists := resp.Filter.TestString(route.UniqueID)
 		if exists {
 			continue
@@ -195,6 +211,10 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 	// bloom filter
 	tripReqs := []*fuse.TripReq{}
 	for _, stop := range resp.Stops {
+
+		// Even if we aren't including trips in response, we still
+		// need to do this
+
 		if len(stop.Departures) < 1 {
 			continue
 		}
@@ -216,10 +236,11 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 		}
 
 		req := &fuse.TripReq{
-			TripID:      tripID,
-			FirstTripID: firstDepart[stop.UniqueID].TripID,
-			Stop:        stop,
-			Response:    respch,
+			TripID:       tripID,
+			FirstTripID:  firstDepart[stop.UniqueID].TripID,
+			Stop:         stop,
+			Response:     respch,
+			IncludeShape: includeTrips,
 		}
 		tripReqs = append(tripReqs, req)
 		fuse.TripChan <- req
@@ -236,6 +257,10 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 
 	// append routes
 	for _, route := range routes {
+		if !includeRoutes {
+			break
+		}
+
 		exists := resp.Filter.TestString(route.UniqueID)
 		if exists {
 			continue
@@ -247,6 +272,7 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 
 	// append trips
 	for _, tripReq := range tripReqs {
+
 		if tripReq.Trip == nil {
 			continue
 		}
@@ -267,7 +293,10 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 			tripReq.Stop.Initialize()
 		}
 
-		resp.Trips = append(resp.Trips, tripReq.Trip)
+		// Only put trips in response if requested
+		if includeTrips {
+			resp.Trips = append(resp.Trips, tripReq.Trip)
+		}
 	}
 
 	b, err := json.Marshal(resp)

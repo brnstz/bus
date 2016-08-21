@@ -106,6 +106,23 @@ func floatOrDie(val string) (f float64, err error) {
 	return
 }
 
+func boolOrDie(val string) (b bool, err error) {
+
+	if len(val) < 1 {
+		b = false
+		return
+	}
+
+	b, err = strconv.ParseBool(val)
+	if err != nil {
+		log.Println("bad bool value", val, err)
+		err = errBadRequest
+		return
+	}
+
+	return
+}
+
 // apiErr writes an appropriate response to w given the incoming error
 // by looking at the errCodes map
 func apiErr(w http.ResponseWriter, err error) {

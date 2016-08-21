@@ -33,11 +33,12 @@ type RouteReq struct {
 
 // TripReq is a request to retrieve a Trip given this TripID and Stop
 type TripReq struct {
-	Trip        *models.Trip
-	TripID      string
-	FirstTripID string
-	Stop        *models.Stop
-	Response    chan error
+	Trip         *models.Trip
+	TripID       string
+	FirstTripID  string
+	Stop         *models.Stop
+	Response     chan error
+	IncludeShape bool
 }
 
 func init() {
@@ -156,7 +157,7 @@ func tripWorker() {
 
 		// Get the full trip with stop and shape details. If we succeed, we can
 		// move onto next trip
-		trip, err = models.GetTrip(etc.DBConn, req.Stop.AgencyID, req.Stop.RouteID, req.TripID)
+		trip, err = models.GetTrip(etc.DBConn, req.Stop.AgencyID, req.Stop.RouteID, req.TripID, req.IncludeShape)
 		if err == nil {
 			req.Trip = &trip
 			req.Response <- nil
@@ -185,7 +186,7 @@ func tripWorker() {
 		// departure's ID, adding it to our filter.
 		if err == nil {
 			// Re-get the trip with update ID
-			trip, err = models.GetTrip(etc.DBConn, req.Stop.AgencyID, req.Stop.RouteID, tripID)
+			trip, err = models.GetTrip(etc.DBConn, req.Stop.AgencyID, req.Stop.RouteID, tripID, req.IncludeShape)
 
 			if err != nil {
 				log.Println("can't get trip", err)
@@ -210,7 +211,7 @@ func tripWorker() {
 
 		// Re-get the trip with update ID
 		trip, err = models.GetTrip(etc.DBConn, req.Stop.AgencyID, req.Stop.RouteID,
-			req.FirstTripID)
+			req.FirstTripID, req.IncludeShape)
 		if err != nil {
 			log.Println("can't get trip", err)
 			req.Response <- err

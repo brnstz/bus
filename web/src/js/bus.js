@@ -158,11 +158,17 @@ function Bus() {
     self.firstGeolocate = true;
 
     // The current inflight "here" req if any.
-    self.here_req = null;
+    self.here_req = {
+        "foreground": null,
+        "background": null
+    };
 
     // Increment the request id so we don't display results for
     // oudated requests.
-    self.here_req_id = 0;
+    self.here_req_id = {
+        "foreground": null,
+        "background": null
+    };
 
     self.bg_alpha = 0.60;
     self.fg_alpha = 0.90;
@@ -318,14 +324,11 @@ Bus.prototype.geolocate = function() {
     }
 };
 
-// parseHere reads the text of response from the here API and updates
-// stops and routes
-Bus.prototype.parseHere = function(data) {
+Bus.prototype.parseForeground = function(data) {
     var self = this;
     var stoplist = [];
 
     if (data.stops) {
-
         // Create a stop object for each result and save to our list
         for (var i = 0; i < data.stops.length; i++) {
             var s = new Stop(data.stops[i]);
@@ -338,6 +341,10 @@ Bus.prototype.parseHere = function(data) {
         self.stopGroups = new StopGroups([]);
 
     }
+};
+
+Bus.prototype.parseBackground = function(data) {
+    var self = this;
 
     if (data.routes) {
         for (var i = 0; i < data.routes.length; i++) {
@@ -873,7 +880,7 @@ Bus.prototype.getInitialRoutes = function() {
     $.ajax(url, {
         dataType: "json",
         success: function(data) {
-            self.parseHere(data);
+            self.parseBackground(data);
             self.updateRoutes();
             self.updateLayers();
         },
@@ -895,9 +902,16 @@ Bus.prototype.reload = function() {
     return self.getHere();
 };
 
+Bus.prototype.getHere = function() {
+    var self = this;
+
+    self.getHereAux("foreground");
+    self.getHereAux("background");
+};
+
 // getHere calls the here API with our current state and updates
 // the UI with the results
-Bus.prototype.getHere = function() {
+Bus.prototype.getHereAux = function(rtype) {
     var self = this;
 
     // Ensure that current stop still represents a route that
@@ -915,16 +929,20 @@ Bus.prototype.getHere = function() {
         }
     }
 
-    $("#loading").css("visibility", "visible");
+
+    if (rtype == "foreground") {
+        $("#loading").css("visibility", "visible");
+    }
+
 
     // Abort any previous requests in flight
-    if (self.here_req != null) {
-        self.here_req.abort();
+    if (self.here_req[rtype] != null) {
+        self.here_req[rtype].abort();
     }
 
     // Update the here id
-    self.here_req_id++;
-    var here_req_now = self.here_req_id;
+    self.here_req_id[rtype]++;
+    var here_req_now = self.here_req_id[rtype];
 
     var center = self.map.getCenter();
     var bounds = self.map.getBounds();
@@ -945,20 +963,36 @@ Bus.prototype.getHere = function() {
         url += '&route_type=' + encodeURIComponent(routeTypes[i]);
     }
 
-    self.here_req = $.ajax(url, {
+    if (rtype == "background") {
+        url += "&routes=true&trips=true";
+    }
+
+    self.here_req[rtype] = $.ajax(url, {
         dataType: "json",
 
         success: function(data) {
-            if (self.here_req_id == here_req_now) {
+            if (self.here_req_id[rtype] == here_req_now) {
+                console.log("succeeded with", rtype);
+
                 // If our request id is the most recent one, then
                 // process the response and reset the request to null
-                self.parseHere(data);
-                self.updateStops();
-                self.updateRoutes();
+
+                if (rtype == "foreground") {
+                    self.parseForeground(data);
+                    self.updateStops();
+
+                } else {
+                    self.parseBackground(data);
+                    self.updateRoutes();
+
+                }
                 self.updateLayers();
 
-                self.here_req = null;
-                $("#loading").css("visibility", "hidden");
+                self.here_req[rtype] = null;
+
+                if (rtype == "foreground") {
+                    $("#loading").css("visibility", "hidden");
+                }
             }
 
             // Otherwise, we ignore the response because we have 
@@ -966,7 +1000,8 @@ Bus.prototype.getHere = function() {
         },
 
         error: function(xhr, stat, err) {
-            if (self.here_req_id == here_req_now) {
+            if (self.here_req_id[rtype] == here_req_now) {
+                console.log("error with", rtype);
 
                 // If our request id is the most recent one, then 
                 // process the response
@@ -982,7 +1017,7 @@ Bus.prototype.getHere = function() {
                 // Reset this to null though typically when this is the
                 // result of abort, the primary request will immediately
                 // reset this. But this seems to be the right thing to do.
-                self.here_req = null;
+                self.here_req[rtype] = null;
             }
 
             // Otherwise, we ignore the response because we have 
