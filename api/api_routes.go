@@ -1,7 +1,9 @@
 package api
 
 import (
+	"crypto/md5"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -13,7 +15,12 @@ import (
 // FIXME: this is a temporary hack that will only work with one city
 
 var (
-	routeCache []byte
+	routeCache        []byte
+	routeETag         string
+	routeCacheControl string
+
+	// one week
+	routeAge = 60 * 60 * 24 * 7
 )
 
 type routesResp struct {
@@ -40,6 +47,9 @@ func InitRouteCache() error {
 	}
 
 	routeCache = b
+	routeETag = fmt.Sprintf("%x", md5.Sum(routeCache))
+	routeCacheControl = fmt.Sprintf("max-age=%d", routeAge)
+
 	return nil
 }
 
@@ -55,6 +65,9 @@ func getRoutes(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+
+	w.Header().Set("ETag", routeETag)
+	w.Header().Set("Cache-Control", routeCacheControl)
 
 	w.Write(routeCache)
 }
