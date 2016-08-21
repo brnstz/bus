@@ -135,7 +135,7 @@ func (t *Trip) addShapes(db sqlx.Ext, agencyID, shapeID string) (err error) {
 }
 
 // GetTrip returns the trip for this agency and trip ID
-func GetTrip(db sqlx.Ext, agencyID, routeID, tripID string) (t Trip, err error) {
+func GetTrip(db sqlx.Ext, agencyID, routeID, tripID string, includeShape bool) (t Trip, err error) {
 
 	// Get the trip
 	q := `
@@ -155,6 +155,10 @@ func GetTrip(db sqlx.Ext, agencyID, routeID, tripID string) (t Trip, err error) 
 	err = t.Initialize()
 	if err != nil {
 		log.Println("can't init", err)
+		return
+	}
+
+	if !includeShape {
 		return
 	}
 
