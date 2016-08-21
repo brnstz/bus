@@ -108,6 +108,10 @@ tr.stoprow span.headsign {
     z-index: 1000;
 }
 
+.btn-bus {
+    padding: 5px;
+}
+
 /* originally stolen from: 
 	https://www.mapbox.com/mapbox.js/example/v1.0.0/custom-popup-style/
 */
