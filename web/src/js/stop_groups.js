@@ -11,12 +11,33 @@ function StopGroups(stops) {
     self.createGroups();
 }
 
+// is this stop in this stop group?
+StopGroups.prototype.stopIn = function(stop) {
+    var self = this;
+
+};
+
+StopGroups.prototype.getCompass = function(stop) {
+    var self = this;
+
+    return Math.round(stop.api.departures[0].compass_dir / self.roundfactor) * self.roundfactor;
+};
+
+StopGroups.prototype.getKey = function(stop) {
+    var self = this;
+
+    var roundedCompass = self.getCompass(stop);
+    var key = stop.api.agency_id + "|" + stop.api.stop_id + "|" + roundedCompass + "|" + stop.api.group_extra_key;
+
+    return key;
+};
+
 StopGroups.prototype.addToGroup = function(stop) {
     var self = this;
 
-    var roundedCompass = Math.round(stop.api.departures[0].compass_dir / self.roundfactor) * self.roundfactor;
+    var roundedCompass = self.getCompass(stop);
 
-    var key = stop.api.agency_id + "|" + stop.api.stop_id + "|" + roundedCompass + "|" + stop.api.group_extra_key;
+    var key = self.getKey(stop);
 
     if (!self.groups[key]) {
         // If this is the first stop for this group, then create 
