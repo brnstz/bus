@@ -82,6 +82,11 @@ func getIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Just always force to reget, index.html is small and we want to
+	// ensure a fresh page for releasing
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	w.Header().Set("Pragma", "no-cache")
+	w.Header().Set("Expires", "0")
 	w.Header().Set("ETag", fmt.Sprintf("%d", conf.API.BuildTimestamp))
 
 	indexTemplate.Execute(w, map[string]interface{}{
