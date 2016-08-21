@@ -528,8 +528,8 @@ Bus.prototype.groupSelect = function(sg) {
         "background-color": util.hexToRGBA(sg.route_color, self.fg_alpha),
 
         "border-bottom-width": "1px",
-        "border-bottom-color": "#000000",
-        "border-bottom-style": "dashed"
+        "border-bottom-color": "#222222",
+        "border-bottom-style": "solid"
     };
     $(group_row).css(cellCSS);
 
