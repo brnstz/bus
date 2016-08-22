@@ -742,7 +742,7 @@ Bus.prototype.stopSelect = function(stop) {
 
             // Add stop labels
             for (var i = 0; i < labels.length; i++) {
-                //self.stopLabelLayer.addLayer(labels[i]);
+                self.stopLabelLayer.addLayer(labels[i]);
             }
 
             // Draw vehicles
