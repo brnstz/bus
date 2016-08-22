@@ -73,7 +73,7 @@ function Bus() {
     self.filter = '';
 
     // tileURL is passed to Leaflet JS for drawing the map
-    self.tileURL = 'https://stamen-tiles.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png';
+    self.tileURL = 'https://stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png';
 
     // tileOptions is passed to Leatlef JS for drawing the map
     self.tileOptions = {
