@@ -427,7 +427,7 @@ Bus.prototype.createRow = function(stop, sg) {
     var row = $("<tr class='stoprow'>");
     $(row).css(cellCSS);
 
-    var blank = $("<td>");
+    var live = $("<td>");
     var datatd = $("<td colspan='2'>");
     var headsign = $('<span class="headsign">' +
         headsign_style +
@@ -437,7 +437,11 @@ Bus.prototype.createRow = function(stop, sg) {
     $(datatd).append(departures);
     $(row).hide();
 
-    $(row).append(blank);
+    if (!stop.live) {
+        $(live).append("<span class='live'>LIVE</span>");
+    }
+
+    $(row).append(live);
     $(row).append(datatd);
 
 
