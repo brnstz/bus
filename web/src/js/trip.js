@@ -40,7 +40,17 @@ Trip.prototype.onMap = function(bounds) {
 
     var shape = self.api.shape_points;
 
-    return util.checkBounds(bounds, shape);
+    var stop_shape = [];
+
+    for (var i = 0; i < self.api.stops.length; i++) {
+        var tripStop = self.api.stops[i];
+        stop_shape.push({
+            'lat': tripStop.lat,
+            'lon': tripStop.lon
+        });
+    }
+
+    return util.checkBounds(bounds, shape) || util.checkBounds(bounds, stop_shape);
 };
 
 // createStopsLabels returns a list of L.circle values for this trip
