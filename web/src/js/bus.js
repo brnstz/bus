@@ -66,7 +66,7 @@ function Bus() {
 
     self.defaultZoom = 16;
     self.maxZoom = 17;
-    self.minZoom = 8;
+    self.minZoom = 10;
 
     // JSON-encoded Bloom filter (of routes that we have loaded) as returned by
     // "here" API. Send this back to each "here" request for an update.
@@ -87,6 +87,7 @@ function Bus() {
         maxZoom: self.maxZoom,
         minZoom: self.minZoom,
         zoom: self.defaultZoom,
+        closePopupOnClick: false,
 
         center: [initialLat, initialLon]
     };
