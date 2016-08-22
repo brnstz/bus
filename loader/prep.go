@@ -343,7 +343,7 @@ func njtrail(dir string) error {
 			rec[rcIdx] = "00A3E4"
 			rec[rtIdx] = "000000"
 
-		case "Pasack Valley Line":
+		case "Pascack Valley Line":
 			rec[rcIdx] = "A0218C"
 			rec[rtIdx] = "FFFFFF"
 
