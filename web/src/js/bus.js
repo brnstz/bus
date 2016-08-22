@@ -437,7 +437,7 @@ Bus.prototype.createRow = function(stop, sg) {
     $(datatd).append(departures);
     $(row).hide();
 
-    if (!stop.live) {
+    if (stop.live) {
         $(live).append("<span class='live'>LIVE</span>");
     }
 
