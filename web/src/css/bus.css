@@ -97,6 +97,12 @@ tr.stoprow span.headsign {
     white-space: nowrap;
 }
 
+span.live {
+    border: 1px solid black;
+    padding: 3px;
+    font-size: 8px;
+}
+
 #loading {
     position: absolute;
     top:  25%;
