@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	_ "net/http/pprof"
@@ -40,6 +41,14 @@ func main() {
 	etc.DBConn = etc.MustDB()
 
 	upsert.LongQuery = time.Duration(1 * time.Second)
+
+	// If we specified a specific temp dir, clean it up first. This prevents a
+	// series of crashes from filling up the disk.
+	tmpdir := os.Getenv("TMPDIR")
+	if len(tmpdir) > 0 {
+		os.RemoveAll(tmpdir)
+		os.MkdirAll(tmpdir, 0775)
+	}
 
 	if conf.Loader.LoadForever {
 		loader.LoadForever()
