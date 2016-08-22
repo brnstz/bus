@@ -9,5 +9,6 @@ env BUS_ROUTE_FILTER="{% for rf in route_filter %}{{ rf }}{% if not loop.last %}
 env BUS_LOAD_FOREVER="{{ load_forever }}"
 env BUS_NJTRANSIT_FEED_USERNAME="{{ njtransit_feed_username }}"
 env BUS_NJTRANSIT_FEED_PASSWORD="{{ njtransit_feed_password }}"
+env TMPDIR="/tmp/busloader"
 
 exec start-stop-daemon --start --make-pidfile --pidfile /var/run/busloader.pid --exec {{ busloader_bin_path }} --user {{ busloader_user }}
