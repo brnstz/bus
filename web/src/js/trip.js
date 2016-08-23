@@ -27,7 +27,7 @@ function Trip(api) {
     self.stop_line_dist_max = 100;
 
     self.weight = 8;
-    self.before_opacity = 0.5;
+    self.before_opacity = 0.2;
     self.after_opacity = 1.0;
 }
 
@@ -53,12 +53,42 @@ Trip.prototype.onMap = function(bounds) {
     return util.checkBounds(bounds, shape) || util.checkBounds(bounds, stop_shape);
 };
 
-// createStopsLabels returns a list of L.circle values for this trip
+Trip.prototype.createLabels = function(stop) {
+    var self = this;
+    var labels = [];
+    var foundStop = false;
+
+    for (var i = 0; i < self.api.stops.length; i++) {
+        var tripStop = self.api.stops[i];
+        var marker = null;
+
+        // The first stop gets a bigger radius
+        if (tripStop.stop_id == stop.stop_id) {
+            foundStop = true;
+        }
+
+        if (!foundStop) {
+            continue;
+        }
+
+        var popup = L.popup({
+            autoPan: false,
+            closeButton: false,
+        });
+
+        popup.setContent(tripStop.stop_name);
+        popup.setLatLng([tripStop.lat, tripStop.lon]);
+        labels.push(popup);
+    }
+
+    return labels;
+};
+
+// createStopsMarkers returns a list of L.marker values for this trip
 // given we are at stop
-Trip.prototype.createStopsLabels = function(stop) {
+Trip.prototype.createStopMarkers = function(stop) {
     var self = this;
     var stops = [];
-    var labels = [];
     var foundStop = false;
 
     for (var i = 0; i < self.api.stops.length; i++) {
@@ -87,17 +117,9 @@ Trip.prototype.createStopsLabels = function(stop) {
             }));
         }
 
-        var popup = L.popup({
-            autoPan: false,
-            closeButton: false,
-        }, marker);
-
-        popup.setContent(tripStop.stop_name);
-        popup.setLatLng([tripStop.lat, tripStop.lon]);
-        labels.push(popup);
     }
 
-    return [stops, labels];
+    return stops;
 };
 
 // createLines returns a list of L.polyline values for this trip

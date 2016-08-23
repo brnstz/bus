@@ -65,7 +65,7 @@ function Bus() {
     }
 
     self.defaultZoom = 16;
-    self.maxZoom = 17;
+    self.maxZoom = 18;
     self.minZoom = 10;
 
     // JSON-encoded Bloom filter (of routes that we have loaded) as returned by
@@ -102,6 +102,7 @@ function Bus() {
         15: nofilter,
         16: nofilter,
         17: nofilter,
+        18: nofilter,
     };
 
     // map is our Leaflet JS map object
@@ -133,9 +134,6 @@ function Bus() {
     // Layer of stops on the current clicked trip
     self.stopLayer = L.featureGroup();
 
-    // Layer of stop labels on the current clicked trip
-    self.stopLabelLayer = L.featureGroup();
-
     // Layer of vehicles on the current clicked trip
     self.vehicleLayer = L.featureGroup();
 
@@ -144,6 +142,11 @@ function Bus() {
 
     // Bus route shapes
     self.busRouteLayer = L.featureGroup();
+
+    // Stop labels have to handle zooming / etc. differently because
+    // popups act weird
+    self.stopLabelsLayer = L.featureGroup();
+    self.stopLabelsID = null;
 
     // layerZooms is a list of LayerZoom objects for each layer on our
     // map. Layers will also be brought to front in order, so "back"
@@ -196,17 +199,90 @@ Bus.prototype.init = function() {
     // Add layers to map
     self.layerZooms.push(new LayerZoom(self.busRouteLayer, 15));
     self.layerZooms.push(new LayerZoom(self.trainRouteLayer, 0));
-    self.layerZooms.push(new LayerZoom(self.stopLayer, 13));
-    self.layerZooms.push(new LayerZoom(self.stopLabelLayer, 15));
+    self.layerZooms.push(new LayerZoom(self.stopLayer, 14));
     self.layerZooms.push(new LayerZoom(self.vehicleLayer, 10));
     self.layerZooms.push(new LayerZoom(self.clickedTripLayer, 0));
 
     self.map.addControl(new homeControl());
     self.map.addControl(new reloadControl());
 
+    self.stopLabelsLayer.addTo(self.map);
+
     self.getInitialRoutes();
 
     self.geolocate();
+};
+
+Bus.prototype.updateStopLabels = function() {
+    var self = this;
+    var zoom = self.map.getZoom();
+
+    // No current stop, clear and return
+    if (self.current_stop == null) {
+        self.stopLabelsID = "";
+        self.stopLabelsLayer.clearLayers();
+        return;
+    }
+
+    // "all", "firstlast", "everyother", "none"
+    var level;
+    if (self.current_stop.api.route_type_name == "bus") {
+        // bus stops are more frequent so be more conservative
+        if (zoom >= 18) {
+            level = "all";
+        } else if (zoom >= 17) {
+            level = "everyother";
+        } else if (zoom >= 14) {
+            level = "firstlast";
+        } else {
+            level = "none";
+        }
+    } else {
+        if (zoom >= 15) {
+            level = "all";
+        } else if (zoom >= 13) {
+            level = "everyother";
+        } else if (zoom >= 10) {
+            level = "firstlast";
+        } else {
+            level = "none";
+        }
+    }
+
+    var id = self.current_stop + "|" + level;
+
+    // No change, nothing to do
+    if (id == self.stopLabelsID) {
+        return;
+    }
+
+    // Save for next time
+    self.stopLabelsID = id;
+
+    self.stopLabelsLayer.clearLayers();
+
+    if (self.current_stop != null) {
+        var stop = self.current_stop;
+        var trip = self.trips[stop.api.agency_id + "|" + stop.api.departures[0].trip_id]
+        var labels = trip.createLabels(stop.api);
+        for (var i = 0; i < labels.length; i++) {
+            // must be first or last index
+            if (level == "firstlast") {
+                if (i != 0 && i != labels.length - 1) {
+                    continue;
+                }
+            } else if (level == "everyother") {
+                // do even stops except that we always include the last one
+                if ((i % 2 != 0) && (i != labels.length - 1)) {
+                    continue;
+                }
+            } else if (level == "none") {
+                continue
+            }
+
+            self.stopLabelsLayer.addLayer(labels[i]);
+        }
+    }
 };
 
 // updateLayers set the visibility and order of layers on each update
@@ -228,7 +304,14 @@ Bus.prototype.initMover = function(geoSuccess) {
         // Set up event handler
         self.map.on("moveend", function() {
             self.getHere();
+            self.updateStopLabels();
+            self.updateLayers();
         });
+
+        /*
+        self.map.on("zoomend", function() {
+        });
+        */
 
         // If we succeeded in doing the geolocate, also set up the watcher
         if (geoSuccess) {
@@ -464,6 +547,7 @@ Bus.prototype.createEmptyRow = function() {
     var a = $("<a href='#'>Times Square</a>").click(function() {
         self.map.setView([self.timesSquare.lat, self.timesSquare.lon], self.defaultZoom);
         self.getHere();
+
         return false;
     });
 
@@ -653,11 +737,14 @@ Bus.prototype.groupClickHandler = function(sg) {
 
     return function(e) {
         if (sg.expanded) {
-            return self.groupUnexpand(sg);
+            self.groupUnexpand(sg);
 
         } else {
-            return self.groupSelect(sg);
+            self.groupSelect(sg);
         }
+
+        self.updateStopLabels();
+        self.updateLayers();
     };
 };
 
@@ -709,9 +796,7 @@ Bus.prototype.stopSelect = function(stop) {
             var route = self.routes[stop.api.agency_id + "|" + stop.api.route_id];
             var trip = self.trips[stop.api.agency_id + "|" + stop.api.departures[0].trip_id]
             var row = self.rows[stop.api.unique_id];
-            var sl = trip.createStopsLabels(stop.api);
-            var stops = sl[0];
-            var labels = sl[1];
+            var stops = trip.createStopMarkers(stop.api);
             var lines = trip.createLines(stop.api, route.api);
             var vehicles = stop.createVehicles(route.api);
             var cellCSS = {
@@ -724,30 +809,26 @@ Bus.prototype.stopSelect = function(stop) {
             // Clear previous layer elements
             self.clickedTripLayer.clearLayers();
             self.stopLayer.clearLayers();
-            self.stopLabelLayer.clearLayers();
             self.vehicleLayer.clearLayers();
 
             // Add new elements
+
+            // First and last stop goes on the clicked trip layer (so we always
+            // see it). The first stop has two markers, so include 0 and 1
+            if (stops.length > 1) {
+                self.clickedTripLayer.addLayer(stops[0]);
+                self.clickedTripLayer.addLayer(stops[1]);
+                self.clickedTripLayer.addLayer(stops[stops.length - 1]);
+            }
 
             // Draw lines 
             for (var i = 0; i < lines.length; i++) {
                 self.clickedTripLayer.addLayer(lines[i]);
             }
 
-            // First stop goes on the clicked trip layer (so we always see
-            // it)
-            if (stops.length > 0) {
-                self.clickedTripLayer.addLayer(stops[0]);
-            }
-
             // Draw stops
-            for (var i = 1; i < stops.length; i++) {
+            for (var i = 2; i < stops.length - 1; i++) {
                 self.stopLayer.addLayer(stops[i]);
-            }
-
-            // Add stop labels
-            for (var i = 0; i < labels.length; i++) {
-                self.stopLabelLayer.addLayer(labels[i]);
             }
 
             // Draw vehicles
@@ -757,6 +838,8 @@ Bus.prototype.stopSelect = function(stop) {
 
             self.current_stop = stop;
 
+            self.updateStopLabels();
+            self.updateLayers();
         });
     });
 };
@@ -777,8 +860,10 @@ Bus.prototype.stopUnselect = function(stop) {
     // Clear previous layer elements
     self.clickedTripLayer.clearLayers();
     self.stopLayer.clearLayers();
-    self.stopLabelLayer.clearLayers();
     self.vehicleLayer.clearLayers();
+
+    self.updateStopLabels();
+    self.updateLayers();
 }
 
 // clickHandler highlights the marker and the row for this stop_id
@@ -787,9 +872,9 @@ Bus.prototype.clickHandler = function(stop) {
 
     return function(e) {
         if (self.current_stop == stop) {
-            return self.stopUnselect(stop);
+            self.stopUnselect(stop);
         } else {
-            return self.stopSelect(stop);
+            self.stopSelect(stop);
         }
     };
 
@@ -904,7 +989,9 @@ Bus.prototype.reload = function() {
         self.stopUnselect(self.current_stop);
     }
 
-    return self.getHere();
+    self.getHere();
+    self.updateStopLabels();
+    self.updateLayers();
 };
 
 Bus.prototype.getHere = function() {
