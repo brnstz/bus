@@ -199,7 +199,7 @@ Bus.prototype.init = function() {
     // Add layers to map
     self.layerZooms.push(new LayerZoom(self.busRouteLayer, 15));
     self.layerZooms.push(new LayerZoom(self.trainRouteLayer, 0));
-    self.layerZooms.push(new LayerZoom(self.stopLayer, 14));
+    self.layerZooms.push(new LayerZoom(self.stopLayer, 12));
     self.layerZooms.push(new LayerZoom(self.vehicleLayer, 10));
     self.layerZooms.push(new LayerZoom(self.clickedTripLayer, 0));
 
@@ -228,19 +228,19 @@ Bus.prototype.updateStopLabels = function() {
     var level;
     if (self.current_stop.api.route_type_name == "bus") {
         // bus stops are more frequent so be more conservative
-        if (zoom >= 18) {
+        if (zoom >= 17) {
             level = "all";
-        } else if (zoom >= 17) {
+        } else if (zoom >= 15) {
             level = "everyother";
-        } else if (zoom >= 14) {
+        } else if (zoom >= 10) {
             level = "firstlast";
         } else {
             level = "none";
         }
     } else {
-        if (zoom >= 15) {
+        if (zoom >= 14) {
             level = "all";
-        } else if (zoom >= 13) {
+        } else if (zoom >= 12) {
             level = "everyother";
         } else if (zoom >= 10) {
             level = "firstlast";
@@ -307,11 +307,6 @@ Bus.prototype.initMover = function(geoSuccess) {
             self.updateStopLabels();
             self.updateLayers();
         });
-
-        /*
-        self.map.on("zoomend", function() {
-        });
-        */
 
         // If we succeeded in doing the geolocate, also set up the watcher
         if (geoSuccess) {
