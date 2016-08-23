@@ -200,7 +200,7 @@ Bus.prototype.init = function() {
     self.layerZooms.push(new LayerZoom(self.busRouteLayer, 15));
     self.layerZooms.push(new LayerZoom(self.trainRouteLayer, 0));
     self.layerZooms.push(new LayerZoom(self.stopLayer, 12));
-    self.layerZooms.push(new LayerZoom(self.vehicleLayer, 10));
+    self.layerZooms.push(new LayerZoom(self.vehicleLayer, 12));
     self.layerZooms.push(new LayerZoom(self.clickedTripLayer, 0));
 
     self.map.addControl(new homeControl());
