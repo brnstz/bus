@@ -133,6 +133,7 @@ function Bus() {
 
     // Layer of stops on the current clicked trip
     self.stopLayer = L.featureGroup();
+    self.busStopLayer = L.featureGroup();
 
     // Layer of vehicles on the current clicked trip
     self.vehicleLayer = L.featureGroup();
@@ -200,6 +201,7 @@ Bus.prototype.init = function() {
     self.layerZooms.push(new LayerZoom(self.busRouteLayer, 15));
     self.layerZooms.push(new LayerZoom(self.trainRouteLayer, 0));
     self.layerZooms.push(new LayerZoom(self.stopLayer, 12));
+    self.layerZooms.push(new LayerZoom(self.busStopLayer, 14));
     self.layerZooms.push(new LayerZoom(self.vehicleLayer, 12));
     self.layerZooms.push(new LayerZoom(self.clickedTripLayer, 0));
 
@@ -804,6 +806,7 @@ Bus.prototype.stopSelect = function(stop) {
             // Clear previous layer elements
             self.clickedTripLayer.clearLayers();
             self.stopLayer.clearLayers();
+            self.busStopLayer.clearLayers();
             self.vehicleLayer.clearLayers();
 
             // Add new elements
@@ -821,9 +824,16 @@ Bus.prototype.stopSelect = function(stop) {
                 self.clickedTripLayer.addLayer(lines[i]);
             }
 
-            // Draw stops
-            for (var i = 2; i < stops.length - 1; i++) {
-                self.stopLayer.addLayer(stops[i]);
+            if (stop.api.route_type_name == "bus") {
+                // Draw stops
+                for (var i = 2; i < stops.length - 1; i++) {
+                    self.busStopLayer.addLayer(stops[i]);
+                }
+            } else {
+                // Draw stops
+                for (var i = 2; i < stops.length - 1; i++) {
+                    self.stopLayer.addLayer(stops[i]);
+                }
             }
 
             // Draw vehicles
