@@ -854,6 +854,12 @@ Bus.prototype.stopSelect = function(stop) {
 
             self.updateStopLabels();
             self.updateLayers();
+
+            self.map.setView([stop.api.lat, stop.api.lon], self.map.getZoom(), {
+                animate: true,
+                duration: 0.75,
+            });
+
         });
     });
 };
