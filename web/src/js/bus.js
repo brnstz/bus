@@ -175,6 +175,10 @@ function Bus() {
         "background": null
     };
 
+    // We delay background request to make sure person stays at
+    // location
+    self.bg_timer = null;
+
     self.bg_alpha = 0.60;
     self.fg_alpha = 0.90;
 
@@ -634,7 +638,7 @@ Bus.prototype.groupSelect = function(sg) {
         var row = self.rows[stop.api.unique_id];
 
         // Show all stops for this group
-        $(row).show();
+        $(row).show(400);
 
         if (i == 0) {
             $(row).css({
@@ -726,7 +730,7 @@ Bus.prototype.groupUnexpand = function(sg) {
         var row = self.rows[stop.api.unique_id];
 
         // Hide all stops for this group
-        $(row).hide();
+        $(row).hide(400);
 
         if (stop == self.current_stop) {
             self.stopUnselect(stop);
@@ -1009,7 +1013,11 @@ Bus.prototype.getHere = function() {
     var self = this;
 
     self.getHereAux("foreground");
-    self.getHereAux("background");
+
+    window.clearTimeout(self.bg_timer);
+    self.bg_timer = window.setTimeout(function() {
+        self.getHereAux("background");
+    }, 2000);
 };
 
 // getHere calls the here API with our current state and updates
