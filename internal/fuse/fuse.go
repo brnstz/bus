@@ -155,11 +155,16 @@ func tripWorker() {
 		var trip *models.Trip
 
 		trip, err = models.ReallyGetTrip(etc.DBConn, req.Stop.AgencyID,
-			req.Stop.StopID, req.Trip.TripID, req.FirstTripID, req.IncludeShape)
+			req.Stop.RouteID, req.TripID, req.FirstTripID, req.IncludeShape)
 
-		req.Trip = trip
-		// FIXME: do we want to do this?
-		req.TripID = trip.TripID
-		req.Response <- err
+		if err != nil {
+			req.Trip = trip
+			// FIXME: do we want to do this?
+			req.TripID = trip.TripID
+			req.Response <- nil
+		} else {
+			req.Response <- nil
+		}
+
 	}
 }

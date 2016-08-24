@@ -214,7 +214,7 @@ func ReallyGetTrip(db sqlx.Ext, agencyID, routeID, tripID, firstTripID string, i
 
 	// If the error is unexpected, we should error out immediately
 	if err != ErrNotFound {
-		log.Println("can't get trip", err)
+		log.Println("can't get trip 1", err)
 		return nil, err
 	}
 
@@ -245,14 +245,14 @@ func ReallyGetTrip(db sqlx.Ext, agencyID, routeID, tripID, firstTripID string, i
 
 	// If the error is unexpected, we should error out immediately
 	if err != ErrNotFound {
-		log.Println("can't get trip", err)
+		log.Println("can't get trip 2", err)
 		return nil, err
 	}
 
 	// Re-get the trip with update ID
 	trip, err = GetTrip(db, agencyID, routeID, firstTripID, includeShape)
 	if err != nil {
-		log.Println("can't get trip", err)
+		log.Println("can't get trip 3", err, agencyID, routeID, firstTripID)
 		return nil, err
 	}
 
