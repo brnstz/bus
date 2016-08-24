@@ -158,10 +158,10 @@ func tripWorker() {
 			req.Stop.RouteID, req.TripID, req.FirstTripID, req.IncludeShape)
 
 		if err != nil {
+			req.Response <- err
+		} else {
 			req.Trip = trip
 			req.Response <- nil
-		} else {
-			req.Response <- err
 		}
 	}
 }
