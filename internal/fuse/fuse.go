@@ -159,12 +159,9 @@ func tripWorker() {
 
 		if err != nil {
 			req.Trip = trip
-			// FIXME: do we want to do this?
-			req.TripID = trip.TripID
 			req.Response <- nil
 		} else {
-			req.Response <- nil
+			req.Response <- err
 		}
-
 	}
 }
