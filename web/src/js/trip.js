@@ -27,7 +27,7 @@ function Trip(api) {
     self.stop_line_dist_max = 100;
 
     self.weight = 8;
-    self.before_opacity = 0.2;
+    self.before_opacity = 0.4;
     self.after_opacity = 1.0;
 }
 
