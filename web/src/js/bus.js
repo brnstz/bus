@@ -1061,7 +1061,7 @@ Bus.prototype.getHereAux = function(rtype) {
     }
 
     if (rtype == "background") {
-        url += "&routes=true&trips=true";
+        url += "&routes=false&trips=true";
     }
 
     self.here_req[rtype] = $.ajax(url, {

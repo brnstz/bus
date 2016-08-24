@@ -150,7 +150,9 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 	// time taken to add stuff
 	if conf.API.LogTiming {
 		t1 := time.Now()
-		defer func() { log.Println(time.Now().Sub(t1)) }()
+		defer func() {
+			log.Printf("timing: %v, include_trips: %v, include_routes: %v", time.Now().Sub(t1), includeTrips, includeRoutes)
+		}()
 	}
 
 	// Create a channel for waiting for responses, arbitrarily large
@@ -212,6 +214,9 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 	// bloom filter
 	tripReqs := []*fuse.TripReq{}
 	for _, stop := range resp.Stops {
+		if !includeTrips {
+			break
+		}
 
 		// Even if we aren't including trips in response, we still
 		// need to do this, but we can ignore non-live trips
@@ -276,6 +281,9 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 
 	// append trips
 	for _, tripReq := range tripReqs {
+		if !includeTrips {
+			continue
+		}
 
 		if tripReq.Trip == nil {
 			continue
@@ -297,10 +305,7 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 			tripReq.Stop.Initialize()
 		}
 
-		// Only put trips in response if requested
-		if includeTrips {
-			resp.Trips = append(resp.Trips, tripReq.Trip)
-		}
+		resp.Trips = append(resp.Trips, tripReq.Trip)
 	}
 
 	b, err := json.Marshal(resp)
