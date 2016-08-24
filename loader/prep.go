@@ -3,8 +3,8 @@ package loader
 import (
 	"encoding/csv"
 	"errors"
-	"fmt"
 	"io"
+	"log"
 	"os"
 	"path"
 )
@@ -352,8 +352,9 @@ func njtrail(dir string) error {
 			rec[rtIdx] = "000000"
 
 		default:
-			return fmt.Errorf("unrecognized NJT line: %s", name)
-
+			rec[rcIdx] = "1E1D78"
+			rec[rtIdx] = "FFFFFF"
+			log.Printf("unrecognized NJT line: %s, using default color", name)
 		}
 
 		err = w.Write(rec)
