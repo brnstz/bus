@@ -199,3 +199,62 @@ func GetPartialTripIDMatch(db sqlx.Ext, agencyID, routeID, partialTripID string)
 
 	return
 }
+
+// ReallyGetTrip tries all possible methods for getting a trip
+func ReallyGetTrip(db sqlx.Ext, agencyID, routeID, tripID, firstTripID string, includeShape bool) (*Trip, error) {
+	var err error
+	var trip Trip
+
+	// Get the full trip with stop and shape details. If we succeed, we can
+	// move onto next trip
+	trip, err = GetTrip(db, agencyID, routeID, tripID, includeShape)
+	if err == nil {
+		return &trip, nil
+	}
+
+	// If the error is unexpected, we should error out immediately
+	if err != ErrNotFound {
+		log.Println("can't get trip 1", err)
+		return nil, err
+	}
+
+	// Here we weren't able to find the trip ID in the database. This is
+	// typically due to a response from a realtime source which gives us
+	// TripIDs that are not in the static feed or are partial matches.
+	// Let's first look for a partial match. If that fails, let's just get
+	// the use the first scheduled departure instead.
+
+	// Checking for partial match.
+	tripID, err = GetPartialTripIDMatch(
+		db, agencyID, routeID, tripID,
+	)
+
+	// If we get one, then update the uniqueID and the relevant stop /
+	// departure's ID, adding it to our filter.
+	if err == nil {
+		// Re-get the trip with update ID
+		trip, err = GetTrip(db, agencyID, routeID, tripID, includeShape)
+
+		if err != nil {
+			log.Println("can't get trip with updated id")
+			return nil, err
+		}
+
+		return &trip, nil
+	}
+
+	// If the error is unexpected, we should error out immediately
+	if err != ErrNotFound {
+		log.Println("can't get trip 2", err)
+		return nil, err
+	}
+
+	// Re-get the trip with update ID
+	trip, err = GetTrip(db, agencyID, routeID, firstTripID, includeShape)
+	if err != nil {
+		log.Println("can't get trip 3", err, agencyID, routeID, firstTripID)
+		return nil, err
+	}
+
+	return &trip, nil
+}

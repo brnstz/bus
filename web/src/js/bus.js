@@ -175,6 +175,10 @@ function Bus() {
         "background": null
     };
 
+    // We delay background request to make sure person stays at
+    // location
+    self.bg_timer = null;
+
     self.bg_alpha = 0.60;
     self.fg_alpha = 0.90;
 
@@ -584,13 +588,14 @@ Bus.prototype.getRoute = function(agency_id, route_id) {
 
 // getTrip returns a promise to get a trip when it was a false 
 // positive in the bloom filter
-Bus.prototype.getTrip = function(agency_id, route_id, trip_id) {
+Bus.prototype.getTrip = function(agency_id, route_id, trip_id, fallback_trip_id) {
     var self = this;
 
     var url = '/api/trip' +
         '?agency_id=' + encodeURIComponent(agency_id) +
         '&route_id=' + encodeURIComponent(route_id) +
-        '&trip_id=' + encodeURIComponent(trip_id);
+        '&trip_id=' + encodeURIComponent(trip_id) +
+        '&fallback_trip_id=' + encodeURIComponent(fallback_trip_id);
 
     var promise = $.ajax(url, {
         dataType: "json"
@@ -602,7 +607,11 @@ Bus.prototype.getTrip = function(agency_id, route_id, trip_id) {
 
     promise.done(function(data) {
         var t = new Trip(data);
-        self.trips[t.api.unique_id] = t;
+        // FIXME: since we may be getting a different trip id due
+        // to live data, save it under the originally
+        // requested key. but this is pretty ugly.
+        //self.trips[t.api.unique_id] = t;
+        self.trips[agency_id + "|" + trip_id] = t;
     });
 
     return promise;
@@ -629,7 +638,7 @@ Bus.prototype.groupSelect = function(sg) {
         var row = self.rows[stop.api.unique_id];
 
         // Show all stops for this group
-        $(row).show();
+        $(row).show(400);
 
         if (i == 0) {
             $(row).css({
@@ -721,7 +730,7 @@ Bus.prototype.groupUnexpand = function(sg) {
         var row = self.rows[stop.api.unique_id];
 
         // Hide all stops for this group
-        $(row).hide();
+        $(row).hide(400);
 
         if (stop == self.current_stop) {
             self.stopUnselect(stop);
@@ -761,7 +770,7 @@ Bus.prototype.stopSelect = function(stop) {
     if (!self.trips[stop.api.agency_id + "|" + stop.api.departures[0].trip_id]) {
         console.log("getting trip via promise", stop.api.agency_id, stop.api.route_id, stop.api.departures[0].trip_id);
 
-        trip_promise = self.getTrip(stop.api.agency_id, stop.api.route_id, stop.api.departures[0].trip_id);
+        trip_promise = self.getTrip(stop.api.agency_id, stop.api.route_id, stop.api.departures[0].trip_id, stop.api.fallback_trip_id);
     } else {
         trip_promise = $("<div>").promise();
     }
@@ -845,6 +854,12 @@ Bus.prototype.stopSelect = function(stop) {
 
             self.updateStopLabels();
             self.updateLayers();
+
+            self.map.setView([stop.api.lat, stop.api.lon], self.map.getZoom(), {
+                animate: true,
+                duration: 0.75,
+            });
+
         });
     });
 };
@@ -1004,7 +1019,11 @@ Bus.prototype.getHere = function() {
     var self = this;
 
     self.getHereAux("foreground");
-    self.getHereAux("background");
+
+    window.clearTimeout(self.bg_timer);
+    self.bg_timer = window.setTimeout(function() {
+        self.getHereAux("background");
+    }, 2000);
 };
 
 // getHere calls the here API with our current state and updates
