@@ -865,6 +865,7 @@ Bus.prototype.stopUnselect = function(stop) {
     // Clear previous layer elements
     self.clickedTripLayer.clearLayers();
     self.stopLayer.clearLayers();
+    self.busStopLayer.clearLayers();
     self.vehicleLayer.clearLayers();
 
     self.updateStopLabels();
@@ -1003,7 +1004,7 @@ Bus.prototype.getHere = function() {
     var self = this;
 
     self.getHereAux("foreground");
-    //self.getHereAux("background");
+    self.getHereAux("background");
 };
 
 // getHere calls the here API with our current state and updates
