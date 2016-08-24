@@ -184,6 +184,8 @@ function Bus() {
 
     // always do black
     self.text_color = '#000000';
+
+    self.dont_get = false;
 }
 
 // init is run when the page initially loads
@@ -310,8 +312,11 @@ Bus.prototype.initMover = function(geoSuccess) {
         // Set up event handler
         self.map.on("moveend", function() {
             self.getHere();
-            self.updateStopLabels();
-            self.updateLayers();
+            if (self.dont_get == false) {
+                self.updateStopLabels();
+                self.updateLayers();
+            }
+            self.dont_get = false;
         });
 
         // If we succeeded in doing the geolocate, also set up the watcher
@@ -855,6 +860,7 @@ Bus.prototype.stopSelect = function(stop) {
             self.updateStopLabels();
             self.updateLayers();
 
+            self.dont_get = true;
             self.map.setView([stop.api.lat, stop.api.lon], self.map.getZoom(), {
                 animate: true,
                 duration: 0.75,
