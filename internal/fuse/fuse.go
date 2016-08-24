@@ -152,73 +152,14 @@ func tripWorker() {
 
 	for req := range TripChan {
 		var err error
-		var tripID string
-		var trip models.Trip
+		var trip *models.Trip
 
-		// Get the full trip with stop and shape details. If we succeed, we can
-		// move onto next trip
-		trip, err = models.GetTrip(etc.DBConn, req.Stop.AgencyID, req.Stop.RouteID, req.TripID, req.IncludeShape)
-		if err == nil {
-			req.Trip = &trip
-			req.Response <- nil
-			continue
-		}
+		trip, err = models.ReallyGetTrip(etc.DBConn, req.Stop.AgencyID,
+			req.Stop.StopID, req.Trip.TripID, req.FirstTripID, req.IncludeShape)
 
-		// If the error is unexpected, we should error out immediately
-		if err != models.ErrNotFound {
-			log.Println("can't get trip", err)
-			req.Response <- err
-			continue
-		}
-
-		// Here we weren't able to find the trip ID in the database. This is
-		// typically due to a response from a realtime source which gives us
-		// TripIDs that are not in the static feed or are partial matches.
-		// Let's first look for a partial match. If that fails, let's just get
-		// the use the first scheduled departure instead.
-
-		// Checking for partial match.
-		tripID, err = models.GetPartialTripIDMatch(
-			etc.DBConn, req.Stop.AgencyID, req.Stop.RouteID, req.TripID,
-		)
-
-		// If we get one, then update the uniqueID and the relevant stop /
-		// departure's ID, adding it to our filter.
-		if err == nil {
-			// Re-get the trip with update ID
-			trip, err = models.GetTrip(etc.DBConn, req.Stop.AgencyID, req.Stop.RouteID, tripID, req.IncludeShape)
-
-			if err != nil {
-				log.Println("can't get trip", err)
-				req.Response <- err
-				continue
-			}
-
-			req.Trip = &trip
-			req.Response <- nil
-			continue
-		}
-
-		// If the error is unexpected, we should error out immediately
-		if err != models.ErrNotFound {
-			log.Println("can't get trip", err)
-			req.Response <- err
-			continue
-		}
-
-		// Our last hope is take the first scheduled departure
-		tripID = req.FirstTripID
-
-		// Re-get the trip with update ID
-		trip, err = models.GetTrip(etc.DBConn, req.Stop.AgencyID, req.Stop.RouteID,
-			req.FirstTripID, req.IncludeShape)
-		if err != nil {
-			log.Println("can't get trip", err)
-			req.Response <- err
-			continue
-		}
-
-		req.Trip = &trip
-		req.Response <- nil
+		req.Trip = trip
+		// FIXME: do we want to do this?
+		req.TripID = trip.TripID
+		req.Response <- err
 	}
 }
