@@ -865,6 +865,7 @@ Bus.prototype.stopUnselect = function(stop) {
     // Clear previous layer elements
     self.clickedTripLayer.clearLayers();
     self.stopLayer.clearLayers();
+    self.busStopLayer.clearLayers();
     self.vehicleLayer.clearLayers();
 
     self.updateStopLabels();
