@@ -349,6 +349,11 @@ func GetHereResults(db sqlx.Ext, hq *HereQuery) (stops []*Stop, stopRoutes map[s
 		} else {
 			s.Departures = []*Departure(d)
 		}
+
+		// FIXME: is this check necesssary? where do we filter stops with no departures (oy)
+		if len(s.Departures) > 0 {
+			s.FallbackTripID = s.Departures[0].TripID
+		}
 	}
 
 	return

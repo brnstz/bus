@@ -47,6 +47,8 @@ type Stop struct {
 
 	Seq int `json:"seq" db:"stop_sequence" upsert:"omit"`
 
+	FallbackTripID string `json:"fallback_trip_id" db:"-" upsert:"omit"`
+
 	Dist       float64      `json:"dist,omitempty" db:"-" upsert:"omit"`
 	Departures []*Departure `json:"departures,omitempty" db:"-" upsert:"omit"`
 	Vehicles   []Vehicle    `json:"vehicles,omitempty" db:"-" upsert:"omit"`

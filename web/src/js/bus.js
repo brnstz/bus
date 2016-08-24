@@ -584,13 +584,14 @@ Bus.prototype.getRoute = function(agency_id, route_id) {
 
 // getTrip returns a promise to get a trip when it was a false 
 // positive in the bloom filter
-Bus.prototype.getTrip = function(agency_id, route_id, trip_id) {
+Bus.prototype.getTrip = function(agency_id, route_id, trip_id, fallback_trip_id) {
     var self = this;
 
     var url = '/api/trip' +
         '?agency_id=' + encodeURIComponent(agency_id) +
         '&route_id=' + encodeURIComponent(route_id) +
-        '&trip_id=' + encodeURIComponent(trip_id);
+        '&trip_id=' + encodeURIComponent(trip_id) +
+        '&fallback_trip_id=' + encodeURIComponent(fallback_trip_id);
 
     var promise = $.ajax(url, {
         dataType: "json"
@@ -602,7 +603,11 @@ Bus.prototype.getTrip = function(agency_id, route_id, trip_id) {
 
     promise.done(function(data) {
         var t = new Trip(data);
-        self.trips[t.api.unique_id] = t;
+        // FIXME: since we may be getting a different trip id due
+        // to live data, save it under the originally
+        // requested key. but this is pretty ugly.
+        //self.trips[t.api.unique_id] = t;
+        self.trips[agency_id + "|" + trip_id] = t;
     });
 
     return promise;
@@ -761,7 +766,7 @@ Bus.prototype.stopSelect = function(stop) {
     if (!self.trips[stop.api.agency_id + "|" + stop.api.departures[0].trip_id]) {
         console.log("getting trip via promise", stop.api.agency_id, stop.api.route_id, stop.api.departures[0].trip_id);
 
-        trip_promise = self.getTrip(stop.api.agency_id, stop.api.route_id, stop.api.departures[0].trip_id);
+        trip_promise = self.getTrip(stop.api.agency_id, stop.api.route_id, stop.api.departures[0].trip_id, stop.api.fallback_trip_id);
     } else {
         trip_promise = $("<div>").promise();
     }
