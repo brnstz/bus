@@ -1003,7 +1003,7 @@ Bus.prototype.getHere = function() {
     var self = this;
 
     self.getHereAux("foreground");
-    self.getHereAux("background");
+    //self.getHereAux("background");
 };
 
 // getHere calls the here API with our current state and updates
@@ -1061,7 +1061,7 @@ Bus.prototype.getHereAux = function(rtype) {
     }
 
     if (rtype == "background") {
-        url += "&routes=false&trips=true";
+        url += "&routes=true&trips=true";
     }
 
     self.here_req[rtype] = $.ajax(url, {
