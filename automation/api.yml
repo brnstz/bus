@@ -14,7 +14,6 @@
       apt: update_cache=yes pkg="{{ item }}" state=installed
       with_items:
         - monit
-        - redis-server
 
     - name: Create bus user
       user: name="{{ busapi_user }}"

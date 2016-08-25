@@ -1,0 +1,42 @@
+- hosts: deployer
+  become: yes
+  become_user: root
+  vars_files:
+    - "group_vars/defaults.yml"
+    - "group_vars/{{ inventory }}.yml"
+
+  tasks:
+    - name: Install apt prereqs
+      apt: update_cache=yes pkg="{{ item }}" state=installed
+      with_items:
+        - "software-properties-common"
+
+    - name: Install repos
+      apt_repository: repo="{{ item }}"
+      with_items:
+        - "ppa:ansible/ansible"
+        - "ppa:ubuntu-lxc/lxd-stable"
+
+    - name: Install node stuff
+      shell: "curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -"
+
+    - name: Install needed packages
+      apt: update_cache=yes pkg="{{ item }}" state=installed
+      with_items:
+        - "ansible"
+        - "golang"
+        - "build-essential"
+        - "nodejs"
+        - "git"
+
+    - name: Install grunt-cli
+      command: "npm install grunt-cli --global"
+
+    - name: Copy deployer key
+      copy: src=/Users/bseitz/.ssh/bseitz.pem dest=/home/ubuntu/.ssh/id_rsa owner=ubuntu group=ubuntu mode=600
+
+    - name: Clone repo
+      git: repo=https://github.com/brnstz/bus.git dest=/home/ubuntu/go/src/github.com/brnstz/bus accept_hostkey=yes
+      become: true
+      become_user: ubuntu
+    
