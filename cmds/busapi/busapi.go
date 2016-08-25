@@ -57,5 +57,17 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// prod http to https redirect
+	go func() {
+		redirMux := http.NewServeMux()
+		redirMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, "https://token.live/", http.StatusMovedPermanently)
+		})
+		err = http.ListenAndServe(":8001", redirMux)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
+
 	log.Fatal(http.ListenAndServe(conf.API.Addr, withgz))
 }
