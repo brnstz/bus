@@ -4,6 +4,8 @@ description "Bus API Server"
 
 console log
 
+env BUS_MTA_BUSTIME_API_KEY="{{ mta_bustime_api_key }}"
+env BUS_MTA_DATAMINE_API_KEY="{{ mta_datamine_api_key }}"
 env BUS_WEB_DIR="{{ web_dir }}"
 env BUS_API_ADDR="{{ api_addr }}"
 env BUS_API_BUILD_TIMESTAMP="{{ build_timestamp }}"
