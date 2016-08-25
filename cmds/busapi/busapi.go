@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/NYTimes/gziphandler"
 	"github.com/kelseyhightower/envconfig"
 
 	"github.com/brnstz/bus/api"
@@ -49,10 +50,12 @@ func main() {
 
 	handler := api.NewHandler()
 
+	withgz := gziphandler.GzipHandler(handler)
+
 	err = api.InitRouteCache()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	log.Fatal(http.ListenAndServe(conf.API.Addr, handler))
+	log.Fatal(http.ListenAndServe(conf.API.Addr, withgz))
 }
