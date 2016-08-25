@@ -1,9 +1,7 @@
-# db.yml is a playbook to run during a typical deploy. It will run any 
-# new migrations, etc.  
+# db_migrations.yml is a playbook to run during a typical deploy. It will run
+# any new migrations, etc.  
 
-- include: db_common.yml
-
-- hosts: db
+- hosts: loader
   become: yes
   become_user: root
   vars:
@@ -39,6 +37,4 @@
       copy: src=../migrations dest=/usr/local
 
     - name: Execute migrations
-      command: "{{ flyway_dir }}/flyway -user=postgres -password= -url='jdbc:postgresql://localhost/postgres' -locations=filesystem:/usr/local/migrations migrate"
-
-
+      command: "{{ flyway_dir }}/flyway -user='{{ db_user }}' -password='{{ db_password }}' -url='jdbc:postgresql://localhost/postgres' -locations=filesystem:/usr/local/migrations migrate"
