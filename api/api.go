@@ -65,12 +65,6 @@ func getIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Redirect production http requests to https
-	if u.Scheme == "http" {
-		http.Redirect(w, r, "https://token.live/", http.StatusMovedPermanently)
-		return
-	}
-
 	switch u.Path {
 	case "/", "/index.html":
 
