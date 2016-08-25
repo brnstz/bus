@@ -320,7 +320,7 @@ Bus.prototype.initMover = function(geoSuccess) {
         });
 
         // If we succeeded in doing the geolocate, also set up the watcher
-        if (geoSuccess) {
+        if (geoSuccess && isMobile.any) {
 
             // Double check
             if (navigator.geolocation) {
