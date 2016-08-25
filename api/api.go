@@ -65,6 +65,8 @@ func getIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Println("test1", u.Host, u.Scheme)
+	log.Println("test2", u)
 	// Redirect production http requests to https
 	if u.Host == "token.live" && u.Scheme == "http" {
 		http.Redirect(w, r, "https://token.live/", http.StatusMovedPermanently)
