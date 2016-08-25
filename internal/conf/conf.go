@@ -65,6 +65,11 @@ type DBSpec struct {
 	// Environment variable: $BUS_DB_USER
 	User string `envconfig:"db_user" default:"postgres"`
 
+	// DBPassword is the password we use for connecting to postgres
+	// Default: None
+	// Environment variable: $BUS_DB_PASSWORD
+	Password string `envconfig:"db_password" default:""`
+
 	// DBName is the database name we use in postgres
 	// Default: postgres
 	// Environment variable: $BUS_DB_NAME
