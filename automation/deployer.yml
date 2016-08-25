@@ -35,6 +35,9 @@
     - name: Copy deployer key
       copy: src=/Users/bseitz/.ssh/bseitz.pem dest=/home/ubuntu/.ssh/id_rsa owner=ubuntu group=ubuntu mode=600
 
+    - name: Copy deployer vault pwd
+      copy: src=/Users/bseitz/.pwd dest=/home/ubuntu/.pwd owner=ubuntu group=ubuntu mode=600
+
     - name: Clone repo
       git: repo=https://github.com/brnstz/bus.git dest=/home/ubuntu/go/src/github.com/brnstz/bus accept_hostkey=yes
       become: true
