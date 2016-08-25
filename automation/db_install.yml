@@ -1,6 +1,6 @@
-# db_common.yml includes tasks to run for either db.yml or db_restore.yml. It
-# just installs Postgres, doesn't know anything about our schema / backups /
-# etc.
+# db_install.yml installs Postgres. If you're using something like RDS, 
+# you don't need this.
+
 - hosts: db
   become: yes
   become_user: root

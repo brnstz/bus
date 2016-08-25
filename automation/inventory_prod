@@ -12,9 +12,3 @@ ip-10-0-1-155.ec2.internal ansible_ssh_user=ubuntu
 
 [precache]
 ip-10-0-1-155.ec2.internal ansible_ssh_user=ubuntu
-
-[dbwrite]
-tokendb1.ciqnu0xmielt.us-east-1.rds.amazonaws.com
-
-[dbread]
-tokendb2.ciqnu0xmielt.us-east-1.rds.amazonaws.com
