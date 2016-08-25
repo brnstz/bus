@@ -10,5 +10,6 @@ env BUS_MTA_DATAMINE_API_KEY="{{ mta_datamine_api_key }}"
 env BUS_DB_ADDR="{{ db_read_addr }}"
 env BUS_DB_USER="{{ db_user }}"
 env BUS_DB_PASSWORD="{{ db_password }}"
+env BUS_REDIS_ADDR="{{ redis_addr }}"
 
 exec start-stop-daemon --start --make-pidfile --pidfile /var/run/busprecache.pid --exec {{ busprecache_bin_path }} --user {{ busprecache_user }}
