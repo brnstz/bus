@@ -34,3 +34,9 @@ njtransit_live_password: "FIXME"
 njtransit_feed_username: "FIXME"
 njtransit_feed_password: "FIXME"
 
+# This works for local dev / testing but prod should override in its vars file
+db_write_addr: "localhost:5432"
+db_read_addr: "localhost:5432"
+db_user: "postgres"
+db_password: ""
+redis_addr: "localhost:6379"

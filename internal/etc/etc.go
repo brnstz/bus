@@ -156,8 +156,8 @@ func MustDB() *sqlx.DB {
 
 	db, err := sqlx.Connect("postgres",
 		fmt.Sprintf(
-			"user=%s host=%s port=%s dbname=%s sslmode=disable",
-			conf.DB.User, host, port, conf.DB.Name,
+			"user=%s password=%s host=%s port=%s dbname=%s sslmode=disable",
+			conf.DB.User, conf.DB.Password, host, port, conf.DB.Name,
 		),
 	)
 	if err != nil {
