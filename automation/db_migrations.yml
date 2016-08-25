@@ -14,7 +14,6 @@
     - "group_vars/defaults.yml"
     - "group_vars/{{ inventory }}.yml"
 
-
   tasks:
     - name: Add i386 libs 
       shell: "dpkg --add-architecture i386"
@@ -37,4 +36,4 @@
       copy: src=../migrations dest=/usr/local
 
     - name: Execute migrations
-      command: "{{ flyway_dir }}/flyway -user='{{ db_user }}' -password='{{ db_password }}' -url='jdbc:postgresql://localhost/postgres' -locations=filesystem:/usr/local/migrations migrate"
+      command: "{{ flyway_dir }}/flyway -user='{{ db_user }}' -password='{{ db_password }}' -url='jdbc:postgresql://{{ db_write_addr }}/postgres' -locations=filesystem:/usr/local/migrations migrate"
