@@ -16,6 +16,9 @@
         - monit
         - redis-server
 
+    - name: Ensure redis listening on network
+      lineinfile: dest=/etc/redis/redis.conf regexp=^bind line="bind 0.0.0.0"
+
     - name: Create bus user
       user: name="{{ busprecache_user }}"
 
@@ -36,3 +39,6 @@
 
     - name: Restart busprecache
       service: name=busprecache state=restarted
+
+    - name: Restart redis
+      service: name=redis-server state=restarted
