@@ -14,7 +14,7 @@ var (
 	RouteChan chan *RouteReq
 	TripChan  chan *TripReq
 
-	workers = 1000
+	workers = 100
 )
 
 // StopReq is a request to set live departures for a stop using
