@@ -772,14 +772,12 @@ Bus.prototype.stopSelect = function(stop) {
     var trip_promise;
 
     if (!self.routes[stop.api.agency_id + "|" + stop.api.route_id]) {
-        console.log("getting route via promise", stop.api.agency_id, stop.api.route_id);
         route_promise = self.getRoute(stop.api.agency_id, stop.api.route_id);
     } else {
         route_promise = $("<div>").promise();
     }
 
     if (!self.trips[stop.api.agency_id + "|" + stop.api.departures[0].trip_id]) {
-        console.log("getting trip via promise", stop.api.agency_id, stop.api.route_id, stop.api.departures[0].trip_id);
 
         trip_promise = self.getTrip(stop.api.agency_id, stop.api.route_id, stop.api.departures[0].trip_id, stop.api.fallback_trip_id);
     } else {
@@ -1128,7 +1126,6 @@ Bus.prototype.getHereAux = function(rtype) {
 
         error: function(xhr, stat, err) {
             if (self.here_req_id[rtype] == here_req_now) {
-                console.log("error with", rtype);
 
                 // If our request id is the most recent one, then 
                 // process the response
