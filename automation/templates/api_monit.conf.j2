@@ -1,7 +1,3 @@
 check process busapi with pidfile /var/run/busapi.pid
     start program = "/usr/sbin/service busapi start"
     stop program = "/usr/sbin/service busapi stop"
-
-check process redis-server with pidfile /var/run/redis/redis-server.pid
-    start program = "/usr/sbin/service redis-server start"
-    stop program = "/usr/sbin/service redis-server stop"
