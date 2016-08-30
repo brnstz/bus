@@ -64,7 +64,12 @@ function Bus() {
         initialLon = self.timesSquare.lon;
     }
 
-    self.defaultZoom = 16;
+    if (isMobile.any) {
+        self.defaultZoom = 15;
+    } else {
+        self.defaultZoom = 16;
+    }
+
     self.maxZoom = 18;
     self.minZoom = 10;
 
