@@ -13,5 +13,6 @@ env BUS_DB_ADDR="{{ db_read_addr }}"
 env BUS_DB_USER="{{ db_user }}"
 env BUS_DB_PASSWORD="{{ db_password }}"
 env BUS_REDIS_ADDR="{{ redis_addr }}"
+env BUS_LOG_TIMING=true
 
 exec start-stop-daemon --start --make-pidfile --pidfile /var/run/busapi.pid --exec {{ busapi_bin_path }} --user {{ busapi_user }}
