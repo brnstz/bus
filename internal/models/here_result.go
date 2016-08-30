@@ -247,17 +247,19 @@ func GetHereResults(db sqlx.Ext, hq *HereQuery) (stops []*Stop, stopRoutes map[s
 		defer func() { log.Println(time.Now().Sub(t1)) }()
 	}
 
-	t3 := time.Now()
+	//t3 := time.Now()
 	rows, err := sqlx.NamedQuery(db, hq.Query, hq)
 	if err != nil {
 		log.Println("can't get stops", err)
 		log.Printf("%s %+v", hq.Query, hq)
 		return
 	}
-	queryDur := time.Now().Sub(t3)
-	if conf.API.LogTiming && queryDur > time.Duration(1)*time.Second {
-		log.Printf("long here query (%v): %+v", queryDur, hq)
-	}
+	/*
+		queryDur := time.Now().Sub(t3)
+		if conf.API.LogTiming && queryDur > time.Duration(1)*time.Second {
+			log.Printf("long here query (%v): %+v", queryDur, hq)
+		}
+	*/
 
 	defer rows.Close()
 

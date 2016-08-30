@@ -11,6 +11,8 @@ import (
 	"github.com/brnstz/bus/api"
 	"github.com/brnstz/bus/internal/conf"
 	"github.com/brnstz/bus/internal/etc"
+
+	_ "net/http/pprof"
 )
 
 func main() {
@@ -67,6 +69,10 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+	}()
+
+	go func() {
+		http.ListenAndServe("localhost:6060", nil)
 	}()
 
 	log.Fatal(http.ListenAndServe(conf.API.Addr, withgz))

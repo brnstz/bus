@@ -147,17 +147,17 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Create a channel for waiting for responses, arbitrarily large
+	respch := make(chan error, 10000)
+	count := 0
+
 	// time taken to add stuff
 	if conf.API.LogTiming {
 		t1 := time.Now()
 		defer func() {
-			log.Printf("timing: %v, include_trips: %v, include_routes: %v", time.Now().Sub(t1), includeTrips, includeRoutes)
+			log.Printf("timing: %v, include_trips: %v, include_routes: %v, count: %d", time.Now().Sub(t1), includeTrips, includeRoutes, count)
 		}()
 	}
-
-	// Create a channel for waiting for responses, arbitrarily large
-	respch := make(chan error, 10000)
-	count := 0
 
 	// save the first scheduled departure of each stop, so that we can
 	// use it in case the live tripID cannot be found
@@ -297,8 +297,6 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if tripReq.Stop.Departures[0].TripID != tripReq.Trip.TripID {
-			log.Printf("switching from %v to %v", tripReq.Stop.Departures[0].TripID,
-				tripReq.Trip.TripID)
 			tripReq.Stop.Departures[0].TripID = tripReq.Trip.TripID
 			// FIXME: do we need to do this? should this actually be to init
 			// the departure?
