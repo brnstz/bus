@@ -7,6 +7,7 @@ ip-10-0-1-36.ec2.internal ansible_ssh_user=ubuntu
 
 [web]
 ip-10-0-1-154.ec2.internal ansible_ssh_user=ubuntu
+ip-10-0-1-36.ec2.internal ansible_ssh_user=ubuntu
 
 [loader]
 ip-10-0-1-155.ec2.internal ansible_ssh_user=ubuntu
