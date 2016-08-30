@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	hereQueryLimit         = 10000
+	hereQueryLimit         = 1000
 	departureLookaheadSecs = 60 * 60 * 3
 
 	hereQuery = `
