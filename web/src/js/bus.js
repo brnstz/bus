@@ -103,7 +103,7 @@ function Bus() {
         11: highfilter,
         12: highfilter,
         13: highfilter,
-        14: highfilter,
+        14: nofilter,
         15: nofilter,
         16: nofilter,
         17: nofilter,
@@ -209,7 +209,7 @@ Bus.prototype.init = function() {
     self.marker.addTo(self.map);
 
     // Add layers to map
-    self.layerZooms.push(new LayerZoom(self.busRouteLayer, 15));
+    self.layerZooms.push(new LayerZoom(self.busRouteLayer, 14));
     self.layerZooms.push(new LayerZoom(self.trainRouteLayer, 0));
     self.layerZooms.push(new LayerZoom(self.stopLayer, 12));
     self.layerZooms.push(new LayerZoom(self.busStopLayer, 14));
