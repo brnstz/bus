@@ -110,7 +110,6 @@ func NewHereQuery(lat, lon, swlat, swlon, nelat, nelon float64, routeTypes []int
 
 	// FIXME: hard coded, we need a lat/lon to agencyID mapping
 	agencyIDs := conf.Partner.AgencyIDs
-	log.Println("here are the agency IDs", agencyIDs)
 
 	today := etc.BaseTime(now)
 	todayName := strings.ToLower(now.Format("Monday"))
