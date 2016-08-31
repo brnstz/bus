@@ -5,9 +5,28 @@
 ip-10-0-1-154.ec2.internal ansible_ssh_user=ubuntu
 ip-10-0-1-36.ec2.internal ansible_ssh_user=ubuntu
 
+ip-10-0-1-7.ec2.internal  ansible_ssh_user=ubuntu
+ip-10-0-1-8.ec2.internal ansible_ssh_user=ubuntu
+ip-10-0-1-9.ec2.internal ansible_ssh_user=ubuntu
+ip-10-0-1-10.ec2.internal ansible_ssh_user=ubuntu
+ip-10-0-1-11.ec2.internal ansible_ssh_user=ubuntu
+ip-10-0-1-12.ec2.internal ansible_ssh_user=ubuntu
+ip-10-0-1-13.ec2.internal ansible_ssh_user=ubuntu
+ip-10-0-1-14.ec2.internal ansible_ssh_user=ubuntu
+
 [web]
 ip-10-0-1-154.ec2.internal ansible_ssh_user=ubuntu
 ip-10-0-1-36.ec2.internal ansible_ssh_user=ubuntu
+
+ip-10-0-1-7.ec2.internal  ansible_ssh_user=ubuntu
+ip-10-0-1-8.ec2.internal ansible_ssh_user=ubuntu
+ip-10-0-1-9.ec2.internal ansible_ssh_user=ubuntu
+ip-10-0-1-10.ec2.internal ansible_ssh_user=ubuntu
+ip-10-0-1-11.ec2.internal ansible_ssh_user=ubuntu
+ip-10-0-1-12.ec2.internal ansible_ssh_user=ubuntu
+ip-10-0-1-13.ec2.internal ansible_ssh_user=ubuntu
+ip-10-0-1-14.ec2.internal ansible_ssh_user=ubuntu
+
 
 [loader]
 ip-10-0-1-155.ec2.internal ansible_ssh_user=ubuntu
