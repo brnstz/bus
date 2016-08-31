@@ -1,5 +1,5 @@
 [deployer]
-54.165.188.65 ansible_ssh_user=ubuntu ansible_ssh_private_key_file=/Users/bseitz/.ssh/bseitz.pem
+54.159.128.223 ansible_ssh_user=ubuntu ansible_ssh_private_key_file=/Users/bseitz/.ssh/bseitz.pem
 
 [api]
 ip-10-0-1-154.ec2.internal ansible_ssh_user=ubuntu
