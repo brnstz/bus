@@ -591,7 +591,7 @@ Bus.prototype.createAboutRow = function(colspan) {
 
     var year = new Date().getFullYear();
 
-    var row = $("<tr><td colspan=" + colspan + "><img height='40' height='137' src='img/token_typelogo_white_big_rgb.png'><br><span style='color:#EE0034'>beta</span><br><br>&copy; " + year + " <a href='https://www.brnstz.com'>Brian Seitz</a> <br><br>Data sources: <a href='http://www.mta.info/'>MTA</a>, <a href='http://www.njtransit.com/'>NJ Transit</a>, <a href='http://www.nyc.gov/html/dot/html/home/home.shtml'>NYC DOT</a>, <a href='http://www.panynj.gov/'>Port Authority of NY & NJ</a>.<br><br>Map tiles by <a href='http://stamen.com'>Stamen Design</a>, under <a href='http://creativecommons.org/licenses/by/3.0'>CC BY 3.0</a>. Data by <a href='http://openstreetmap.org'>OpenStreetMap</a>, under <a href='http://www.openstreetmap.org/copyright'>ODbL</a>.<br><br></td></tr>");
+    var row = $("<br><br><tr><td colspan=" + colspan + "><img height='40' height='137' src='img/token_typelogo_white_big_rgb.png'><br><span style='color:#EE0034'>beta</span><br><br>&copy; " + year + " <a href='https://www.brnstz.com'>Brian Seitz</a> <br><br>Data sources: <a href='http://www.mta.info/'>MTA</a>, <a href='http://www.njtransit.com/'>NJ Transit</a>, <a href='http://www.nyc.gov/html/dot/html/home/home.shtml'>NYC DOT</a>, <a href='http://www.panynj.gov/'>Port Authority of NY & NJ</a>.<br><br>Map tiles by <a href='http://stamen.com'>Stamen Design</a>, under <a href='http://creativecommons.org/licenses/by/3.0'>CC BY 3.0</a>. Data by <a href='http://openstreetmap.org'>OpenStreetMap</a>, under <a href='http://www.openstreetmap.org/copyright'>ODbL</a>.<br><br></td></tr>");
 
     $(row).css(cellCSS);
 
