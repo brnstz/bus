@@ -411,7 +411,7 @@ Bus.prototype.geolocate = function() {
             function(p) {
                 self.geoFailure()
             }, {
-                timeout: 5000,
+                timeout: 10000,
                 enableHighAccuracy: isMobile.any
             });
 
