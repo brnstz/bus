@@ -24,6 +24,13 @@ Route.prototype.createLines = function() {
         var shape = self.api.route_shapes[i];
         var latlons = [];
 
+        // FIXME: temp hack to exclude weird route shapes that appear
+        // in LIRR feed
+        if (self.api.agency_id == "LI" && self.api.route_long_name != shape.headsign) {
+            continue;
+        }
+
+
         // Create a point for each latlon
         for (var j = 0; j < shape.shapes.length; j++) {
             var point = shape.shapes[j];
