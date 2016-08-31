@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	maxStops = 15
+	maxStops = 30
 )
 
 type HereResult struct {
