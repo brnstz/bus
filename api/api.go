@@ -55,7 +55,13 @@ func NewHandler() http.Handler {
 	// timestamp and also to possibly allow different caching treatment.
 	mux.HandleFunc("/", getIndex)
 
+	mux.HandleFunc("/robots.txt", getRobots)
+
 	return mux
+}
+
+func getRobots(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "User-Agent: *\nDisallow: /api/\n")
 }
 
 func getIndex(w http.ResponseWriter, r *http.Request) {
