@@ -47,13 +47,7 @@ const (
 
 		WHERE
 			ST_CONTAINS(ST_SETSRID(
-				ST_MAKEPOLYGON(:line_string), 4326), location) AND
-
-			( 
-				service_id IN (%s) OR
-				service_id IN (%s) OR
-				service_id IN (%s) 
-			)
+				ST_MAKEPOLYGON(:line_string), 4326), location) 
 	`
 
 	routeTypeFilter = `
@@ -226,11 +220,14 @@ func NewHereQuery(lat, lon, swlat, swlon, nelat, nelon float64, routeTypes []int
 		hq.MidLat, hq.MidLon,
 	)
 
-	hq.Query = fmt.Sprintf(hereQuery,
-		etc.CreateIDs(hq.YesterdayServiceIDs),
-		etc.CreateIDs(hq.TodayServiceIDs),
-		etc.CreateIDs(hq.TomorrowServiceIDs),
-	)
+	hq.Query = hereQuery
+	/*
+		hq.Query = fmt.Sprintf(hereQuery,
+			etc.CreateIDs(hq.YesterdayServiceIDs),
+			etc.CreateIDs(hq.TodayServiceIDs),
+			etc.CreateIDs(hq.TomorrowServiceIDs),
+		)
+	*/
 
 	if len(routeTypes) > 0 {
 		hq.Query = hq.Query + fmt.Sprintf(routeTypeFilter, etc.CreateIntIDs(routeTypes))
