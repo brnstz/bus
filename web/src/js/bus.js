@@ -389,6 +389,14 @@ Bus.prototype.geoFailure = function() {
 
     self.initMover(false);
 
+    // Get last known location
+    var initialLat = localStorage.getItem("lat");
+    var initialLon = localStorage.getItem("lon");
+
+    if (initialLat && initialLon) {
+        self.map.setView([initialLat, initialLon], self.defaultZoom);
+    }
+
     self.getHere();
 };
 
