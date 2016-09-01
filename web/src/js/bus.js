@@ -242,9 +242,9 @@ Bus.prototype.updateStopLabels = function() {
     var level;
     if (self.current_stop.api.route_type_name == "bus") {
         // bus stops are more frequent so be more conservative
-        if (zoom >= 17) {
+        if (zoom >= 16) {
             level = "all";
-        } else if (zoom >= 15) {
+        } else if (zoom >= 14) {
             level = "everyother";
         } else if (zoom >= 10) {
             level = "firstlast";
