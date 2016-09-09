@@ -237,8 +237,8 @@ func TestLiveSubway(t *testing.T) {
 		}
 	}
 
-	if count != 2 {
-		t.Fatalf("expected %v results but got %v", 2, len(resp.Stops))
+	if count < 2 {
+		t.Fatalf("expected at least %v results but got %v", 2, len(resp.Stops))
 	}
 
 }
