@@ -54,10 +54,12 @@ func main() {
 
 	withgz := gziphandler.GzipHandler(handler)
 
-	err = api.InitRouteCache()
-	if err != nil {
-		log.Fatal(err)
-	}
+	/*
+		err = api.InitRouteCache()
+		if err != nil {
+			log.Fatal(err)
+		}
+	*/
 
 	// prod http to https redirect
 	go func() {

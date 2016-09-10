@@ -34,7 +34,7 @@ func NewHandler() http.Handler {
 	mux.HandleFunc("/api/here", getHere)
 
 	// Get routes that should be preloaded
-	mux.HandleFunc("/api/routes", getRoutes)
+	//mux.HandleFunc("/api/routes", getRoutes)
 
 	// Get a single route by agency_id / route_id
 	mux.HandleFunc("/api/route", getRoute)
