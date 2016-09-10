@@ -222,7 +222,8 @@ Bus.prototype.init = function() {
 
     self.stopLabelsLayer.addTo(self.map);
 
-    self.getInitialRoutes();
+    // FIXME
+    //self.getInitialRoutes();
 
     self.geolocate();
 };
