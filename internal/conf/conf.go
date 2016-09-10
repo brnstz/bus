@@ -131,11 +131,11 @@ type LoaderSpec struct {
 	//    https://www.njtransit.com/mt/mt_servlet.srv?hdnPageAction=MTDevLoginTo
 	// Default: None
 	// Environment variable: $BUS_NJTRANSIT_FEED_USERNAME
-	NJTransitFeedUsername string `envconfig:"njtransit_feed_username" required:"true"`
+	NJTransitFeedUsername string `envconfig:"njtransit_feed_username"`
 
 	// njtransit_feed_password: is the password for accessing:
 	//    https://www.njtransit.com/mt/mt_servlet.srv?hdnPageAction=MTDevLoginTo
 	// Default: None
 	// Environment variable: $BUS_NJTRANSIT_FEED_PASSWORD
-	NJTransitFeedPassword string `envconfig:"njtransit_feed_password" required:"true"`
+	NJTransitFeedPassword string `envconfig:"njtransit_feed_password"`
 }
