@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/brnstz/bus.svg?branch=master)](https://travis-ci.org/brnstz/bus?branch=master)
 
-<a href="https://token.live/"><img src="https://github.com/brnstz/bus/raw/master/web/src/img/token_sample.png" width="750" align="left"></a>
+<a href="https://token.live/"><img src="https://github.com/brnstz/bus/raw/master/web/src/img/token_sample.png" width="750" align="left"></a><br>
 
 *Beta version:* https://token.live
 
