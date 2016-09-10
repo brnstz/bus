@@ -2,6 +2,8 @@
 
 [![Token](../master/web/src/img/token_sample.png)](https://token.live)
 
+<a href="https://token.live/"><img src="https://github.com/brnstz/bus/raw/master/web/src/img/token_sample.png" width="750" align="left"></a>
+
 *Beta version:* https://token.live
 
 ## Dependencies
