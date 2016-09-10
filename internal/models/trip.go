@@ -75,7 +75,7 @@ func (t *Trip) addShapes(db sqlx.Ext, agencyID, shapeID string) (err error) {
 		ORDER BY seq ASC
 	`
 
-	err = etc.DBConn.Select(&t.ShapePoints, q, agencyID, shapeID)
+	err = sqlx.Select(db, &t.ShapePoints, q, agencyID, shapeID)
 	if err != nil {
 		log.Println("can't get shapes", err)
 		return

@@ -187,7 +187,7 @@ func GetPreloadRoutes(db sqlx.Ext, agencyIDs []string) (routes []*Route, err err
 		}
 
 		r.RouteShapes, err = GetSavedRouteShapes(
-			etc.DBConn, r.AgencyID, r.RouteID,
+			db, r.AgencyID, r.RouteID,
 		)
 		if err != nil {
 			log.Println("can't append shapes", err)
