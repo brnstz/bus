@@ -90,6 +90,8 @@ func (h *HereResult) createRoute() (route *Route, err error) {
 		Type:      h.RouteType,
 		Color:     h.RouteColor,
 		TextColor: h.RouteTextColor,
+		ShortName: h.RouteShortName,
+		LongName:  h.RouteLongName,
 	}
 
 	err = route.Initialize()
