@@ -846,8 +846,6 @@ func (l *Loader) updateRouteShapes() {
 		err = rs.Save(tx)
 		if err != nil {
 			log.Fatal(err)
-		} else {
-			log.Printf("saved %v", rs)
 		}
 	}
 
