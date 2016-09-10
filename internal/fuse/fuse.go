@@ -130,20 +130,35 @@ func stopWorker() {
 }
 
 func routeWorker() {
-	var err error
-
 	for req := range RouteChan {
+		tx, err := etc.DBConn.Beginx()
+		if err != nil {
+			log.Println("can't create transaction", err)
+			req.Response <- err
+			continue
+		}
+
+		_, err = tx.Exec("SET TRANSACTION ISOLATION LEVEL READ COMMITTED READ ONLY")
+		if err != nil {
+			log.Println("can't set iso level", err)
+			tx.Commit()
+			req.Response <- err
+			continue
+		}
+
 		req.Route.RouteShapes, err = models.GetSavedRouteShapes(
-			etc.DBConn, req.Route.AgencyID, req.Route.RouteID,
+			tx, req.Route.AgencyID, req.Route.RouteID,
 		)
 		if err != nil {
 			// This is a fatal error because the front end code
 			// assumes the route will be there
 			log.Println("can't get route shapes", req.Route, err)
+			tx.Commit()
 			req.Response <- err
 			continue
 		}
 
+		tx.Commit()
 		req.Response <- nil
 	}
 }
@@ -154,13 +169,29 @@ func tripWorker() {
 		var err error
 		var trip *models.Trip
 
-		trip, err = models.ReallyGetTrip(etc.DBConn, req.Stop.AgencyID,
+		tx, err := etc.DBConn.Beginx()
+		if err != nil {
+			log.Println("can't create transaction", err)
+			req.Response <- err
+			continue
+		}
+		_, err = tx.Exec("SET TRANSACTION ISOLATION LEVEL READ COMMITTED READ ONLY")
+		if err != nil {
+			log.Println("can't set iso level", err)
+			tx.Commit()
+			req.Response <- err
+			continue
+		}
+
+		trip, err = models.ReallyGetTrip(tx, req.Stop.AgencyID,
 			req.Stop.RouteID, req.TripID, req.FirstTripID, req.IncludeShape)
 
 		if err != nil {
+			tx.Commit()
 			req.Response <- err
 		} else {
 			req.Trip = trip
+			tx.Commit()
 			req.Response <- nil
 		}
 	}

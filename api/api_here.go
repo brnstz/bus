@@ -131,6 +131,21 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	tx, err := etc.DBConn.Beginx()
+	if err != nil {
+		log.Println("can't create transaction", err)
+		apiErr(w, err)
+		return
+	}
+
+	_, err = tx.Exec("SET TRANSACTION ISOLATION LEVEL READ COMMITTED READ ONLY")
+	if err != nil {
+		log.Println("can't set iso level", err)
+		apiErr(w, err)
+		return
+	}
+	defer tx.Commit()
+
 	hq, err := models.NewHereQuery(
 		lat, lon, SWLat, SWLon, NELat, NELon, routeTypes, now,
 	)
@@ -140,7 +155,7 @@ func getHere(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	stops, stopRoutes, err := models.GetHereResults(etc.DBConn, hq)
+	stops, stopRoutes, err := models.GetHereResults(tx, hq)
 	if err != nil {
 		log.Println("can't get here results", err)
 		apiErr(w, err)

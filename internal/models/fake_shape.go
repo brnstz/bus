@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/brnstz/bus/internal/etc"
 	"github.com/brnstz/upsert"
 	"github.com/jmoiron/sqlx"
 )
@@ -67,7 +66,7 @@ func GetFakeShapePoints(db sqlx.Ext, agencyID, routeID, headsign string, directi
 		ORDER BY seq ASC
 	`
 
-	err = etc.DBConn.Select(&points, q, agencyID, routeID, headsign, directionID)
+	err = sqlx.Select(db, &points, q, agencyID, routeID, headsign, directionID)
 	if err != nil {
 		log.Println("can't get shapes", err)
 		return points, err
