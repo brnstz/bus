@@ -1,6 +1,3 @@
-# bus
-
-
 [![Build Status](https://travis-ci.org/brnstz/bus.svg?branch=master)](https://travis-ci.org/brnstz/bus?branch=master)
 
 [![Token](../blob/master/web/src/img/token_sample.png)](https://token.live)
@@ -50,7 +47,7 @@ located under the `cmds/` directory.
 `busloader` downloads static
 [GTFS](https://developers.google.com/transit/gtfs/) files and loads those files
 into the db. When it's finished loading a set of files, it updates 
-materialized views that queried by `busapi`.
+materialized views queried by `busapi`.
 
 ### `busprecache`
 
@@ -78,7 +75,7 @@ partner sites.
 ### Shared database config
 
 All three binaries use the following database config. `busloader` must have
-writeable database, but `busprecache` and `busapi` can use a read-only replica.
+a writeable database, but `busprecache` and `busapi` can use a read-only replica.
 
 | Name               | Description                 | Default value    |
 |--------------------|-----------------------------|------------------|
@@ -113,16 +110,6 @@ writeable database, but `busprecache` and `busapi` can use a read-only replica.
 
 No specific config, just the shared cache and db configs above.
 
-### Example
-
-```bash
-# Load only the G and L train info and exit after initial load
-export BUS_GTFS_URLS="http://web.mta.info/developers/data/nyct/subway/google_transit.zip"
-export BUS_ROUTE_FILTER="G,L"
-export BUS_LOAD_FOREVER="false"
-busloader 
-```
-
 ## Automation
 
 In the `automation/` directory, there is a sample of how to fully deploy the
@@ -151,4 +138,17 @@ $ cd automation
 $ ./build.sh && ./deploy.sh inventory_vagrant db_install.yml db_migrations.yml api.yml web.yml loader.yml
 
 # If all goes well, system is available on http://localhost:8000
+```
+
+### Quickstart
+
+Loading all data can take a long time. You can shortcut this process by
+filtering for a few specific routes and data files.
+
+```bash
+# Load only the G and L train info and exit after initial load
+export BUS_GTFS_URLS="http://web.mta.info/developers/data/nyct/subway/google_transit.zip"
+export BUS_ROUTE_FILTER="G,L"
+export BUS_LOAD_FOREVER="false"
+busloader 
 ```
