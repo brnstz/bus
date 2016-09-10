@@ -103,8 +103,7 @@ a writeable database, but `busprecache` and `busapi` can use a read-only replica
 | `BUS_ROUTE_FILTER`          | Comma-separated list of `route_id` values to filter on (i.e., *only* load these routes)  | *None (no filter)*  |
 | `BUS_LOAD_FOREVER`          | Load forever (24 hour delay between loads) if `true`, exit after first load if `false`   |  `true`             |
 | `BUS_NJTRANSIT_FEED_USERNAME` | Username for accessing [NJ Transit GTFS data](https://www.njtransit.com/mt/mt_servlet.srv?hdnPageAction=MTDevLoginTo) | *None* |
-| `BUS_NJTRANSIT_FEED_PASSWORD` | Password for accessing [NJ Transit GTFS data](https://www.njtransit.com/mt/mt_servlet.srv?hdnPageAction=MTDevLoginTo)
-| *None*  |
+| `BUS_NJTRANSIT_FEED_PASSWORD` | Password for accessing [NJ Transit GTFS data](https://www.njtransit.com/mt/mt_servlet.srv?hdnPageAction=MTDevLoginTo) | *None*  |
 
 ### `busprecache` config
 
