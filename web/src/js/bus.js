@@ -192,6 +192,12 @@ function Bus() {
     self.text_color = '#000000';
 
     self.dont_get = false;
+
+    // bg delay is initial 0, but then 1.5 seconds after first
+    // successful bg get
+    self.bg_delay = 0;
+    self.later_bg_delay = 1500;
+
 }
 
 // init is run when the page initially loads
@@ -1063,7 +1069,7 @@ Bus.prototype.getHere = function() {
     window.clearTimeout(self.bg_timer);
     self.bg_timer = window.setTimeout(function() {
         self.getHereAux("background");
-    }, 2000);
+    }, self.bg_delay);
 };
 
 // getHere calls the here API with our current state and updates
@@ -1128,6 +1134,7 @@ Bus.prototype.getHereAux = function(rtype) {
         dataType: "json",
 
         success: function(data) {
+            self.bg_delay = self.later_bg_delay;
             if (self.here_req_id[rtype] == here_req_now) {
                 // If our request id is the most recent one, then
                 // process the response and reset the request to null
