@@ -1,19 +1,7 @@
 package api
 
-import (
-	"crypto/md5"
-	"encoding/json"
-	"fmt"
-	"log"
-	"net/http"
-
-	"github.com/brnstz/bus/internal/conf"
-	"github.com/brnstz/bus/internal/etc"
-	"github.com/brnstz/bus/internal/models"
-)
-
 // FIXME: this is a temporary hack that will only work with one city
-
+/*
 var (
 	routeCache        []byte
 	routeETag         string
@@ -71,3 +59,4 @@ func getRoutes(w http.ResponseWriter, r *http.Request) {
 
 	w.Write(routeCache)
 }
+*/
