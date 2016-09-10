@@ -140,7 +140,7 @@ $ ./build.sh && ./deploy.sh inventory_vagrant db_install.yml db_migrations.yml a
 # If all goes well, system is available on http://localhost:8000
 ```
 
-### Quickstart
+## Quickstart
 
 Loading all data can take a long time. You can shortcut this process by
 filtering for a few specific routes and data files.
