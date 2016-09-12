@@ -1,5 +1,7 @@
 [![Build Status](https://travis-ci.org/brnstz/bus.svg?branch=master)](https://travis-ci.org/brnstz/bus?branch=master)
 
+[![Token](web/src/img/token_sample_github.png)](https://token.live)
+
 *Beta version:* https://token.live
 
 ## Dependencies
