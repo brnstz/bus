@@ -109,6 +109,11 @@ a writeable database, but `busprecache` and `busapi` can use a read-only replica
 
 No specific config, just the shared cache and db configs above.
 
+## Architecture
+
+
+![Token architecture](web/src/img/token_arch.png)
+
 ## Automation
 
 In the `automation/` directory, there is a sample of how to fully deploy the
