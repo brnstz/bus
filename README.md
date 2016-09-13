@@ -55,6 +55,9 @@ materialized views queried by `busapi`.
 response data to Redis. `busapi` reads that data to present live
 departure and vehicle location data.
 
+## Architecture
+
+![Token architecture](web/src/img/token_arch.png)
 
 ## Config
 
@@ -108,11 +111,6 @@ a writeable database, but `busprecache` and `busapi` can use a read-only replica
 ### `busprecache` config
 
 No specific config, just the shared cache and db configs above.
-
-## Architecture
-
-
-![Token architecture](web/src/img/token_arch.png)
 
 ## Automation
 
