@@ -10,7 +10,7 @@ ip-10-0-1-8.ec2.internal ansible_ssh_user=ubuntu
 ip-10-0-1-7.ec2.internal ansible_ssh_user=ubuntu
 
 [loader]
-ip-10-0-1-155.ec2.internal ansible_ssh_user=ubuntu
+ip-10-0-1-125.ec2.internal ansible_ssh_user=ubuntu
 
 [precache]
-ip-10-0-1-155.ec2.internal ansible_ssh_user=ubuntu
+ip-10-0-1-125.ec2.internal ansible_ssh_user=ubuntu
