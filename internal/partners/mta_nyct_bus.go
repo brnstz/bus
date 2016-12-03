@@ -94,11 +94,13 @@ func (p mtaNYCBus) Live(agencyID, routeID, stopID string, directionID int) (d []
 					if len(tripID) > 9 {
 						tripID = tripID[9:]
 					}
-					d = append(d, &models.Departure{
-						Time:   oc.ExpectedDepartureTime,
-						TripID: tripID,
-						Live:   true,
-					})
+					if !oc.ExpectedArrivalTime.IsZero() {
+						d = append(d, &models.Departure{
+							Time:   oc.ExpectedArrivalTime,
+							TripID: tripID,
+							Live:   true,
+						})
+					}
 				}
 			}
 
@@ -110,7 +112,9 @@ func (p mtaNYCBus) Live(agencyID, routeID, stopID string, directionID int) (d []
 
 type call struct {
 	ExpectedDepartureTime time.Time
-	Extensions            struct {
+	ExpectedArrivalTime   time.Time
+
+	Extensions struct {
 		Distances struct {
 			CallDistanceAlongRoute float64
 			DistanceFromCall       float64
