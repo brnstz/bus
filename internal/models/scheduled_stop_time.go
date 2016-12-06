@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 
+	null "gopkg.in/guregu/null.v3"
+
 	"github.com/brnstz/bus/internal/etc"
 	"github.com/brnstz/upsert"
 )
@@ -24,8 +26,8 @@ type ScheduledStopTime struct {
 	LastStop sql.NullBool `db:"last_stop"`
 
 	NextStopID  sql.NullString `db:"next_stop_id"`
-	NextStopLat float64        `json:"next_stop_lat" db:"next_stop_lat" upsert:"omit"`
-	NextStopLon float64        `json:"next_stop_lon" db:"next_stop_lon" upsert:"omit"`
+	NextStopLat null.Float     `json:"next_stop_lat" db:"next_stop_lat"`
+	NextStopLon null.Float     `json:"next_stop_lon" db:"next_stop_lon"`
 
 	// Location is PostGIS field value that combines lat and lon into a single
 	// field.

@@ -62,8 +62,6 @@ func (h *HereResult) createStop() (stop *Stop, err error) {
 		Name:        h.StopName,
 		DirectionID: h.DirectionID,
 		Headsign:    h.StopHeadsign,
-		Lat:         h.Lat,
-		Lon:         h.Lon,
 		Dist:        h.Dist,
 
 		RouteType:      h.RouteType,
@@ -74,6 +72,10 @@ func (h *HereResult) createStop() (stop *Stop, err error) {
 		RouteLongName:  h.RouteLongName,
 		TripHeadsign:   h.TripHeadsign,
 	}
+
+	stop.Lat.Scan(h.Lat)
+	stop.Lon.Scan(h.Lon)
+
 	err = stop.Initialize()
 	if err != nil {
 		log.Println("can't init stop", err)
