@@ -440,12 +440,12 @@ func (l *Loader) loadStopTimes() {
 
 			if sst.TripID == trip {
 				sst.NextStopID.Scan(stop)
-				sst.NextStopLat = ll.lat
-				sst.NextStopLon = ll.lon
+				sst.NextStopLat.Scan(ll.lat)
+				sst.NextStopLon.Scan(ll.lon)
 			} else {
 				sst.NextStopID.Scan(nil)
-				sst.NextStopLat = 0
-				sst.NextStopLon = 0
+				sst.NextStopLat.Scan(0.0)
+				sst.NextStopLon.Scan(0.0)
 			}
 
 			err = sst.Save()
@@ -580,14 +580,14 @@ func (l *Loader) loadUniqueStop() {
 				obj := models.Stop{
 					StopID:  rec[stopIdx],
 					Name:    rec[stopNameIdx],
-					Lat:     stopLat,
-					Lon:     stopLon,
 					RouteID: l.tripRoute[trip],
 
 					DirectionID: l.trips[trip].DirectionID,
 					Headsign:    l.trips[trip].Headsign,
 					AgencyID:    l.routeAgency[l.tripRoute[trip]],
 				}
+				obj.Lat.Scan(stopLat)
+				obj.Lon.Scan(stopLon)
 
 				err = obj.Save()
 				if err != nil {

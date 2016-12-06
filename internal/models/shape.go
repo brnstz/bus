@@ -3,6 +3,8 @@ package models
 import (
 	"log"
 
+	null "gopkg.in/guregu/null.v3"
+
 	"github.com/brnstz/upsert"
 	"github.com/jmoiron/sqlx"
 )
@@ -12,8 +14,8 @@ type Shape struct {
 	AgencyID string `json:"-" db:"agency_id" upsert:"key"`
 	Seq      int    `json:"-" db:"seq" upsert:"key"`
 
-	Lat float64 `json:"lat" db:"lat" upsert:"omit"`
-	Lon float64 `json:"lon" db:"lon" upsert:"omit"`
+	Lat null.Float `json:"lat" db:"lat"`
+	Lon null.Float `json:"lon" db:"lon"`
 
 	// Location is PostGIS field value that combines lat and lon into a single
 	// field.
@@ -45,9 +47,9 @@ func NewShape(id, agencyID string, seq int, lat, lon float64) (s *Shape, err err
 		ID:       id,
 		AgencyID: agencyID,
 		Seq:      seq,
-		Lat:      lat,
-		Lon:      lon,
 	}
+	s.Lat.Scan(lat)
+	s.Lon.Scan(lon)
 
 	return
 }
