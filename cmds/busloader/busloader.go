@@ -35,7 +35,7 @@ func main() {
 	etc.DBConn = etc.MustDB()
 
 	upsert.LongQuery = time.Duration(1 * time.Second)
-	upsert.Debug = true
+	//upsert.Debug = true
 
 	// If we specified a specific temp dir, clean it up first. This prevents a
 	// series of crashes from filling up the disk.
