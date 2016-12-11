@@ -1,16 +1,14 @@
-[deployer]
-54.159.128.223 ansible_ssh_user=ubuntu ansible_ssh_private_key_file=/Users/bseitz/.ssh/bseitz.pem
-
 [api]
-ip-10-0-1-8.ec2.internal ansible_ssh_user=ubuntu
-ip-10-0-1-7.ec2.internal ansible_ssh_user=ubuntu
+66.246.138.161 ansible_ssh_user=bseitz
 
 [web]
-ip-10-0-1-8.ec2.internal ansible_ssh_user=ubuntu
-ip-10-0-1-7.ec2.internal ansible_ssh_user=ubuntu
+66.246.138.161 ansible_ssh_user=bseitz
 
 [loader]
-ip-10-0-1-125.ec2.internal ansible_ssh_user=ubuntu
+66.246.138.161 ansible_ssh_user=bseitz
 
 [precache]
-ip-10-0-1-125.ec2.internal ansible_ssh_user=ubuntu
+66.246.138.161 ansible_ssh_user=bseitz
+
+[db]
+66.246.138.161 ansible_ssh_user=bseitz
