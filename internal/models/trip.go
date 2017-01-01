@@ -110,24 +110,50 @@ func (t *Trip) addShapes(db sqlx.Ext, agencyID, shapeID string) (err error) {
 		}
 	}
 
+	// do directionRouteShape and trip last stop have matching locations?
+	// directionRouteShape match
+	directionRouteShapeMatches := false
+
+	if directionRouteShape != nil && directionRouteShape.Shapes != nil && t.Stops != nil {
+		lshape := len(directionRouteShape.Shapes) - 1
+		lstop := len(t.Stops) - 1
+
+		if lshape >= 0 && lstop >= 0 {
+			lastShape := directionRouteShape.Shapes[lshape]
+			lastStop := t.Stops[lstop]
+
+			if lastShape.Lat.Valid && lastShape.Lon.Valid && lastStop.Lat.Valid && lastStop.Lon.Valid {
+				directionRouteShapeMatches = lastShape.Lat == lastStop.Lat && lastShape.Lon == lastStop.Lon
+				log.Printf("shape: %v %v, stop: %v %v", lastShape.Lat, lastShape.Lon, lastStop.Lat, lastStop.Lon, directionRouteShapeMatches)
+			}
+		}
+	}
+
 	if headsignShape != nil {
 		// If we match the headsign, use that
 		t.ShapePoints = headsignShape.Shapes
 		t.ShapeID = headsignShape.ShapeID
+		log.Printf("using exact match %v for %v %v %v", headsignShape.ShapeID, t.RouteID, t.Headsign, t.DirectionID)
 
-	} else {
-		// Try to get a fake shape that is each point mapped out
-		t.ShapeID = "FAKE"
-		t.ShapePoints, err = GetFakeShapePoints(db, agencyID, t.RouteID, t.Headsign, t.DirectionID)
-		if err == nil {
-			return
-		}
+		return
+	}
 
-		log.Println("couldn't get fake shape", agencyID, t.RouteID, t.Headsign, t.DirectionID, err)
-
-		// Otherwise, use one that matches the direction
+	if directionRouteShapeMatches {
+		// Otherwise, use one that matches the direction and final stop loc
 		t.ShapePoints = directionRouteShape.Shapes
 		t.ShapeID = directionRouteShape.ShapeID
+		log.Printf("using dir match %v for %v %v %v", directionRouteShape.ShapeID, t.RouteID, t.Headsign, t.DirectionID)
+
+		return
+	}
+
+	// Try to get a fake shape that is each point mapped out
+	t.ShapePoints, err = GetFakeShapePoints(db, agencyID, t.RouteID, t.Headsign, t.DirectionID)
+	t.ShapeID = "FAKE"
+	log.Printf("using fake shape for %v %v %v", t.RouteID, t.Headsign, t.DirectionID)
+	if err != nil {
+		log.Println("couldn't get fake shape", agencyID, t.RouteID, t.Headsign, t.DirectionID, err)
+		return err
 	}
 
 	return
@@ -161,15 +187,15 @@ func GetTrip(db sqlx.Ext, agencyID, routeID, tripID string, includeShape bool) (
 		return
 	}
 
-	err = t.addShapes(db, agencyID, t.ShapeID)
-	if err != nil {
-		log.Println("can't get shapes", err)
-		return
-	}
-
 	t.Stops, err = GetStopsByTrip(db, &t)
 	if err != nil {
 		log.Println("can't get trip stops", err)
+		return
+	}
+
+	err = t.addShapes(db, agencyID, t.ShapeID)
+	if err != nil {
+		log.Println("can't get shapes", err)
 		return
 	}
 
