@@ -204,9 +204,6 @@ func (l *Loader) loadRoutes() {
 
 		l.routeAgency[route] = agencyID
 	}
-
-	log.Printf("loaded %v routes", i)
-
 }
 
 func (l *Loader) loadTrips() {
@@ -279,15 +276,7 @@ func (l *Loader) loadTrips() {
 
 		l.tripRoute[id] = route
 		l.shapeRoute[shape] = route
-
-		if i%logp == 0 {
-			log.Printf("loaded %v trips", i)
-		}
-
 	}
-
-	log.Printf("loaded %v trips", i)
-
 }
 
 func (l *Loader) loadStopTimes() {
@@ -461,10 +450,6 @@ func (l *Loader) loadStopTimes() {
 		if err != nil {
 			log.Fatalf("%v on line %v of stop_times.txt", err, i)
 		}
-
-		if i%logp == 0 {
-			log.Printf("loaded %v stop times", i)
-		}
 	}
 
 	// Make sure we get the last stop
@@ -477,8 +462,6 @@ func (l *Loader) loadStopTimes() {
 			log.Fatalf("%v on line %v of stop_times.txt", err, i)
 		}
 	}
-
-	log.Printf("loaded %v stop times", i)
 }
 
 func (l *Loader) loadStopLocations() {
@@ -526,8 +509,6 @@ func (l *Loader) loadStopLocations() {
 
 		l.stopLocation[rec[stopIdx]] = ll
 	}
-
-	log.Printf("loaded %v stops locations", i)
 }
 
 func (l *Loader) loadUniqueStop() {
@@ -595,13 +576,7 @@ func (l *Loader) loadUniqueStop() {
 				}
 			}
 		}
-
-		if i%logp == 0 {
-			log.Printf("loaded %v stops", i)
-		}
 	}
-
-	log.Printf("loaded %v stops", i)
 }
 
 func (l *Loader) loadCalendarDates() {
@@ -731,13 +706,7 @@ func (l *Loader) loadCalendars() {
 				}
 			}
 		}
-
-		if i%logp == 0 {
-			log.Printf("loaded %v calendars", i)
-		}
 	}
-
-	log.Printf("loaded %v calendars", i)
 }
 
 func (l *Loader) loadShapes() {
@@ -795,13 +764,7 @@ func (l *Loader) loadShapes() {
 		if err != nil {
 			log.Fatalf("%v on line %v of shapes.txt", err, i)
 		}
-
-		if i%logp == 0 {
-			log.Printf("loaded %v shapes", i)
-		}
 	}
-
-	log.Printf("loaded %v shapes", i)
 }
 
 // updateRouteShapes updates the route_shape table by identifying
@@ -839,7 +802,6 @@ func (l *Loader) updateRouteShapes() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Printf("got %d route shapes", len(routeShapes))
 
 	for _, rs := range routeShapes {
 		// upsert each route so we end up with the most common
@@ -861,7 +823,6 @@ func (l *Loader) updateRouteShapes() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Printf("got %d fake shapes", len(fakeShapes))
 
 	for _, fs := range fakeShapes {
 		// upsert each route so we end up with the most common
