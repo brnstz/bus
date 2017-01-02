@@ -3,12 +3,14 @@ package loader
 import (
 	"archive/zip"
 	"bytes"
+	"errors"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
 	"path"
+	"time"
 
 	"github.com/brnstz/bus/internal/conf"
 )
@@ -97,6 +99,13 @@ func njtDL(dlURL, dir string) error {
 			sessionID = v.Value
 		}
 	}
+	if len(sessionID) < 1 {
+		return errors.New("no session ID in NJT response")
+	}
+
+	// Try sleeping a bit between login and request, this seems to
+	// fail randomly sometimes.
+	time.Sleep(5 * time.Second)
 
 	// Get the actual download page and add our session cookie
 	req, err = http.NewRequest("GET", dlURL, nil)
