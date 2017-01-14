@@ -847,17 +847,20 @@ func LoadOnce() {
 
 		dir, err := ioutil.TempDir(conf.Loader.TmpDir, "")
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
+			continue
 		}
 
 		err = download(url, dir)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
+			continue
 		}
 
 		err = prepare(url, dir)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
+			continue
 		}
 
 		func() {
