@@ -6,11 +6,15 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"path"
+	"strings"
 	"time"
+
+	"golang.org/x/net/html"
 
 	"github.com/brnstz/bus/internal/conf"
 )
@@ -20,6 +24,9 @@ func download(dlURL, dir string) error {
 
 	case "https://www.njtransit.com/mt/mt_servlet.srv?hdnPageAction=MTDevResourceDownloadTo&Category=rail", "https://www.njtransit.com/mt/mt_servlet.srv?hdnPageAction=MTDevResourceDownloadTo&Category=bus":
 		return njtDL(dlURL, dir)
+
+	case "https://github.com/septadev/GTFS/releases/latest":
+		return phillyDL(dlURL, "rail", dir)
 
 	default:
 		return defaultDL(dlURL, dir)
@@ -127,6 +134,94 @@ func njtDL(dlURL, dir string) error {
 	buff := bytes.NewReader(b)
 
 	return unzipit(dir, buff, int64(len(b)))
+}
+
+func phillyDL(dlURL, subZip string, dir string) error {
+	var latestURL string
+
+	// Get the GH index page
+	resp, err := http.Get(dlURL)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	z := html.NewTokenizer(resp.Body)
+
+	// Find the first anchor token with gtfs_public.zip as the filename
+	for {
+		tt := z.Next()
+
+		// If we get this, it's an error in the text or we reached
+		// io.EOF without finding our link. In both cases, a fatal
+		// error for us.
+		if tt == html.ErrorToken {
+			return z.Err()
+		}
+
+		if tt == html.StartTagToken {
+			name, hasAttr := z.TagName()
+			if string(name) != "a" {
+				continue
+			}
+			if !hasAttr {
+				continue
+			}
+
+			for {
+				key, val, more := z.TagAttr()
+				if string(key) == "href" && strings.HasSuffix(string(val), "gtfs_public.zip") {
+					latestURL = "https://github.com" + string(val)
+				}
+
+				if !more {
+					break
+				}
+			}
+		}
+
+		if len(latestURL) > 0 {
+			break
+		}
+	}
+
+	// Create a special temp subdir so we can extract out the
+	// special philly dir we want
+	subDir, err := ioutil.TempDir(conf.Loader.TmpDir, "")
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	defer os.RemoveAll(subDir)
+
+	err = defaultDL(latestURL, subDir)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	// FIXME we need to unzip the subzip file first
+
+	// Move all files from subDir/subZip into dir
+	fullSubDir := path.Join(subDir, subZip)
+	files, err := ioutil.ReadDir(fullSubDir)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	for _, f := range files {
+		if !f.IsDir() {
+			err = os.Rename(
+				path.Join(fullSubDir, f.Name()),
+				path.Join(dir, f.Name()),
+			)
+			if err != nil {
+				log.Println(err)
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 func defaultDL(dlURL, dir string) error {
