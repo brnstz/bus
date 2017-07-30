@@ -158,7 +158,8 @@ func (l *Loader) loadRoutes() {
 			break
 		}
 		if err != nil {
-			log.Fatalf("%v on line %v of routes.txt", err, i)
+			log.Printf("%v on line %v of routes.txt", err, i)
+			continue
 		}
 
 		route := rec[routeIdx]
