@@ -13,7 +13,7 @@ import (
 var (
 
 	// max workers per a single agency
-	maxWorkersAgency = 10
+	maxWorkersAgency = 5
 
 	// delay is the time to wait between requests for the same route
 	delay = time.Duration(60) * time.Second
