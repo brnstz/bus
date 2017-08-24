@@ -65,9 +65,9 @@ function Bus() {
     }
 
     if (isMobile.any) {
-        self.defaultZoom = 15;
-    } else {
         self.defaultZoom = 16;
+    } else {
+        self.defaultZoom = 17;
     }
 
     self.maxZoom = 18;
