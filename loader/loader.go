@@ -866,7 +866,13 @@ func LoadOnce() {
 
 		func() {
 			log.Printf("loading: %v in %v", url, dir)
-			defer os.RemoveAll(dir)
+			defer func() {
+				r := recover()
+				if r != nil {
+					log.Println("recovering from error in %v %v: %v", url, dir, r)
+				}
+				os.RemoveAll(dir)
+			}()
 
 			t1 := time.Now()
 			l := newLoader(dir)
