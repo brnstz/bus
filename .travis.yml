@@ -17,4 +17,3 @@ before_script:
 
 script: 
   - go test -v .
-  - go test -v ./internal/models
