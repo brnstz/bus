@@ -1,6 +1,7 @@
 package models
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 
@@ -157,6 +158,11 @@ func GetFakeRouteShapes(db sqlx.Ext) ([]*FakeShape, error) {
 			ORDER BY count(*) DESC
 			LIMIT 1
 		`, v.AgencyID, v.RouteID, v.Headsign, v.DirectionID)
+
+		if err == sql.ErrNoRows {
+			log.Println("no rows")
+			return shapes, nil
+		}
 
 		if err != nil {
 			log.Println("can't get trip id")
