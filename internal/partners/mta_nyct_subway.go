@@ -59,23 +59,18 @@ var (
 		"7": "51",
 	}
 
-	cacheRoute = map[string]bool{}
-)
-
-func init() {
-	seenFeed := map[string]bool{}
-
-	// Cache exactly one route per feed
-	for route, feed := range mtaSubwayRouteToFeed {
-		if seenFeed[feed] {
-			continue
-		}
-
-		cacheRoute[route] = true
-		seenFeed[feed] = true
+	cacheRoute = map[string]bool{
+		"1":  true,
+		"L":  true,
+		"SI": true,
+		"N":  true,
+		"B":  true,
+		"A":  true,
+		"G":  true,
+		"J":  true,
+		"7":  true,
 	}
-
-}
+)
 
 type mtaNYCSubway struct{}
 
@@ -110,10 +105,11 @@ func (p mtaNYCSubway) Precache(agencyID, routeID string, directionID int) error 
 
 	u, exists := p.getURL(routeID)
 	if !exists {
+		log.Println("mtaNYCSubway no URL exists", k)
 		return nil
 	}
 
-	// Since the URL we call is the same no matter which direction, arbirarily
+	// Since the URL we call is the same no matter which direction, arbitrarily
 	// decide to ignore one of the directions.
 	if directionID != cacheDirection {
 		return nil
@@ -121,24 +117,25 @@ func (p mtaNYCSubway) Precache(agencyID, routeID string, directionID int) error 
 
 	// Since multiple routes appear in the same feed, only need to cache
 	// one route.
-	if !cacheRoute[mtaSubwayRouteToFeed[routeID]] {
+	if !cacheRoute[routeID] {
+		log.Println("mtaNYCSubway not a cache route", k)
 		return nil
 	}
 
 	_, err := etc.RedisCacheURL(u)
 	if err != nil {
-		log.Println("can't cache live subway response", err)
+		log.Println("can't cache live subway response", k, err)
 		return err
 	}
 
 	// attempt to parse response to ensure it is valid
 	_, _, err = p.Live(agencyID, routeID, "", directionID)
 	if err != nil {
-		log.Println("can't parse response", err)
+		log.Println("can't parse response", k, err)
 		return err
 	}
 
-	log.Println("succesfully saved", k)
+	log.Println("mtaNYCSubway successfully saved", k)
 
 	return nil
 }

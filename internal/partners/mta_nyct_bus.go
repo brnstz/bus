@@ -53,7 +53,7 @@ func (p mtaNYCBus) Precache(agencyID, routeID string, directionID int) error {
 		return err
 	}
 
-	log.Println("succesfully saved", k)
+	log.Println("mtaNYCBus successfully saved", k)
 
 	return nil
 }
