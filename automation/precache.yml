@@ -39,6 +39,3 @@
 
     - name: Restart busprecache
       service: name=busprecache state=restarted
-
-    - name: Restart redis
-      service: name=redis-server state=restarted
