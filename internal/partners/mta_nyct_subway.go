@@ -17,6 +17,8 @@ import (
 )
 
 var (
+	cacheDirection = 0
+
 	esiURL = "http://datamine.mta.info/mta_esi.php"
 
 	mtaSubwayRouteToFeed = map[string]string{
@@ -29,17 +31,51 @@ var (
 		"6X": "1",
 		"S":  "1",
 		"GS": "1",
-		"L":  "2",
+
+		"L": "2",
+
 		"SI": "11",
-		"N":  "16",
-		"Q":  "16",
-		"R":  "16",
-		"W":  "16",
-		"B":  "21",
-		"D":  "21",
-		"C":  "26",
+
+		"N": "16",
+		"Q": "16",
+		"R": "16",
+		"W": "16",
+
+		"B": "21",
+		"D": "21",
+		"F": "21",
+		"M": "21",
+
+		"A": "26",
+		"C": "26",
+		"E": "26",
+		"H": "26",
+
+		"G": "31",
+
+		"J": "36",
+		"Z": "36",
+
+		"7": "51",
 	}
+
+	cacheRoute = map[string]bool{}
 )
+
+func init() {
+	seenFeed := map[string]bool{}
+
+	// Cache exactly one route per feed
+	for route, feed := range mtaSubwayRouteToFeed {
+		if seenFeed[feed] {
+			continue
+		}
+
+		cacheRoute[route] = true
+		seenFeed[feed] = true
+	}
+
+}
 
 type mtaNYCSubway struct{}
 
@@ -79,13 +115,13 @@ func (p mtaNYCSubway) Precache(agencyID, routeID string, directionID int) error 
 
 	// Since the URL we call is the same no matter which direction, arbirarily
 	// decide to ignore one of the directions.
-	if directionID == 1 {
+	if directionID != cacheDirection {
 		return nil
 	}
 
-	// Also feed ID "1" applies to multiple routes. We only need to cache one.
-	// Arbitrarily choose the "1" route.
-	if mtaSubwayRouteToFeed[routeID] == "1" && routeID != "1" {
+	// Since multiple routes appear in the same feed, only need to cache
+	// one route.
+	if !cacheRoute[mtaSubwayRouteToFeed[routeID]] {
 		return nil
 	}
 
