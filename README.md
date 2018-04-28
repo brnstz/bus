@@ -22,14 +22,11 @@
 
 ## Supported agencies 
 
-| Agency                 | Live departures  |
-|------------------------|------------------|
-| MTA NYC Transit        | Yes, where available (all buses, some subways) |
-| PATH                   | No               |
-| NJ Transit Rail        | No               |
-| Metro-North            | No               |
-| Long Island Rail Road  | No               |
-| Staten Island Ferry    | No               |
+| Agency                      | Live departures  | 
+|-----------------------------|------------------|
+| MTA NYC Transit Bus         | All routes       |
+| MTA NYC Transit Subway      | 123, 456, 7, ACE, BDFM, G, JZ, S |
+| Staten Island Ferry         | Scheduled departures only  |
 
 
 ## Binaries
@@ -105,8 +102,6 @@ a writeable database, but `busprecache` and `busapi` can use a read-only replica
 | `BUS_GTFS_URLS`             | Comma-separated path to GTFS zip URLs                                                   | *None*              |
 | `BUS_ROUTE_FILTER`          | Comma-separated list of `route_id` values to filter on (i.e., *only* load these routes)  | *None (no filter)*  |
 | `BUS_LOAD_FOREVER`          | Load forever (24 hour delay between loads) if `true`, exit after first load if `false`   |  `true`             |
-| `BUS_NJTRANSIT_FEED_USERNAME` | Username for accessing [NJ Transit GTFS data](https://www.njtransit.com/mt/mt_servlet.srv?hdnPageAction=MTDevLoginTo) | *None* |
-| `BUS_NJTRANSIT_FEED_PASSWORD` | Password for accessing [NJ Transit GTFS data](https://www.njtransit.com/mt/mt_servlet.srv?hdnPageAction=MTDevLoginTo) | *None*  |
 
 ### `busprecache` config
 
